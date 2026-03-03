@@ -1,0 +1,20 @@
+##############################
+##### pre_processing.py ######
+##############################
+
+how to run pre_processing.py:
+    powershell: python pre_processing.py --ct_folder "Z:\nas-ctm01\datasets\public\lidc_npy\3d\ct" --mask_folder "Z:\nas-ctm01\datasets\public\lidc_npy\3d\lungmask" --output_folder "C:\Users\matil.DESKTOP-6DVD4QL\Desktop\pre_processing_output"
+    slurm/linux: python preprocess_ct.py \
+        --ct_folder /home/.../CT \
+        --mask_folder /home/.../MASK \
+        --output_folder /home/.../output
+
+
+###############################
+##### visualize_volume.py #####
+###############################
+- ficheiro para visualizar uma slice (neste caso a 50) a partir do arquivo .npy gerado pelo pre_processing.py
+
+how to run visualize_volume.py:
+    powershell: python visualize_volume.py --file "C:\Users\matil.DESKTOP-6DVD4QL\Desktop\pre_processing_output\LIDC-IDRI-0001.npy" --slice 50
+
