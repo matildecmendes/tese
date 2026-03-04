@@ -35,7 +35,7 @@ def preprocess_dataset(ct_folder, mask_folder, output_folder):
     ct_files = sorted([
         f for f in os.listdir(ct_folder)
         if f.endswith(".npy") and os.path.isfile(os.path.join(ct_folder, f))
-    ])[:1]  # DEBUG: meter [:1] para testar só um paciente
+    ])  # DEBUG: meter [:1] para testar só um paciente
 
     if len(ct_files) == 0:
         raise ValueError("No .npy files found in CT folder.")
