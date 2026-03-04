@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#SBATCH --partition=gpu_min8gb     # Reserved partition
+#SBATCH --partition=gpu_min8gb_ext     # Reserved partition
 #SBATCH --qos=gpu_min8gb_ext        # QoS level. Must match the partition name. External users must add the suffix "_ext".
 #SBATCH --job-name=preprocess    # Job name
 #SBATCH --output=slurm_%x.%j.out   # File containing STDOUT output
