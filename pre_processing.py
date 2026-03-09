@@ -5,9 +5,8 @@ import numpy as np
 import argparse
 
 
-# ==========================================
 # Função de normalização HU para pulmão
-# ==========================================
+
 
 def normalize_hu(slice_ct, min_hu=-1000, max_hu=400):
     slice_ct = np.clip(slice_ct, min_hu, max_hu)
@@ -16,9 +15,8 @@ def normalize_hu(slice_ct, min_hu=-1000, max_hu=400):
     return slice_ct.astype(np.float32)
 
 
-# ==========================================
-# Função principal de processamento
-# ==========================================
+# Função de processamento
+
 
 def preprocess_dataset(ct_folder, mask_folder, output_folder):
 
@@ -35,7 +33,7 @@ def preprocess_dataset(ct_folder, mask_folder, output_folder):
     ct_files = sorted([
         f for f in os.listdir(ct_folder)
         if f.endswith(".npy") and os.path.isfile(os.path.join(ct_folder, f))
-    ])  # DEBUG: meter [:1] para testar só um paciente
+    ])  # DEBUG: [:1] para testar só um paciente
 
     if len(ct_files) == 0:
         raise ValueError("No .npy files found in CT folder.")
@@ -109,7 +107,7 @@ def preprocess_dataset(ct_folder, mask_folder, output_folder):
             else:
                 discarded += 1
 
-        print()  # nova linha após barra
+        print()  # nova linha depois da barra
 
         total_slices_kept += kept
         total_slices_discarded += discarded
@@ -133,9 +131,8 @@ def preprocess_dataset(ct_folder, mask_folder, output_folder):
     print("#" * 60)
 
 
-# ==========================================
 # Entry point
-# ==========================================
+
 
 if __name__ == "__main__":
 
