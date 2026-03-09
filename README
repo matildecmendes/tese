@@ -15,3 +15,9 @@ how to run pre_processing.py:
 how to run visualize_volume.py:
     powershell: python visualize_volume.py --file "C:\Users\matil.DESKTOP-6DVD4QL\Desktop\pre_processing_output\LIDC-IDRI-0001.npy" --slice 50
 
+###################################
+##### create_dataset_split.py #####
+###################################
+
+how to run visualize_volume.py:
+    powershell: python create_dataset_split.py --ct_folder "Z:\nas-ctm01\homes\mcmendes\dataset_pre_processing\Pre_processed_dataset"
