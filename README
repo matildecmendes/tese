@@ -19,5 +19,5 @@ how to run visualize_volume.py:
 ##### create_dataset_split.py #####
 ###################################
 
-how to run visualize_volume.py:
+how to run create_dataset_split.py:
     powershell: python create_dataset_split.py --ct_folder "Z:\nas-ctm01\homes\mcmendes\dataset_pre_processing\Pre_processed_dataset"
