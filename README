@@ -3,3 +3,11 @@
     how to run pre_processing.py:
         powershell: python pre_processing.py --ct_folder "Z:\nas-ctm01\datasets\public\lidc_npy\3d\ct" --mask_folder "Z:\nas-ctm01\datasets\public\lidc_npy\3d\lungmask" --output_folder "C:\Users\matil.DESKTOP-6DVD4QL\Desktop\pre_processing_output"
         slurm: <partição> python \ --ct_folder nas-ctm01/datasets/public/lidc_npy/3d/ct/ \ --mask_folder /nas-ctm01/datasets/public/lidc_npy/3d/lungmask/ \ --output_folder /nas-ctm01/homes/mcmendes/dataset_pre_processing/Pre_processed_dataset
+
+##### convert_to_slices.py #####
+        powershell: python convert_to_slices.py --input_folder "Z:\nas-ctm01\homes\mcmendes\dataset_pre_processing\Pre_processed_dataset" --output_folder "Z:\nas-ctm01\homes\mcmendes\dataset_pre_processing\dataset_slices"
+
+About dataset_split:
+- Used to split the dataset into training (0.9) and test (0.1) sets.
+        - dataset_split.json : volumes separated by pacients
+        - dataset_split2.json : slices separated by pacients
