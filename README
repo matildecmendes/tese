@@ -13,7 +13,10 @@
 ####################
 
 ##### train.py #####
-        debug: python train.py --data_path "Z:\nas-ctm01\homes\mcmendes\dataset_pre_processing\dataset_slices" --output_path "Z:\nas-ctm01\homes\mcmendes\ddgan_outputs" --batch_size 8 --epochs 1 --limit 50
+        debug: srun -p debug_8gb -q debug_8gb python train.py --ct_folder /nas-ctm01/
+datasets/public/lidc_npy/3d/ct --mask_folder /nas-ctm01/datasets/public/lidc_npy/3d/lungmask --output_folder /nas-ctm01/
+homes/mcmendes/dataset_pre_processing/Pre_processed_dataset
+
         treino: python train.py --data_path "Z:\nas-ctm01\homes\mcmendes\dataset_pre_processing\dataset_slices" --output_path "Z:\nas-ctm01\homes\mcmendes\ddgan_outputs" --batch_size 16 --epochs 30 --limit None
 
 
