@@ -3,9 +3,12 @@
     how to run pre_processing.py:
         powershell: python pre_processing.py --ct_folder "Z:\nas-ctm01\datasets\public\lidc_npy\3d\ct" --mask_folder "Z:\nas-ctm01\datasets\public\lidc_npy\3d\lungmask" --output_folder "C:\Users\matil.DESKTOP-6DVD4QL\Desktop\pre_processing_output"
         slurm: <partição> python \ --ct_folder nas-ctm01/datasets/public/lidc_npy/3d/ct/ \ --mask_folder /nas-ctm01/datasets/public/lidc_npy/3d/lungmask/ \ --output_folder /nas-ctm01/homes/mcmendes/dataset_pre_processing/Pre_processed_dataset
+        #python pre_processing.py --ct_folder /nas-ctm01/datasets/public/lidc_npy/3d/ct --mask_folder /nas-ctm01/datasets/public/lidc_npy/3d/lungmask --output_folder /nas-ctm01/homes/mcmendes/dataset_pre_processing/Pre_processed_dataset
+        sbatch: #python pre_processing.py --ct_folder /nas-ctm01/datasets/public/lidc_npy/3d/ct --mask_folder /nas-ctm01/datasets/public/lidc_npy/3d/lungmask --output_folder /nas-ctm01/homes/mcmendes/dataset_pre_processing/Pre_processed_dataset
 
 ##### convert_to_slices.py #####
         powershell: python convert_to_slices.py --input_folder "Z:\nas-ctm01\homes\mcmendes\dataset_pre_processing\Pre_processed_dataset" --output_folder "Z:\nas-ctm01\homes\mcmendes\dataset_pre_processing\dataset_slices"
+        sbtach: python convert_to_slices.py --input_folder "Z:\nas-ctm01\homes\mcmendes\dataset_pre_processing\Pre_processed_dataset" --output_folder "Z:\nas-ctm01\datasets\public\lidc-mcmendes\slices"
 
 
 ####################
@@ -18,6 +21,7 @@ datasets/public/lidc_npy/3d/ct --mask_folder /nas-ctm01/datasets/public/lidc_npy
 homes/mcmendes/dataset_pre_processing/Pre_processed_dataset
 
         treino: python train.py --data_path "Z:\nas-ctm01\homes\mcmendes\dataset_pre_processing\dataset_slices" --output_path "Z:\nas-ctm01\homes\mcmendes\ddgan_outputs" --batch_size 16 --epochs 30 --limit None
+                sbatch: #python train.py --data_path "Z:\nas-ctm01\homes\mcmendes\dataset_pre_processing\dataset_slices" --output_path "Z:\nas-ctm01\homes\mcmendes\ddgan_outputs" --batch_size 4 --epochs 1 --limit 50
 
 
 ###################
