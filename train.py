@@ -40,7 +40,7 @@ def train(data_path, output_path, batch_size, epochs, limit):
     # MODELS
     # ======================
     nz = 16
-    T = 2 # mudei de 4 para 2 
+    T = 2  # continua baixo para facilitar aprendizagem
 
     G = Generator(nz).to(device)
     D = Discriminator().to(device)
@@ -48,8 +48,9 @@ def train(data_path, output_path, batch_size, epochs, limit):
     ema_G = Generator(nz).to(device)
     ema_G.load_state_dict(G.state_dict())
 
-    optG = torch.optim.Adam(G.parameters(), lr=2e-4) # mudei de 1e-4 para 2e-4
-    optD = torch.optim.Adam(D.parameters(), lr=1e-4)
+    # 🔥 LR balanceado (CRÍTICO)
+    optG = torch.optim.Adam(G.parameters(), lr=2e-4)
+    optD = torch.optim.Adam(D.parameters(), lr=5e-5)  # ↓ mais lento
 
     coeff = get_diffusion_coefficients(T, device)
 
@@ -63,7 +64,7 @@ def train(data_path, output_path, batch_size, epochs, limit):
             x0 = x0.to(device)
 
             # ======================
-            # TRAIN D
+            # TRAIN D (1x)
             # ======================
             D.zero_grad()
 
@@ -73,9 +74,9 @@ def train(data_path, output_path, batch_size, epochs, limit):
             xt = xt.detach().requires_grad_(True)
             xt_plus = xt_plus.to(device)
 
-            # REAL
+            # REAL (com smoothing leve)
             D_real = D(xt, t, xt_plus)
-            loss_real = F.softplus(-D_real).mean()
+            loss_real = F.softplus(-0.9 * D_real).mean()
 
             # FAKE
             z = torch.randn(x0.size(0), nz, device=device)
@@ -85,7 +86,7 @@ def train(data_path, output_path, batch_size, epochs, limit):
             D_fake = D(xt_fake, t, xt_plus)
             loss_fake = F.softplus(D_fake).mean()
 
-            # R1
+            # R1 (reduzido)
             grad = torch.autograd.grad(
                 outputs=D_real.sum(),
                 inputs=xt,
@@ -93,33 +94,34 @@ def train(data_path, output_path, batch_size, epochs, limit):
             )[0]
             r1 = grad.pow(2).mean()
 
-            loss_D = loss_real + loss_fake + 1 * r1 # mudei de 10 para 1
+            loss_D = loss_real + loss_fake + 1 * r1
             loss_D.backward()
             optD.step()
 
             # ======================
-            # TRAIN G
+            # TRAIN G (2x) 🔥
             # ======================
-            G.zero_grad()
+            for _ in range(2):
+                G.zero_grad()
 
-            t = torch.randint(0, T-1, (x0.size(0),), device=device)
-            xt, xt_plus = q_sample_pairs(coeff, x0, t)
-            xt_plus = xt_plus.to(device)
+                t = torch.randint(0, T-1, (x0.size(0),), device=device)
+                xt, xt_plus = q_sample_pairs(coeff, x0, t)
+                xt_plus = xt_plus.to(device)
 
-            z = torch.randn(x0.size(0), nz, device=device)
-            x0_pred = G(xt_plus, t, z)
-            xt_fake = sample_posterior(coeff, x0_pred, xt_plus, t)
+                z = torch.randn(x0.size(0), nz, device=device)
+                x0_pred = G(xt_plus, t, z)
+                xt_fake = sample_posterior(coeff, x0_pred, xt_plus, t)
 
-            D_fake = D(xt_fake, t, xt_plus)
-            loss_G = F.softplus(-D_fake).mean()
+                D_fake = D(xt_fake, t, xt_plus)
+                loss_G = F.softplus(-D_fake).mean()
 
-            loss_G.backward()
-            optG.step()
+                loss_G.backward()
+                optG.step()
 
             update_ema(ema_G, G)
 
             # ======================
-            # PRINT LOGS
+            # LOGS
             # ======================
             if i % 10 == 0:
                 print(f"[Epoch {epoch} | Batch {i}] D: {loss_D.item():.4f} | G: {loss_G.item():.4f}")
@@ -134,6 +136,7 @@ def train(data_path, output_path, batch_size, epochs, limit):
                         f"R1:{r1.item():.4f}\n"
                     )
 
+            # DEBUG visual do generator
             if i % 50 == 0:
                 torchvision.utils.save_image(
                     x0_pred[:8],
