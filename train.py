@@ -40,7 +40,7 @@ def train(data_path, output_path, batch_size, epochs, limit):
     # MODELS
     # ======================
     nz = 16
-    T = 4
+    T = 2 # mudei de 4 para 2 
 
     G = Generator(nz).to(device)
     D = Discriminator().to(device)
@@ -48,7 +48,7 @@ def train(data_path, output_path, batch_size, epochs, limit):
     ema_G = Generator(nz).to(device)
     ema_G.load_state_dict(G.state_dict())
 
-    optG = torch.optim.Adam(G.parameters(), lr=1e-4)
+    optG = torch.optim.Adam(G.parameters(), lr=2e-4) # mudei de 1e-4 para 2e-4
     optD = torch.optim.Adam(D.parameters(), lr=1e-4)
 
     coeff = get_diffusion_coefficients(T, device)
@@ -93,7 +93,7 @@ def train(data_path, output_path, batch_size, epochs, limit):
             )[0]
             r1 = grad.pow(2).mean()
 
-            loss_D = loss_real + loss_fake + 10 * r1
+            loss_D = loss_real + loss_fake + 1 * r1 # mudei de 10 para 1
             loss_D.backward()
             optD.step()
 
@@ -133,6 +133,13 @@ def train(data_path, output_path, batch_size, epochs, limit):
                         f"D_fake:{loss_fake.item():.4f} "
                         f"R1:{r1.item():.4f}\n"
                     )
+
+            if i % 50 == 0:
+                torchvision.utils.save_image(
+                    x0_pred[:8],
+                    os.path.join(output_path, f"x0_pred_epoch{epoch}_batch{i}.png"),
+                    normalize=True
+                )
 
         # ======================
         # SAMPLING
