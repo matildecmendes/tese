@@ -7,7 +7,7 @@
 #SBATCH --error=slurm_%x.%j.err    # File containing STDERR output. If ommited, use STDOUT.
 
 set -x
-set -e  
+set -e
 
 echo "===== START ====="
 date
@@ -23,15 +23,13 @@ which python
 python --version
 
 echo "ACTIVATE ENV"
-source ~/.bashrc
+
+eval "$(conda shell.bash hook)"  
 conda activate ddgan_env
 
 echo "PYTHON (after env):"
 which python
 python --version
-
-echo "CHECK train.py exists:"
-ls -lah train.py
 
 echo "RUNNING SCRIPT"
 python train.py
