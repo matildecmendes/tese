@@ -73,7 +73,7 @@ class Generator(nn.Module):
 
         self.to_img = nn.Conv2d(64, 1, 3, padding=1)
 
-        self.z_fc = nn.Linear(nz, 128)
+        self.z_fc = nn.Linear(nz, 64)
 
     def forward(self, xt, t, z):
         B, _, H, W = xt.shape
@@ -88,7 +88,7 @@ class Generator(nn.Module):
         h = self.blocks(x)
 
         # inject z
-        z_emb = self.z_fc(z).view(B, 128, 1, 1)
+        z_emb = self.z_fc(z).view(B, 64, 1, 1)
         h = h + z_emb
 
         out = torch.tanh(self.to_img(h))
