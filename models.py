@@ -194,7 +194,7 @@ class Discriminator(nn.Module):
         t_emb = t_emb.view(B, -1, 1, 1).expand(-1, -1, H, W)
 
 
-        x = torch.cat([xt, xt_plus, t_emb], dim=1)
+        x = torch.cat([xt * 1.0, xt_plus, t_emb], dim=1)
         x = self.input_conv(x)
 
 

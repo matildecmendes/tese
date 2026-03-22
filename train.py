@@ -63,7 +63,7 @@ def train(data_path, output_path, batch_size, epochs, limit):
 
     # LR 
     optG = torch.optim.Adam(G.parameters(), lr=2e-4)
-    optD = torch.optim.Adam(D.parameters(), lr=2e-5)  # ↓ mais lento
+    optD = torch.optim.Adam(D.parameters(), lr=1e-5)  # ↓ mais lento
 
 
     coeff = get_diffusion_coefficients(T, device)
@@ -90,8 +90,12 @@ def train(data_path, output_path, batch_size, epochs, limit):
             xt, xt_plus = q_sample_pairs(coeff, x0, t)
 
 
-            xt = xt.detach().requires_grad_(True)
+            xt.requires_grad_(True)
             xt_plus = xt_plus.to(device)
+
+            #JUNTEI AGORA 22.3
+            xt = xt + 0.02 * torch.randn_like(xt)
+            xt_plus = xt_plus + 0.02 * torch.randn_like(xt_plus)
 
 
             # REAL (com smoothing leve)
@@ -115,10 +119,15 @@ def train(data_path, output_path, batch_size, epochs, limit):
                 inputs=xt,
                 create_graph=True
             )[0]
-            r1 = grad.pow(2).mean()
+            r1 = grad.pow(2).mean()*10
 
 
             loss_D = loss_real + loss_fake + 0.1 * r1
+            if torch.isnan(loss_G) or torch.isinf(loss_G):
+                print("NaN detected in G loss")
+                break
+            if torch.isnan(x0_pred).any():
+                print("NaN in generator output")
             loss_D.backward()
             optD.step()
 
@@ -196,6 +205,8 @@ def train(data_path, output_path, batch_size, epochs, limit):
             if i == 0:
                 print("D_real:", D_real.mean().item())
                 print("D_fake:", D_fake.mean().item())
+
+            print("grad mean:", grad.abs().mean().item())
 
 
         # ======================
