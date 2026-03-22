@@ -81,7 +81,8 @@ def train(data_path, output_path, batch_size, epochs, limit):
             # FAKE
             z = torch.randn(x0.size(0), nz, device=device)
             x0_pred = G(xt_plus.detach(), t, z)
-            xt_fake = sample_posterior(coeff, x0_pred, xt_plus, t)
+            #xt_fake = sample_posterior(coeff, x0_pred, xt_plus, t)
+            xt_fake = x0_pred
 
             D_fake = D(xt_fake, t, xt_plus)
             loss_fake = F.softplus(D_fake).mean()
@@ -143,6 +144,23 @@ def train(data_path, output_path, batch_size, epochs, limit):
                     os.path.join(output_path, f"x0_pred_epoch{epoch}_batch{i}.png"),
                     normalize=True
                 )
+
+            if i == 0:
+                print("x0 min/max:", x0.min().item(), x0.max().item())
+                print("xt min/max:", xt.min().item(), xt.max().item())
+                print("xt_plus min/max:", xt_plus.min().item(), xt_plus.max().item())
+                print("x0_pred min/max:", x0_pred.min().item(), x0_pred.max().item())
+
+            if i == 0:
+                torchvision.utils.save_image(x0[:4], f"{output_path}/debug_x0.png", normalize=True)
+                torchvision.utils.save_image(xt[:4], f"{output_path}/debug_xt.png", normalize=True)
+                torchvision.utils.save_image(xt_plus[:4], f"{output_path}/debug_xt_plus.png", normalize=True)
+                torchvision.utils.save_image(x0_pred[:4], f"{output_path}/debug_x0_pred.png", normalize=True)
+                torchvision.utils.save_image(xt_fake[:4], f"{output_path}/debug_xt_fake.png", normalize=True)
+
+            if i == 0:
+                print("D_real:", D_real.mean().item())
+                print("D_fake:", D_fake.mean().item())
 
         # ======================
         # SAMPLING
