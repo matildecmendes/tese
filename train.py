@@ -39,7 +39,7 @@ def train(data_path, output_path, batch_size, epochs, limit):
     # ======================
     # MODELS
     # ======================
-    nz = 16
+    nz = 256
     T = 2  # continua baixo para facilitar aprendizagem
 
     G = Generator(nz).to(device)
