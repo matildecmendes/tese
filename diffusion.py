@@ -16,7 +16,6 @@ def get_diffusion_coefficients(T, device):
     coeff["sigma"] = torch.sqrt(betas)
     coeff["a"] = torch.sqrt(alphas)
     coeff["sigma_bar"] = torch.sqrt(1 - alpha_bar)
-
     coeff["coef1"] = betas / (1 - alpha_bar)
     coeff["coef2"] = (1 - alphas) / (1 - alpha_bar)
     coeff["var"] = betas
@@ -27,14 +26,17 @@ def q_sample(coeff, x0, t, noise):
     return extract(coeff["alpha_bar"], t, x0.shape) * x0 + \
            extract(coeff["sigma_bar"], t, x0.shape) * noise
 
+# 🔥 FIX: ruído diferente
 def q_sample_pairs(coeff, x0, t):
-    noise = torch.randn_like(x0)
-    xt = q_sample(coeff, x0, t, noise)
+    noise1 = torch.randn_like(x0)
+    noise2 = torch.randn_like(x0)
+
+    xt = q_sample(coeff, x0, t, noise1)
 
     t_plus = torch.clamp(t + 1, max=len(coeff["betas"]) - 1)
 
     xt_plus = extract(coeff["a"], t_plus, x0.shape) * xt + \
-              extract(coeff["sigma"], t_plus, x0.shape) * noise
+              extract(coeff["sigma"], t_plus, x0.shape) * noise2
 
     return xt, xt_plus
 
@@ -45,7 +47,7 @@ def sample_posterior(coeff, x0, xt, t):
     )
 
     noise = torch.randn_like(xt)
-    mask = (t != 0).float().view(-1,1,1,1)
+    mask = (t != 0).float().view(-1, 1, 1, 1)
 
     return mean + mask * torch.sqrt(coeff["var"][t]).view(-1,1,1,1) * noise
 
