@@ -50,7 +50,7 @@ def train(data_path, output_path, batch_size, epochs, limit):
     # MODELS
     # ======================
     nz = 256
-    T = 2  # continua baixo para facilitar aprendizagem
+    T = 4  # continua baixo para facilitar aprendizagem
 
 
     G = Generator(nz).to(device)
@@ -63,7 +63,7 @@ def train(data_path, output_path, batch_size, epochs, limit):
 
     # LR 
     optG = torch.optim.Adam(G.parameters(), lr=2e-4)
-    optD = torch.optim.Adam(D.parameters(), lr=5e-5)  # ↓ mais lento
+    optD = torch.optim.Adam(D.parameters(), lr=2e-5)  # ↓ mais lento
 
 
     coeff = get_diffusion_coefficients(T, device)
@@ -102,8 +102,7 @@ def train(data_path, output_path, batch_size, epochs, limit):
             # FAKE
             z = torch.randn(x0.size(0), nz, device=device)
             x0_pred = G(xt_plus.detach(), t, z)
-            #xt_fake = sample_posterior(coeff, x0_pred, xt_plus, t)
-            xt_fake = x0_pred
+            xt_fake = sample_posterior(coeff, x0_pred, xt_plus, t)
 
 
             D_fake = D(xt_fake, t, xt_plus)
@@ -119,7 +118,7 @@ def train(data_path, output_path, batch_size, epochs, limit):
             r1 = grad.pow(2).mean()
 
 
-            loss_D = loss_real + loss_fake + 1 * r1
+            loss_D = loss_real + loss_fake + 0.1 * r1
             loss_D.backward()
             optD.step()
 
@@ -127,7 +126,7 @@ def train(data_path, output_path, batch_size, epochs, limit):
             # ======================
             # TRAIN G 
             # ======================
-            for _ in range(2):
+            for _ in range(1):
                 G.zero_grad()
 
 
