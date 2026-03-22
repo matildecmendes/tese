@@ -123,11 +123,6 @@ def train(data_path, output_path, batch_size, epochs, limit):
 
 
             loss_D = loss_real + loss_fake + 0.1 * r1
-            if torch.isnan(loss_G) or torch.isinf(loss_G):
-                print("NaN detected in G loss")
-                break
-            if torch.isnan(x0_pred).any():
-                print("NaN in generator output")
             loss_D.backward()
             optD.step()
 
@@ -152,7 +147,12 @@ def train(data_path, output_path, batch_size, epochs, limit):
                 D_fake = D(xt_fake, t, xt_plus)
                 loss_G = F.softplus(-D_fake).mean()
 
-
+                if torch.isnan(loss_G) or torch.isinf(loss_G):
+                    print("NaN detected in G loss")
+                    break
+                if torch.isnan(x0_pred).any():
+                    print("NaN in generator output")
+                    
                 loss_G.backward()
                 optG.step()
 
