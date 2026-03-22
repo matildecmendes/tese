@@ -122,7 +122,7 @@ def train(data_path, output_path, batch_size, epochs, limit):
             r1 = grad.pow(2).mean()*10
 
 
-            loss_D = loss_real + loss_fake + 0.1 * r1
+            loss_D = loss_real + loss_fake + 10 * r1
             loss_D.backward()
             optD.step()
 
@@ -152,7 +152,7 @@ def train(data_path, output_path, batch_size, epochs, limit):
                     break
                 if torch.isnan(x0_pred).any():
                     print("NaN in generator output")
-                    
+
                 loss_G.backward()
                 optG.step()
 
