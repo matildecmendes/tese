@@ -90,16 +90,18 @@ def train(data_path, output_path, batch_size, epochs, limit):
             xt, xt_plus = q_sample_pairs(coeff, x0, t)
 
 
-            xt.requires_grad_(True)
+           xt = xt.to(device)
             xt_plus = xt_plus.to(device)
 
-            #JUNTEI AGORA 22.3
-            xt = xt + 0.02 * torch.randn_like(xt)
-            xt_plus = xt_plus + 0.02 * torch.randn_like(xt_plus)
+            # versão limpa para R1
+            xt_clean = xt.detach().clone().requires_grad_(True)
 
+            # versões com noise para o discriminador
+            xt_noisy = xt_clean + 0.01 * torch.randn_like(xt_clean)
+            xt_plus_noisy = xt_plus + 0.01 * torch.randn_like(xt_plus)
 
             # REAL (com smoothing leve)
-            D_real = D(xt, t, xt_plus)
+            D_real = D(xt_noisy, t, xt_plus_noisy)
             loss_real = F.softplus(-0.9 * D_real).mean()
 
 
@@ -109,14 +111,14 @@ def train(data_path, output_path, batch_size, epochs, limit):
             xt_fake = sample_posterior(coeff, x0_pred, xt_plus, t)
 
 
-            D_fake = D(xt_fake, t, xt_plus)
+            D_fake = D(xt_fake, t, xt_plus_noisy)
             loss_fake = F.softplus(D_fake).mean()
 
 
             # R1 (reduzido)
             grad = torch.autograd.grad(
                 outputs=D_real.sum(),
-                inputs=xt,
+                inputs=xt_clean,
                 create_graph=True
             )[0]
             r1 = grad.pow(2).mean()
@@ -141,7 +143,7 @@ def train(data_path, output_path, batch_size, epochs, limit):
 
 
                 z = torch.randn(x0.size(0), nz, device=device)
-                x0_pred = G(xt, t, z)
+                x0_pred = G(xt_plus, t, z)
                 xt_fake = sample_posterior(coeff, x0_pred, xt_plus, t)
 
 
