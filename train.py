@@ -85,10 +85,8 @@ def train(data_path, output_path, batch_size, epochs, limit):
             # ======================
             D.zero_grad()
 
-
             t = torch.randint(0, T-1, (x0.size(0),), device=device)
             xt, xt_plus = q_sample_pairs(coeff, x0, t)
-
 
             xt = xt.to(device)
             xt_plus = xt_plus.to(device)
@@ -100,35 +98,32 @@ def train(data_path, output_path, batch_size, epochs, limit):
             xt_noisy = xt_clean + 0.01 * torch.randn_like(xt_clean)
             xt_plus_noisy = xt_plus + 0.01 * torch.randn_like(xt_plus)
 
-            # REAL (com smoothing leve)
+            # REAL (xt, xt+1)
             D_real = D(xt_noisy, t, xt_plus_noisy)
             loss_real = F.softplus(-0.9 * D_real).mean()
-
 
             # FAKE
             z = torch.randn(x0.size(0), nz, device=device)
             x0_pred = G(xt_plus, t, z)
             xt_fake = sample_posterior(coeff, x0_pred, xt_plus, t)
 
-
-            D_fake = D(xt_fake, t, xt_plus_noisy)
+            # 🔥 FIX PRINCIPAL DDGAN (par correto)
+            D_fake = D(xt_noisy, t, xt_fake)
             loss_fake = F.softplus(D_fake).mean()
 
-
-            # R1 (reduzido)
+            # R1 (fix bug + forma correta)
             grad = torch.autograd.grad(
                 outputs=D_real.sum(),
                 inputs=xt_clean,
                 create_graph=True
             )[0]
-            r1 = (grad_real.pow(2).view(grad_real.size(0), -1).sum(1)).mean()
-            print("R1 real:", r1.item())
 
+            r1 = (grad.pow(2).view(grad.size(0), -1).sum(1)).mean()
+            print("R1 real:", r1.item())
 
             loss_D = loss_real + loss_fake + 10 * r1
             loss_D.backward()
             optD.step()
-
 
             # ======================
             # TRAIN G 
@@ -147,7 +142,8 @@ def train(data_path, output_path, batch_size, epochs, limit):
                 xt_fake = sample_posterior(coeff, x0_pred, xt_plus, t)
 
 
-                D_fake = D(xt_fake, t, xt_plus)
+                #D_fake = D(xt_fake, t, xt_plus)
+                D_fake = D(xt, t, xt_fake)
                 loss_G = F.softplus(-D_fake).mean()
 
                 if torch.isnan(loss_G) or torch.isinf(loss_G):
