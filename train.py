@@ -121,11 +121,11 @@ def train(data_path, output_path, batch_size, epochs, limit):
                 inputs=xt_clean,
                 create_graph=True
             )[0]
-            r1 = grad.pow(2).mean()
+            r1 = (grad_real.pow(2).view(grad_real.size(0), -1).sum(1)).mean()
             print("R1 real:", r1.item())
 
 
-            loss_D = loss_real + loss_fake + 1000 * r1
+            loss_D = loss_real + loss_fake + 10 * r1
             loss_D.backward()
             optD.step()
 
@@ -133,7 +133,7 @@ def train(data_path, output_path, batch_size, epochs, limit):
             # ======================
             # TRAIN G 
             # ======================
-            for _ in range(1):
+            for _ in range(2):
                 G.zero_grad()
 
 
