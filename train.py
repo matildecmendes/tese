@@ -90,7 +90,7 @@ def train(data_path, output_path, batch_size, epochs, limit):
             xt, xt_plus = q_sample_pairs(coeff, x0, t)
 
 
-           xt = xt.to(device)
+            xt = xt.to(device)
             xt_plus = xt_plus.to(device)
 
             # versão limpa para R1
