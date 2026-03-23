@@ -105,7 +105,7 @@ def train(data_path, output_path, batch_size, epochs, limit):
 
             # FAKE
             z = torch.randn(x0.size(0), nz, device=device)
-            x0_pred = G(xt_plus.detach(), t, z)
+            x0_pred = G(xt_plus, t, z)
             xt_fake = sample_posterior(coeff, x0_pred, xt_plus, t)
 
 
@@ -119,10 +119,11 @@ def train(data_path, output_path, batch_size, epochs, limit):
                 inputs=xt,
                 create_graph=True
             )[0]
-            r1 = grad.pow(2).mean()*10
+            r1 = grad.pow(2).mean()
+            print("R1 real:", r1.item())
 
 
-            loss_D = loss_real + loss_fake + 10 * r1
+            loss_D = loss_real + loss_fake + 1000 * r1
             loss_D.backward()
             optD.step()
 
@@ -140,7 +141,7 @@ def train(data_path, output_path, batch_size, epochs, limit):
 
 
                 z = torch.randn(x0.size(0), nz, device=device)
-                x0_pred = G(xt_plus, t, z)
+                x0_pred = G(xt, t, z)
                 xt_fake = sample_posterior(coeff, x0_pred, xt_plus, t)
 
 
