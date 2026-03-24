@@ -96,7 +96,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--data_path", type=str, required=True)
-    parser.add_argument("--out_dir", type=str, default="outputs")
+    parser.add_argument("--output_path", type=str, default="outputs")
     parser.add_argument("--epochs", type=int, default=50)
     parser.add_argument("--batch_size", type=int, default=8)
     parser.add_argument("--z_dim", type=int, default=256)
