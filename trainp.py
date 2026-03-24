@@ -92,9 +92,9 @@ def main(args):
                     f"D_loss: {d_loss.item():.4f} G_loss: {g_loss.item():.4f}",
                     flush=True)
 
-        save_samples(G, args.z_dim, device, args.out_dir, epoch)
+        save_samples(G, args.z_dim, device, args.output_path, epoch)
 
-    torch.save(G.state_dict(), f"{args.out_dir}/G.pt")
+    torch.save(G.state_dict(), f"{args.output_path}/G.pt")
 
 
 if __name__ == "__main__":
