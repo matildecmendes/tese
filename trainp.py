@@ -54,26 +54,26 @@ def main(args):
     diffusion = Diffusion(device=device)
 
     for epoch in range(args.epochs):
-        for real in tqdm(loader, desc=f"Epoch {epoch}"):
+        for i, real in enumerate(loader):
 
             real = real.to(device)
             b = real.size(0)
 
-            # ---------------- D ----------------
+            # --- D ---
             z = torch.randn(b, args.z_dim, device=device)
             fake = G(z).detach()
 
             real_logits, real_feats = D(real)
-            fake_logits, fake_feats = D(fake)
+            fake_logits, _ = D(fake)
 
             d_loss = adv_loss(real_logits, torch.ones_like(real_logits)) + \
-                     adv_loss(fake_logits, torch.zeros_like(fake_logits))
+                    adv_loss(fake_logits, torch.zeros_like(fake_logits))
 
             opt_D.zero_grad()
             d_loss.backward()
             opt_D.step()
 
-            # ---------------- G ----------------
+            # --- G ---
             z = torch.randn(b, args.z_dim, device=device)
             fake = G(z)
 
@@ -86,6 +86,11 @@ def main(args):
             opt_G.zero_grad()
             g_loss.backward()
             opt_G.step()
+
+            if i % 50 == 0:
+                print(f"Epoch [{epoch}/{args.epochs}] Batch [{i}/{len(loader)}] "
+                    f"D_loss: {d_loss.item():.4f} G_loss: {g_loss.item():.4f}",
+                    flush=True)
 
         save_samples(G, args.z_dim, device, args.out_dir, epoch)
 
