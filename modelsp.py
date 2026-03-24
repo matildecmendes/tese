@@ -74,6 +74,8 @@ class Generator(nn.Module):
             ResBlock(16, 8, up=True),
         )
 
+        self.to_img = nn.Conv2d(8, 1, 3, padding=1)
+
     def forward(self, z):
         h = self.fc(z).view(-1, 512, 4, 4)
         h = self.blocks(h)
