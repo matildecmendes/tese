@@ -107,7 +107,7 @@ def main(args):
 
             if i % 50 == 0:
                 print(f"Epoch [{epoch}/{args.epochs}] Batch [{i}/{len(loader)}] "
-                    f"D_loss: {d_loss.item():.4f} G_loss: {g_loss.item():.4f}",
+                    f"D_loss: {loss_D.item():.3f} G_loss: {loss_G.item():.3f}",
                     flush=True)
                 
             alpha_bar_mean = diffusion.alpha_bars[t].mean().item()
