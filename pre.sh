@@ -9,4 +9,4 @@
 # Commands / scripts to run (e.g., python3 train.py)
 #python convert_to_slices.py --input_folder /nas-ctm01/homes/mcmendes/dataset_pre_processing/Pre_processed_dataset --output_folder /nas-ctm01/datasets/public/lidc-mcmendes/slices
 #python train.py --data_path /nas-ctm01/datasets/public/lidc-mcmendes/slices --output_path /nas-ctm01/homes/mcmendes/ddgan/outputs --batch_size 4 --epochs 1 --limit 50
-python trainp.py --data_path /nas-ctm01/datasets/public/lidc-mcmendes/slices --output_path /nas-ctm01/homes/mcmendes/preliminary_work --batch_size 4 --epochs 30
+python trainp.py --data_path /nas-ctm01/datasets/public/lidc-mcmendes/slices --output_path /nas-ctm01/homes/mcmendes/preliminary_work --batch_size 8 --epochs 30 --limit 6000

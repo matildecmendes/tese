@@ -20,14 +20,14 @@ class ResBlock(nn.Module):
         h = x
 
         if self.up:
-            h = F.interpolate(h, scale_factor=2, mode='nearest')
-            x = F.interpolate(x, scale_factor=2, mode='nearest')
+            h = F.interpolate(h, scale_factor=2)
+            x = F.interpolate(x, scale_factor=2)
 
         h = self.conv1(h)
-        h = h + self.noise_strength * torch.randn_like(h)
-        h = F.relu(h)
+        noise = torch.randn_like(h) * self.noise_strength
+        h = F.leaky_relu(h + noise, 0.2)
 
-        h = self.conv2(h)
+        h = F.leaky_relu(self.conv2(h), 0.2)
         return h + self.skip(x)
 
 
@@ -45,7 +45,9 @@ class DiscResBlock(nn.Module):
         self.skip = nn.Conv2d(in_ch, out_ch, 1)
 
     def forward(self, x):
-        h = F.leaky_relu(self.conv1(x), 0.2)
+        h = x
+
+        h = F.leaky_relu(self.conv1(h), 0.2)
         h = F.leaky_relu(self.conv2(h), 0.2)
 
         if self.down:
@@ -69,13 +71,13 @@ class Generator(nn.Module):
             ResBlock(128, 64, up=True),
             ResBlock(64, 32, up=True),
             ResBlock(32, 16, up=True),
-            ResBlock(16, 1, up=True),
+            ResBlock(16, 8, up=True),
         )
 
     def forward(self, z):
-        h = self.fc(z)
-        h = h.view(-1, 512, 4, 4)
-        return torch.tanh(self.blocks(h))
+        h = self.fc(z).view(-1, 512, 4, 4)
+        h = self.blocks(h)
+        return torch.tanh(self.to_img(h))
 
 
 # -------------------------
@@ -93,18 +95,15 @@ class Discriminator(nn.Module):
             DiscResBlock(256, 512, down=True),
         ])
 
-        self.pool = nn.AdaptiveAvgPool2d(1)
-        self.fc = nn.Linear(512, 1)
+        self.pool = nn.AdaptiveAvgPool2d((4,4))
+        self.fc = nn.Linear(512*4*4, 1)
 
     def forward(self, x):
         feats = []
-        h = x
-
         for block in self.blocks:
-            h = block(h)
-            feats.append(h)
+            x = block(x)
+            feats.append(x)
 
-        h = self.pool(h).view(h.size(0), -1)
-        out = self.fc(h)
-
+        x = self.pool(x)
+        out = self.fc(x.view(x.size(0), -1))
         return out, feats
