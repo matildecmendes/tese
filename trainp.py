@@ -30,12 +30,20 @@ def main(args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     dataset = CTDataset(args.data_path)
-    loader = DataLoader(dataset,
-                        batch_size=args.batch_size,
-                        shuffle=True,
-                        num_workers=4,
-                        pin_memory=True,
-                        drop_last=True)
+
+    if args.limit is not None:
+        dataset.files = dataset.files[:args.limit]
+
+    print(f"Dataset size: {len(dataset)}")
+
+    loader = DataLoader(
+        dataset,
+        batch_size=args.batch_size,
+        shuffle=True,
+        num_workers=4,
+        pin_memory=True,
+        drop_last=True
+    )
 
     G = Generator(args.z_dim).to(device)
     D = Discriminator().to(device)
@@ -93,6 +101,7 @@ if __name__ == "__main__":
     parser.add_argument("--batch_size", type=int, default=8)
     parser.add_argument("--z_dim", type=int, default=256)
     parser.add_argument("--fm_lambda", type=float, default=0.5)
+    parser.add_argument("--limit", type=int, default=None)
 
     args = parser.parse_args()
     main(args)
