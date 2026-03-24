@@ -1,7 +1,6 @@
 import argparse
 import torch
 from torch.utils.data import DataLoader
-from tqdm import tqdm
 
 from datasetp import CTDataset
 from modelsp import Generator, Discriminator
@@ -110,9 +109,10 @@ def main(args):
                     f"D_loss: {loss_D.item():.3f} G_loss: {loss_G.item():.3f}",
                     flush=True)
                 
-            alpha_bar_mean = diffusion.alpha_bars[t].mean().item()
-            print(f"alpha_bar_mean={alpha_bar_mean:.4f}")
-
+            if i == 0:
+                print("REAL SHAPE:", real.shape)
+                print("FAKE SHAPE:", fake.shape)
+                
         save_samples(G, args.z_dim, device, args.output_path, epoch)
 
     torch.save(G.state_dict(), f"{args.output_path}/G.pt")

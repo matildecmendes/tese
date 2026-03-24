@@ -14,12 +14,9 @@ class CTDataset(Dataset):
     def __getitem__(self, idx):
         x = np.load(self.files[idx]).astype(np.float32)
 
-        x_min, x_max = x.min(), x.max()
-        if x_max > x_min:
-            x = (x - x_min) / (x_max - x_min)
-            x = x * 2.0 - 1.0
-        else:
-            x = np.zeros_like(x)
-
         x = torch.from_numpy(x)
-        return x.unsqueeze(0)
+
+        if x.ndim == 2:
+            x = x.unsqueeze(0)
+
+        return x
