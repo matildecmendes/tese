@@ -6,7 +6,7 @@ from tqdm import tqdm
 from datasetp import CTDataset
 from modelsp import Generator, Discriminator
 from diffusionp import Diffusion
-from utils import save_samples
+from utilsp import save_samples
 
 import torch.nn.functional as F
 
