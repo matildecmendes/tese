@@ -112,7 +112,9 @@ def main(args):
             if i == 0:
                 print("REAL SHAPE:", real.shape)
                 print("FAKE SHAPE:", fake.shape)
-                
+                print("Real min | real max", real.min(), real.max())
+                print("Fake min | fake max", fake.min(), fake.max())
+
         save_samples(G, args.z_dim, device, args.output_path, epoch)
 
     torch.save(G.state_dict(), f"{args.output_path}/G.pt")
