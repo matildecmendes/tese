@@ -28,6 +28,8 @@ def feature_matching_loss(fake_feats, real_feats):
 def main(args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+    # DATASET
+
     dataset = CTDataset(args.data_path)
 
     if args.limit is not None:
@@ -52,21 +54,30 @@ def main(args):
 
     diffusion = Diffusion(device=device)
 
+    # LOOP DE TREINO
+
     for epoch in range(args.epochs):
         for real in loader:
 
             real = real.to(device)
             b = real.size(0)
 
+            # sample timestep
+            t = torch.randint(0, diffusion.T, (b,), device=device)
+
             # ---------------- D ----------------
             z = torch.randn(b, args.z_dim, device=device)
             fake = G(z).detach()
 
-            real_logits, real_feats = D(real)
-            fake_logits, fake_feats = D(fake)
+            # apply diffusion
+            x_t_real, noise_real = diffusion.forward(real)
+            x_t_fake, noise_fake = diffusion.forward(fake)
+
+            real_logits, real_feats = D(x_t_real)
+            fake_logits, fake_feats = D(x_t_fake)
 
             d_loss = adv_loss(real_logits, torch.ones_like(real_logits)) + \
-                     adv_loss(fake_logits, torch.zeros_like(fake_logits))
+                    adv_loss(fake_logits, torch.zeros_like(fake_logits))
 
             opt_D.zero_grad()
             d_loss.backward()
@@ -76,8 +87,10 @@ def main(args):
             z = torch.randn(b, args.z_dim, device=device)
             fake = G(z)
 
-            fake_logits, fake_feats = D(fake)
-            _, real_feats = D(real)
+            x_t_fake, _ = diffusion.forward(fake)
+
+            fake_logits, fake_feats = D(x_t_fake)
+            _, real_feats = D(x_t_real)
 
             g_loss = adv_loss(fake_logits, torch.ones_like(fake_logits))
             g_loss += args.fm_lambda * feature_matching_loss(fake_feats, real_feats)
@@ -86,7 +99,13 @@ def main(args):
             g_loss.backward()
             opt_G.step()
 
-        save_samples(G, args.z_dim, device, args.out_dir, epoch)
+            if real % 10 == 0:
+                print(f"[Epoch {epoch} | Batch {i}] D: {d_loss.item():.4f} | G: {g_loss.item():.4f}")
+                print("REAL range:", real.min().item(), real.max().item())
+                print("x_t range:", x_t_real.min().item(), x_t_real.max().item())
+
+
+            save_samples(G, args.z_dim, device, args.out_dir, epoch)
 
     torch.save(G.state_dict(), f"{args.out_dir}/G.pt")
 

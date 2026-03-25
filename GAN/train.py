@@ -1,52 +1,66 @@
 import torch
-from torch import nn
+import torch.nn as nn
+from torch.utils.data import DataLoader
 
-import math
-import matplotlib.pyplot as plt
+from dataset import CTDataset
+from models import Generator, Discriminator
+from utils import save_images
+import config
 
-torch.manual_seed(111)
 
-lr = 0.001
-num_epochs = 300
-loss_function = nn.BCELoss()
+def train():
+    dataset = CTDataset(config.DATA_PATH, config.IMAGE_SIZE)
+    loader = DataLoader(dataset, batch_size=config.BATCH_SIZE, shuffle=True)
 
-optimizer_discriminator = torch.optim.Adam(discriminator.parameters(), lr=lr)
-optimizer_generator = torch.optim.Adam(generator.parameters(), lr=lr)
+    G = Generator(config.LATENT_DIM).to(config.DEVICE)
+    D = Discriminator().to(config.DEVICE)
 
-for epoch in range(num_epochs):
-    for n, (real_samples, _) in enumerate(train_loader):
-        # Data for training the discriminator
-        real_samples_labels = torch.ones((batch_size, 1))
-        latent_space_samples = torch.randn((batch_size, 2))
-        generated_samples = generator(latent_space_samples)
-        generated_samples_labels = torch.zeros((batch_size, 1))
-        all_samples = torch.cat((real_samples, generated_samples))
-        all_samples_labels = torch.cat(
-            (real_samples_labels, generated_samples_labels)
-        )
+    criterion = nn.BCELoss()
 
-        # Training the discriminator
-        discriminator.zero_grad()
-        output_discriminator = discriminator(all_samples)
-        loss_discriminator = loss_function(
-            output_discriminator, all_samples_labels)
-        loss_discriminator.backward()
-        optimizer_discriminator.step()
+    opt_G = torch.optim.Adam(G.parameters(), lr=config.LR, betas=(0.5, 0.999))
+    opt_D = torch.optim.Adam(D.parameters(), lr=config.LR, betas=(0.5, 0.999))
 
-        # Data for training the generator
-        latent_space_samples = torch.randn((batch_size, 2))
+    for epoch in range(config.EPOCHS):
+        for i, real in enumerate(loader):
 
-        # Training the generator
-        generator.zero_grad()
-        generated_samples = generator(latent_space_samples)
-        output_discriminator_generated = discriminator(generated_samples)
-        loss_generator = loss_function(
-            output_discriminator_generated, real_samples_labels
-        )
-        loss_generator.backward()
-        optimizer_generator.step()
+            real = real.to(config.DEVICE)
+            batch_size = real.size(0)
 
-        # Show loss
-        if epoch % 10 == 0 and n == batch_size - 1:
-            print(f"Epoch: {epoch} Loss D.: {loss_discriminator}")
-            print(f"Epoch: {epoch} Loss G.: {loss_generator}")
+            # Labels
+            real_labels = torch.ones(batch_size, device=config.DEVICE)
+            fake_labels = torch.zeros(batch_size, device=config.DEVICE)
+
+            # -------- Train D --------
+            noise = torch.randn(batch_size, config.LATENT_DIM, 1, 1, device=config.DEVICE)
+            fake = G(noise)
+
+            D_real = D(real)
+            D_fake = D(fake.detach())
+
+            loss_D = criterion(D_real, real_labels) + criterion(D_fake, fake_labels)
+
+            opt_D.zero_grad()
+            loss_D.backward()
+            opt_D.step()
+
+            # -------- Train G --------
+            D_fake = D(fake)
+            loss_G = criterion(D_fake, real_labels)
+
+            opt_G.zero_grad()
+            loss_G.backward()
+            opt_G.step()
+
+            if i % 50 == 0:
+                print(f"[{epoch}/{config.EPOCHS}] Batch {i} "
+                      f"Loss D: {loss_D.item():.4f}, Loss G: {loss_G.item():.4f}")
+
+        # guardar imagens
+        with torch.no_grad():
+            noise = torch.randn(16, config.LATENT_DIM, 1, 1, device=config.DEVICE)
+            fake = G(noise)
+            save_images(fake, epoch, config.SAVE_PATH)
+
+
+if __name__ == "__main__":
+    train()
