@@ -1,30 +1,25 @@
-import os
-import glob
+import os, glob
 import numpy as np
 import torch
 from torch.utils.data import Dataset
-from PIL import Image
-
 
 class CTDataset(Dataset):
-    def __init__(self, root_dir, image_size=256):
-        self.paths = sorted(glob.glob(os.path.join(root_dir, "*.png")))
-        self.image_size = image_size
+    def __init__(self, root):
+        self.files = sorted(glob.glob(os.path.join(root, "*.npy")))
+        assert len(self.files) > 0, f"No .npy files found in {root}"
 
     def __len__(self):
-        return len(self.paths)
+        return len(self.files)
 
     def __getitem__(self, idx):
-        img_path = self.paths[idx]
+        x = np.load(self.files[idx]).astype(np.float32)
 
-        img = Image.open(img_path).convert("L")  # grayscale
-        img = img.resize((self.image_size, self.image_size))
+        x_min, x_max = x.min(), x.max()
+        if x_max > x_min:
+            x = (x - x_min) / (x_max - x_min)
+            x = x * 2.0 - 1.0
+        else:
+            x = np.zeros_like(x)
 
-        img = np.array(img).astype(np.float32)
-
-        # NORMALIZAÇÃO IGUAL À TUA
-        img = (img / 127.5) - 1.0
-
-        img = torch.from_numpy(img).unsqueeze(0)  # (1, H, W)
-
-        return img
+        x = torch.from_numpy(x)
+        return x.unsqueeze(0)
