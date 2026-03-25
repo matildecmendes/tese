@@ -24,7 +24,7 @@ class ResBlock(nn.Module):
             x = F.interpolate(x, scale_factor=2, mode='nearest')
 
         h = self.conv1(h)
-        h = h + self.noise_strength * torch.randn_like(h)
+        #h = h + self.noise_strength * torch.randn_like(h)
         h = F.relu(h)
 
         h = self.conv2(h)

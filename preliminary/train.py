@@ -74,8 +74,8 @@ def main(args):
     G = Generator(args.z_dim).to(device)
     D = Discriminator().to(device)
 
-    opt_G = torch.optim.Adam(G.parameters(), lr=2e-4, betas=(0.5, 0.999))
-    opt_D = torch.optim.Adam(D.parameters(), lr=5e-5, betas=(0.5, 0.999))
+    opt_G = torch.optim.Adam(G.parameters(), lr=3e-4, betas=(0.5, 0.999))
+    opt_D = torch.optim.Adam(D.parameters(), lr=1e-5, betas=(0.5, 0.999))
 
     diffusion = Diffusion(device=device)
 
@@ -111,7 +111,9 @@ def main(args):
             x_t_fake, _ = diffusion.forward(fake)
 
             fake_logits, fake_feats = D(x_t_fake)
-            _, real_feats = D(x_t_real)
+            #_, real_feats = D(x_t_real)
+            with torch.no_grad():
+                _, real_feats = D(x_t_real)
 
             g_loss = adv_loss(fake_logits, torch.ones_like(fake_logits))
             g_loss += args.fm_lambda * feature_matching_loss(fake_feats, real_feats)

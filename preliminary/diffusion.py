@@ -17,5 +17,7 @@ class Diffusion:
 
         alpha_bar = self.alpha_bars[t].view(-1, 1, 1, 1)
 
+        #x_t = torch.sqrt(alpha_bar) * x + torch.sqrt(1 - alpha_bar) * noise
         x_t = torch.sqrt(alpha_bar) * x + torch.sqrt(1 - alpha_bar) * noise
+        x_t = torch.clamp(x_t, -1.5, 1.5)
         return x_t, noise
