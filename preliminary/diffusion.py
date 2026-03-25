@@ -1,7 +1,7 @@
 import torch
 
 class Diffusion:
-    def __init__(self, T=30, beta_start=1e-4, beta_end=0.002, device="cuda"):
+    def __init__(self, T=30, beta_start=1e-4, beta_end=0.005, device="cuda"):
         self.T = T
         self.device = device
 
@@ -11,10 +11,11 @@ class Diffusion:
 
     def forward(self, x):
         b = x.size(0)
-        t = torch.randint(0, self.T, (b,), device=x.device)
-        return self.apply_at_t(x, t), t
+        t = torch.randint(0, self.T, (b,), device=self.device)
 
-    def apply_at_t(self, x, t):
-        alpha_bar_t = self.alpha_bars[t].view(-1,1,1,1)
         noise = torch.randn_like(x)
-        return torch.sqrt(alpha_bar_t) * x + torch.sqrt(1 - alpha_bar_t) * noise
+
+        alpha_bar = self.alpha_bars[t].view(-1, 1, 1, 1)
+
+        x_t = torch.sqrt(alpha_bar) * x + torch.sqrt(1 - alpha_bar) * noise
+        return x_t, noise

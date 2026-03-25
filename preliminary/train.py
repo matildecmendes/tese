@@ -17,8 +17,8 @@ def adv_loss(logits, targets):
 
 def feature_matching_loss(fake_feats, real_feats):
     loss = 0
-    for fake_f, real_f in zip(fake_feats, real_feats):
-        loss += torch.mean(torch.abs(fake_f - real_f.detach()))
+    for f, r in zip(fake_feats, real_feats):
+        loss += torch.mean(torch.abs(f - r.detach()))
     return loss
 
 
@@ -53,78 +53,49 @@ def main(args):
     diffusion = Diffusion(device=device)
 
     for epoch in range(args.epochs):
-        for i, real in enumerate(loader):
+        for real in loader:
 
             real = real.to(device)
             b = real.size(0)
 
-            # --- D ---
+            # ---------------- D ----------------
             z = torch.randn(b, args.z_dim, device=device)
             fake = G(z).detach()
 
-            # amostra t uma vez
-            real_d, t = diffusion.forward(real)
-            
-            # usa o MESMO t para fake
-            fake_d = diffusion.apply_at_t(fake, t)
+            real_logits, real_feats = D(real)
+            fake_logits, fake_feats = D(fake)
 
-
-            real_logits, real_feats = D(real_d)
-            fake_logits, fake_feats = D(fake_d)
-
-            real_labels = torch.ones_like(real_logits) * 0.9
-            fake_labels = torch.zeros_like(fake_logits)
-
-            loss_D = (
-                adv_loss(real_logits, real_labels) +
-                adv_loss(fake_logits, fake_labels)
-            )
+            d_loss = adv_loss(real_logits, torch.ones_like(real_logits)) + \
+                     adv_loss(fake_logits, torch.zeros_like(fake_logits))
 
             opt_D.zero_grad()
-            loss_D.backward()
+            d_loss.backward()
             opt_D.step()
 
-            # --- G ---
+            # ---------------- G ----------------
             z = torch.randn(b, args.z_dim, device=device)
             fake = G(z)
 
-            fake_d = diffusion.apply_at_t(fake, t)
+            fake_logits, fake_feats = D(fake)
+            _, real_feats = D(real)
 
-            fake_logits, fake_feats = D(fake_d)
-
-            with torch.no_grad():
-                _, real_feats = D(real_d)
-
-            loss_G = (
-                adv_loss(fake_logits, torch.ones_like(fake_logits) * 0.9) +
-                args.fm_lambda * feature_matching_loss(fake_feats, real_feats)
-            )
+            g_loss = adv_loss(fake_logits, torch.ones_like(fake_logits))
+            g_loss += args.fm_lambda * feature_matching_loss(fake_feats, real_feats)
 
             opt_G.zero_grad()
-            loss_G.backward()
+            g_loss.backward()
             opt_G.step()
 
-            if i % 50 == 0:
-                print(f"Epoch [{epoch}/{args.epochs}] Batch [{i}/{len(loader)}] "
-                    f"D_loss: {loss_D.item():.3f} G_loss: {loss_G.item():.3f}",
-                    flush=True)
-                
-            if i == 0:
-                print("REAL SHAPE:", real.shape)
-                print("FAKE SHAPE:", fake.shape)
-                print("Real min | real max", real.min(), real.max())
-                print("Fake min | fake max", fake.min(), fake.max())
+        save_samples(G, args.z_dim, device, args.out_dir, epoch)
 
-        save_samples(G, args.z_dim, device, args.output_path, epoch)
-
-    torch.save(G.state_dict(), f"{args.output_path}/G.pt")
+    torch.save(G.state_dict(), f"{args.out_dir}/G.pt")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--data_path", type=str, required=True)
-    parser.add_argument("--output_path", type=str, default="outputs")
+    parser.add_argument("--out_dir", type=str, default="outputs")
     parser.add_argument("--epochs", type=int, default=50)
     parser.add_argument("--batch_size", type=int, default=8)
     parser.add_argument("--z_dim", type=int, default=256)
