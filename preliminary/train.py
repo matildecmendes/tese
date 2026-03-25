@@ -21,10 +21,35 @@ def feature_matching_loss(fake_feats, real_feats):
         loss += torch.mean(torch.abs(f - r.detach()))
     return loss
 
+def debug_batch(real, fake, x_t_real, x_t_fake, epoch, i, out_dir):
+    import os
+    import torchvision.utils as vutils
 
-# -------------------------
+    debug_dir = os.path.join(out_dir, "debug")
+    os.makedirs(debug_dir, exist_ok=True)
+
+    # normalizar para [0,1]
+    def norm(x):
+        return (x + 1) / 2
+
+    grid = torch.cat([
+        norm(real[:4]),
+        norm(x_t_real[:4]),
+        norm(fake[:4]),
+        norm(x_t_fake[:4])
+    ], dim=0)
+
+    grid = vutils.make_grid(grid, nrow=4)
+
+    vutils.save_image(
+        grid,
+        os.path.join(debug_dir, f"epoch{epoch}_batch{i}.png")
+    )
+
+
+
 # TRAIN
-# -------------------------
+
 def main(args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -112,6 +137,13 @@ def main(args):
                 print(
                     f"  FAKE   min/max: {fake.min().item():.3f} / {fake.max().item():.3f}"
                 )
+
+            if i == 0 and epoch % 5 == 0:
+                debug_batch(real, fake, x_t_real, x_t_fake, epoch, i, args.out_dir)
+
+            if i % 50 == 0:
+                print("STD real:", real.std().item())
+                print("STD fake:", fake.std().item())
 
         # guardar imagens só no fim do epoch
         save_samples(G, args.z_dim, device, args.out_dir, epoch)
