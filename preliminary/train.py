@@ -128,15 +128,15 @@ def main(args):
                     f"D: {d_loss.item():.4f} | G: {g_loss.item():.4f}"
                 )
 
-                print(
-                    f"  REAL   min/max: {real.min().item():.3f} / {real.max().item():.3f}"
-                )
-                print(
-                    f"  x_t    min/max: {x_t_real.min().item():.3f} / {x_t_real.max().item():.3f}"
-                )
-                print(
-                    f"  FAKE   min/max: {fake.min().item():.3f} / {fake.max().item():.3f}"
-                )
+                #print(
+                #    f"  REAL   min/max: {real.min().item():.3f} / {real.max().item():.3f}"
+                #)
+                #print(
+                #    f"  x_t    min/max: {x_t_real.min().item():.3f} / {x_t_real.max().item():.3f}"
+                #)
+                #print(
+                #    f"  FAKE   min/max: {fake.min().item():.3f} / {fake.max().item():.3f}"
+                #)
 
             if i == 0 and epoch % 5 == 0:
                 debug_batch(real, fake, x_t_real, x_t_fake, epoch, i, args.out_dir)
