@@ -2,10 +2,10 @@ import argparse
 import torch
 from torch.utils.data import DataLoader
 
-from datasetp import CTDataset
-from modelsp import Generator, Discriminator
-from diffusionp import Diffusion
-from utilsp import save_samples
+from preliminary.dataset import CTDataset
+from preliminary.models import Generator, Discriminator
+from preliminary.diffusion import Diffusion
+from preliminary.utils import save_samples
 
 import torch.nn.functional as F
 

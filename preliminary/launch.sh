@@ -6,32 +6,5 @@
 #SBATCH --output=slurm_%x.%j.out   # File containing STDOUT output
 #SBATCH --error=slurm_%x.%j.err    # File containing STDERR output. If ommited, use STDOUT.
 
-set -x
-set -e
-
-echo "===== START ====="
-date
-
-echo "PWD:"
-pwd
-
-echo "FILES:"
-ls -lah
-
-echo "PYTHON (before env):"
-which python
-python --version
-
-echo "ACTIVATE ENV"
-
-eval "$(conda shell.bash hook)"  
-conda activate ddgan_env
-
-echo "PYTHON (after env):"
-which python
-python --version
-
-echo "RUNNING SCRIPT"
-python train.py
-
-echo "===== END ====="
+# Commands / scripts to run (e.g., python3 train.py)
+python trainp.py --data_path /nas-ctm01/datasets/public/lidc-mcmendes/slices --output_path /nas-ctm01/homes/mcmendes/preliminary_work --batch_size 8 --epochs 2 --limit 500

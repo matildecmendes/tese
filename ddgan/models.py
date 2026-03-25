@@ -2,12 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-
-
-
-# ======================
 # TIME EMBEDDING
-# ======================
+
 class TimeEmbedding(nn.Module):
     def __init__(self, dim):
         super().__init__()
@@ -24,10 +20,8 @@ class TimeEmbedding(nn.Module):
 
 
 
+# GENERATOR RESBLOCK
 
-# ======================
-# GENERATOR BLOCK
-# ======================
 class ResBlock(nn.Module):
     def __init__(self, in_ch, out_ch, up=False):
         super().__init__()
@@ -65,10 +59,8 @@ class ResBlock(nn.Module):
 
 
 
-
-# ==============
 # GENERATOR
-# ==============
+
 class Generator(nn.Module):
     def __init__(self, nz=256):
         super().__init__()
@@ -124,10 +116,8 @@ class Generator(nn.Module):
 
 
 
-
-# ======================
 # DISCRIMINATOR BLOCK
-# ======================
+
 class DiscResBlock(nn.Module):
     def __init__(self, in_ch, out_ch, down=False):
         super().__init__()
@@ -159,9 +149,8 @@ class DiscResBlock(nn.Module):
 
 
 
-# ======================
 # DISCRIMINATOR
-# ======================
+
 class Discriminator(nn.Module):
     def __init__(self):
         super().__init__()

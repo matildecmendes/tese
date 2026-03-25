@@ -6,13 +6,10 @@ import os
 import argparse
 
 
-from dataset import CTSliceDataset
-from models import Generator, Discriminator
-from diffusion import *
-from utils import update_ema
-
-
-
+from ddgan.dataset import CTSliceDataset
+from ddgan.models import Generator, Discriminator
+from ddgan.diffusion import *
+from ddgan.utils import update_ema
 
 def train(data_path, output_path, batch_size, epochs, limit):
 
@@ -27,10 +24,7 @@ def train(data_path, output_path, batch_size, epochs, limit):
     os.makedirs(output_path, exist_ok=True)
     log_file = os.path.join(output_path, "log.txt")
 
-
-    # ======================
     # DATA
-    # ======================
     dataset = CTSliceDataset(data_path, limit=limit)
 
 
@@ -46,11 +40,10 @@ def train(data_path, output_path, batch_size, epochs, limit):
     print(f"[INFO] Dataset size: {len(dataset)}")
 
 
-    # ======================
+
     # MODELS
-    # ======================
     nz = 256
-    T = 4  # continua baixo para facilitar aprendizagem
+    T = 4
 
 
     G = Generator(nz).to(device)
@@ -69,9 +62,8 @@ def train(data_path, output_path, batch_size, epochs, limit):
     coeff = get_diffusion_coefficients(T, device)
 
 
-    # ======================
+
     # TRAIN
-    # ======================
     for epoch in range(epochs):
         print(f"\n===== EPOCH {epoch} =====")
 
@@ -80,9 +72,8 @@ def train(data_path, output_path, batch_size, epochs, limit):
             x0 = x0.to(device)
 
 
-            # ======================
-            # TRAIN D (1x)
-            # ======================
+
+            # TRAIN D
             D.zero_grad()
 
             t = torch.randint(0, T-1, (x0.size(0),), device=device)
@@ -107,11 +98,11 @@ def train(data_path, output_path, batch_size, epochs, limit):
             x0_pred = G(xt_plus, t, z)
             xt_fake = sample_posterior(coeff, x0_pred, xt_plus, t)
 
-            # 🔥 FIX PRINCIPAL DDGAN (par correto)
+            # par
             D_fake = D(xt_noisy, t, xt_fake)
             loss_fake = F.softplus(D_fake).mean()
 
-            # R1 (fix bug + forma correta)
+            # R1 
             grad = torch.autograd.grad(
                 outputs=D_real.sum(),
                 inputs=xt_clean,
@@ -125,9 +116,8 @@ def train(data_path, output_path, batch_size, epochs, limit):
             loss_D.backward()
             optD.step()
 
-            # ======================
+
             # TRAIN G 
-            # ======================
             for _ in range(2):
                 G.zero_grad()
 
@@ -159,9 +149,8 @@ def train(data_path, output_path, batch_size, epochs, limit):
             update_ema(ema_G, G)
 
 
-            # ======================
+
             # LOGS
-            # ======================
             if i % 10 == 0:
                 print(f"[Epoch {epoch} | Batch {i}] D: {loss_D.item():.4f} | G: {loss_G.item():.4f}")
 
@@ -208,9 +197,8 @@ def train(data_path, output_path, batch_size, epochs, limit):
             print("grad mean:", grad.abs().mean().item())
 
 
-        # ======================
+
         # SAMPLING
-        # ======================
         samples = sample_ddgan(ema_G, coeff, 8, T, nz, device)
 
 
@@ -221,9 +209,8 @@ def train(data_path, output_path, batch_size, epochs, limit):
         )
 
 
-        # ======================
+
         # SAVE MODELS
-        # ======================
         torch.save(G.state_dict(), os.path.join(output_path, f"G_epoch_{epoch}.pth"))
         torch.save(D.state_dict(), os.path.join(output_path, f"D_epoch_{epoch}.pth"))
 
@@ -236,9 +223,9 @@ def train(data_path, output_path, batch_size, epochs, limit):
 
 
 
-# ======================
+
 # ENTRY POINT
-# ======================
+
 if __name__ == "__main__":
 
 
