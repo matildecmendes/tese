@@ -57,21 +57,17 @@ def main(args):
     # LOOP DE TREINO
 
     for epoch in range(args.epochs):
-        for real in loader:
+        for i, real in enumerate(loader):
 
             real = real.to(device)
             b = real.size(0)
-
-            # sample timestep
-            t = torch.randint(0, diffusion.T, (b,), device=device)
 
             # ---------------- D ----------------
             z = torch.randn(b, args.z_dim, device=device)
             fake = G(z).detach()
 
-            # apply diffusion
-            x_t_real, noise_real = diffusion.forward(real)
-            x_t_fake, noise_fake = diffusion.forward(fake)
+            x_t_real, _ = diffusion.forward(real)
+            x_t_fake, _ = diffusion.forward(fake)
 
             real_logits, real_feats = D(x_t_real)
             fake_logits, fake_feats = D(x_t_fake)
@@ -99,13 +95,26 @@ def main(args):
             g_loss.backward()
             opt_G.step()
 
-            if real % 10 == 0:
-                print(f"[Epoch {epoch} | Batch {i}] D: {d_loss.item():.4f} | G: {g_loss.item():.4f}")
-                print("REAL range:", real.min().item(), real.max().item())
-                print("x_t range:", x_t_real.min().item(), x_t_real.max().item())
+            # ---------------- PRINT DEBUG ----------------
+            if i % 10 == 0:
+                print(
+                    f"[Epoch {epoch+1}/{args.epochs}] "
+                    f"[Batch {i}/{len(loader)}] "
+                    f"D: {d_loss.item():.4f} | G: {g_loss.item():.4f}"
+                )
 
+                print(
+                    f"  REAL   min/max: {real.min().item():.3f} / {real.max().item():.3f}"
+                )
+                print(
+                    f"  x_t    min/max: {x_t_real.min().item():.3f} / {x_t_real.max().item():.3f}"
+                )
+                print(
+                    f"  FAKE   min/max: {fake.min().item():.3f} / {fake.max().item():.3f}"
+                )
 
-            save_samples(G, args.z_dim, device, args.out_dir, epoch)
+        # guardar imagens só no fim do epoch
+        save_samples(G, args.z_dim, device, args.out_dir, epoch)
 
     torch.save(G.state_dict(), f"{args.out_dir}/G.pt")
 
