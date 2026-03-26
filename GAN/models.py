@@ -36,25 +36,31 @@ class Discriminator(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.net = nn.Sequential(
-            nn.Conv2d(1, 64, 4, 2, 1),   # 256 → 128
+        self.features = nn.Sequential(
+            nn.Conv2d(1, 64, 4, 2, 1),
             nn.LeakyReLU(0.2, inplace=True),
 
-            nn.Conv2d(64, 128, 4, 2, 1), # 128 → 64
+            nn.Conv2d(64, 128, 4, 2, 1),
             nn.BatchNorm2d(128),
             nn.LeakyReLU(0.2, inplace=True),
 
-            nn.Conv2d(128, 256, 4, 2, 1), # 64 → 32
+            nn.Conv2d(128, 256, 4, 2, 1),
             nn.BatchNorm2d(256),
             nn.LeakyReLU(0.2, inplace=True),
 
-            nn.Conv2d(256, 512, 4, 2, 1), # 32 → 16
+            nn.Conv2d(256, 512, 4, 2, 1),
             nn.BatchNorm2d(512),
             nn.LeakyReLU(0.2, inplace=True),
+        )
 
-            nn.Conv2d(512, 1, 16, 1, 0),  # 16 → 1 (CRÍTICO)
+        self.classifier = nn.Sequential(
+            nn.AdaptiveAvgPool2d(1),  # 🔥 resolve tudo
+            nn.Flatten(),
+            nn.Linear(512, 1),
             nn.Sigmoid()
         )
 
     def forward(self, x):
-        return self.net(x).view(-1)
+        x = self.features(x)
+        x = self.classifier(x)
+        return x.view(-1)
