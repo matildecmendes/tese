@@ -37,22 +37,22 @@ class Discriminator(nn.Module):
         super().__init__()
 
         self.net = nn.Sequential(
-            nn.Conv2d(1, 64, 4, 2, 1),
+            nn.Conv2d(1, 64, 4, 2, 1),   # 256 → 128
             nn.LeakyReLU(0.2, inplace=True),
 
-            nn.Conv2d(64, 128, 4, 2, 1),
+            nn.Conv2d(64, 128, 4, 2, 1), # 128 → 64
             nn.BatchNorm2d(128),
             nn.LeakyReLU(0.2, inplace=True),
 
-            nn.Conv2d(128, 256, 4, 2, 1),
+            nn.Conv2d(128, 256, 4, 2, 1), # 64 → 32
             nn.BatchNorm2d(256),
             nn.LeakyReLU(0.2, inplace=True),
 
-            nn.Conv2d(256, 512, 4, 2, 1),
+            nn.Conv2d(256, 512, 4, 2, 1), # 32 → 16
             nn.BatchNorm2d(512),
             nn.LeakyReLU(0.2, inplace=True),
 
-            nn.Conv2d(512, 1, 4, 1, 0),
+            nn.Conv2d(512, 1, 16, 1, 0),  # 16 → 1 (CRÍTICO)
             nn.Sigmoid()
         )
 
