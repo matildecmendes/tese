@@ -24,6 +24,7 @@ homes/mcmendes/dataset_pre_processing/Pre_processed_dataset
                 sbatch: #python train.py --data_path "Z:\nas-ctm01\homes\mcmendes\dataset_pre_processing\dataset_slices" --output_path "Z:\nas-ctm01\homes\mcmendes\ddgan_outputs" --batch_size 4 --epochs 1 --limit 50
 
 
+
 ###################
 About dataset_split:
 - Used to split the dataset into training (0.9) and test (0.1) sets.

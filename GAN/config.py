@@ -10,5 +10,5 @@ BATCH_SIZE = 8
 EPOCHS = 100
 LR = 2e-4
 
-DATA_PATH = "/caminho/para/o/teu/dataset"
-SAVE_PATH = "./outputs"
+DATA_PATH = r"Z:\nas-ctm01\homes\mcmendes\GAN"
+SAVE_PATH = "Z:\nas-ctm01\homes\mcmendes\GAN"
