@@ -32,7 +32,7 @@ def train(data_path, output_path, batch_size=4, epochs=5, limit=None):
     criterion = nn.BCELoss()
 
     opt_G = torch.optim.Adam(G.parameters(), lr=1e-4, betas=(0.5, 0.999))
-    opt_D = torch.optim.Adam(D.parameters(), lr=1e-4, betas=(0.5, 0.999))
+    opt_D = torch.optim.Adam(D.parameters(), lr=2e-4, betas=(0.5, 0.999))
 
     # -------- Training --------
     for epoch in range(epochs):
@@ -45,8 +45,10 @@ def train(data_path, output_path, batch_size=4, epochs=5, limit=None):
             if i == 0:
                 print("REAL min/max:", real.min().item(), real.max().item())
 
-            real_labels = torch.ones(batch_size_curr, device=device)
-            fake_labels = torch.zeros(batch_size_curr, device=device)
+            #real_labels = torch.ones(batch_size_curr, device=device)
+            #fake_labels = torch.zeros(batch_size_curr, device=device)
+            real_labels = torch.full((batch_size_curr,), 0.9, device=device)
+            fake_labels = torch.full((batch_size_curr,), 0.1, device=device)
 
             # -------- Train D --------
             noise = torch.randn(batch_size_curr, 100, 1, 1, device=device)

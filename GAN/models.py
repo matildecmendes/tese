@@ -54,7 +54,7 @@ class Discriminator(nn.Module):
         )
 
         self.classifier = nn.Sequential(
-            nn.AdaptiveAvgPool2d(1),  # 🔥 resolve tudo
+            nn.AdaptiveAvgPool2d(1),
             nn.Flatten(),
             nn.Linear(512, 1),
             nn.Sigmoid()
