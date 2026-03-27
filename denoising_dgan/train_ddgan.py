@@ -293,6 +293,9 @@ def train(rank, gpu, args):
         train_sampler.set_epoch(epoch)
        
         for iteration, x in enumerate(data_loader): #alterei
+            if iteration == 0 and rank == 0:
+                print("First batch loaded")
+                
             for p in netD.parameters():  
                 p.requires_grad = True  
         
@@ -409,9 +412,14 @@ def train(rank, gpu, args):
             #    if rank == 0:
             #        print('epoch {} iteration{}, G Loss: {}, D Loss: {}'.format(epoch,iteration, errG.item(), errD.item()))
 
-            if rank == 0 and iteration % 50 == 0:
+            # if rank == 0 and iteration % 50 == 0:
+            #     print(f"[Epoch {epoch} | Iter {iteration}] "
+            #         f"G: {errG.item():.4f} | D: {errD.item():.4f} "
+            #         f"| D_real: {errD_real.item():.4f} | D_fake: {errD_fake.item():.4f}")
+
+            if rank == 0:
                 print(f"[Epoch {epoch} | Iter {iteration}] "
-                    f"G: {errG.item():.4f} | D: {errD.item():.4f} "
+                    f"G: {errG.item():.4f} | D: {errD.item():.4f}"
                     f"| D_real: {errD_real.item():.4f} | D_fake: {errD_fake.item():.4f}")
         
         if not args.no_lr_decay:
