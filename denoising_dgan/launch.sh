@@ -11,7 +11,7 @@ python train_ddgan.py \
   --data_path /nas-ctm01/datasets/public/lidc-mcmendes/slices \
   --output_dir /nas-ctm01/homes/mcmendes/outputs/denoising_dgan \
   --exp test_run \
-  --batch_size 8 \
+  --batch_size 4 \
   --num_epoch 5 \
   --num_channels 1 \
   --image_size 256 \
