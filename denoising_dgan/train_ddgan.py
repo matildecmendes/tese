@@ -204,13 +204,16 @@ def train(rank, gpu, args):
     train_sampler = torch.utils.data.distributed.DistributedSampler(dataset,
                                                                     num_replicas=args.world_size,
                                                                     rank=rank)
-    data_loader = torch.utils.data.DataLoader(dataset,
-                                               batch_size=batch_size,
-                                               shuffle=False,
-                                               num_workers=4,
-                                               pin_memory=True,
-                                               sampler=train_sampler,
-                                               drop_last = True)
+    data_loader = torch.utils.data.DataLoader(
+        dataset,
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=8,
+        pin_memory=True,
+        sampler=train_sampler,
+        drop_last=True,
+        persistent_workers=True
+    )
     
     netG = NCSNpp(args).to(device)
     
@@ -281,10 +284,18 @@ def train(rank, gpu, args):
     else:
         global_step, epoch, init_epoch = 0, 0, 0
     
+    import time
+
+    start = time.time()
+    for i in range(10):
+        _ = dataset[i]
+    print("Time for 10 samples:", time.time() - start)
+
     print("===== START TRAINING =====")
     print(f"Epochs: {args.num_epoch}")
     print(f"Batch size: {batch_size}")
     print(f"Device: {device}")
+
 
     for epoch in range(init_epoch, args.num_epoch+1):
         if rank == 0:
