@@ -7,7 +7,7 @@
 #SBATCH --error=slurm_%x.%j.err    # File containing STDERR output. If ommited, use STDOUT.
 
 # Commands / scripts to run (e.g., python3 train.py)
-python train.py \
+python train_ddgan.py \
   --data_path /nas-ctm01/datasets/public/lidc-mcmendes/slices \
   --output_dir /nas-ctm01/homes/mcmendes/outputs/denoising_dgan \
   --exp test_run \
