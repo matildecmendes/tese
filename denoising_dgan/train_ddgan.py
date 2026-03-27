@@ -197,6 +197,8 @@ def train(rank, gpu, args):
     #MINHA ALTERAÇÃO: dataset_npy.py
     from dataset_npy import NPYDataset
     dataset = NPYDataset(args.data_path)
+    print(f"Dataset loaded from {args.data_path}")
+    print(f"Number of samples: {len(dataset)}")
       
     
     train_sampler = torch.utils.data.distributed.DistributedSampler(dataset,
@@ -243,9 +245,11 @@ def train(rank, gpu, args):
 
     
     exp = args.exp
-    parent_dir = "./saved_info/dd_gan/{}".format(args.dataset)
+    exp_path = os.path.join(args.output_dir, args.exp)
+    
+    if rank == 0:
+        os.makedirs(exp_path, exist_ok=True)
 
-    exp_path = os.path.join(parent_dir,exp)
     if rank == 0:
         if not os.path.exists(exp_path):
             os.makedirs(exp_path)
@@ -277,8 +281,15 @@ def train(rank, gpu, args):
     else:
         global_step, epoch, init_epoch = 0, 0, 0
     
-    
+    print("===== START TRAINING =====")
+    print(f"Epochs: {args.num_epoch}")
+    print(f"Batch size: {batch_size}")
+    print(f"Device: {device}")
+
     for epoch in range(init_epoch, args.num_epoch+1):
+        if rank == 0:
+            print(f"\n===== EPOCH {epoch}/{args.num_epoch} =====")
+            
         train_sampler.set_epoch(epoch)
        
         for iteration, x in enumerate(data_loader): #alterei
@@ -292,7 +303,7 @@ def train(rank, gpu, args):
             real_data = x.to(device, non_blocking=True)
 
             #DEBUG adicionado por mim
-            if iteration == 0:
+            if iteration == 0 and rank == 0:
                 print("REAL shape:", real_data.shape)
                 print("REAL min/max:", real_data.min().item(), real_data.max().item())
             
@@ -344,7 +355,7 @@ def train(rank, gpu, args):
          
             x_0_predict = netG(x_tp1.detach(), t, latent_z)
             #Debug adicionado por mim
-            if iteration == 0:
+            if iteration == 0 and rank == 0:
                 print("FAKE min/max:", x_0_predict.min().item(), x_0_predict.max().item())
             x_pos_sample = sample_posterior(pos_coeff, x_0_predict, x_tp1, t)
             
@@ -373,7 +384,8 @@ def train(rank, gpu, args):
             x_t, x_tp1 = q_sample_pairs(coeff, real_data, t)
                 
             
-            latent_z = torch.randn(batch_size, nz,device=device)
+            #latent_z = torch.randn(batch_size, nz,device=device)
+            latent_z = torch.randn(real_data.size(0), nz, device=device)
             
             
                 
@@ -393,9 +405,14 @@ def train(rank, gpu, args):
            
             
             global_step += 1
-            if iteration % 100 == 0:
-                if rank == 0:
-                    print('epoch {} iteration{}, G Loss: {}, D Loss: {}'.format(epoch,iteration, errG.item(), errD.item()))
+            #if iteration % 50 == 0:
+            #    if rank == 0:
+            #        print('epoch {} iteration{}, G Loss: {}, D Loss: {}'.format(epoch,iteration, errG.item(), errD.item()))
+
+            if rank == 0 and iteration % 50 == 0:
+                print(f"[Epoch {epoch} | Iter {iteration}] "
+                    f"G: {errG.item():.4f} | D: {errD.item():.4f} "
+                    f"| D_real: {errD_real.item():.4f} | D_fake: {errD_fake.item():.4f}")
         
         if not args.no_lr_decay:
             
@@ -404,12 +421,17 @@ def train(rank, gpu, args):
         
         if rank == 0:
             if epoch % 10 == 0:
-                torchvision.utils.save_image(x_pos_sample, os.path.join(exp_path, 'xpos_epoch_{}.png'.format(epoch)), normalize=True)
+                save_path = os.path.join(exp_path, f'xpos_epoch_{epoch}.png')
+                torchvision.utils.save_image(x_pos_sample, save_path, normalize=True)
+                print(f"[Epoch {epoch}] Saved training sample -> {save_path}")
             
             x_t_1 = torch.randn_like(real_data)
             fake_sample = sample_from_model(pos_coeff, netG, args.num_timesteps, x_t_1, T, args)
-            torchvision.utils.save_image(fake_sample, os.path.join(exp_path, 'sample_discrete_epoch_{}.png'.format(epoch)), normalize=True)
-            
+
+            save_path = os.path.join(exp_path, f'sample_epoch_{epoch}.png')
+            torchvision.utils.save_image(fake_sample, save_path, normalize=True, nrow=4)
+            print(f"[Epoch {epoch}] Saved generated sample -> {save_path}")
+
             if args.save_content:
                 if epoch % args.save_content_every == 0:
                     print('Saving content.')
@@ -427,6 +449,9 @@ def train(rank, gpu, args):
                 torch.save(netG.state_dict(), os.path.join(exp_path, 'netG_{}.pth'.format(epoch)))
                 if args.use_ema:
                     optimizerG.swap_parameters_with_ema(store_params_in_ema=True)
+
+            if rank == 0:
+                print("===== TRAINING FINISHED =====")
             
 
 
@@ -503,7 +528,7 @@ if __name__ == '__main__':
     
     #geenrator and training
     parser.add_argument('--exp', default='experiment_cifar_default', help='name of experiment')
-    parser.add_argument('--dataset', default='cifar10', help='name of dataset')
+    parser.add_argument('--dataset', default='custom', help='name of dataset')
     parser.add_argument('--nz', type=int, default=100)
     parser.add_argument('--num_timesteps', type=int, default=4)
 
@@ -547,6 +572,9 @@ if __name__ == '__main__':
     
     # dataset (eu que fiz)
     parser.add_argument('--data_path', type=str, required=True, help='path to npy dataset')
+
+    # pasta para onde vão imagens
+    parser.add_argument('--output_dir', type=str, default='./outputs', help='where to save results')
 
    
     args = parser.parse_args()
