@@ -9,7 +9,7 @@
 # Commands / scripts to run (e.g., python3 train.py)
 python train.py \
   --outdir=/nas-ctm01/homes/mcmendes/outputs/dgan \
-  --data_path /nas-ctm01/datasets/public/lidc-mcmendes/slices \
+  --data=/nas-ctm01/datasets/public/lidc-mcmendes/slices \
   --gpus=1 \
   --cfg=paper256 \
   --batch=4 \
