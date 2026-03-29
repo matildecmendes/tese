@@ -10,6 +10,6 @@
 python todo.py \
   --data_path /nas-ctm01/datasets/public/lidc-mcmendes/slices \
   --out_dir /nas-ctm01/homes/mcmendes/outputs/run1 \
-  --epochs 200 \
+  --epochs 5 \
   --batch_size 8 \
-  --max_samples 8
+  --max_samples 6000

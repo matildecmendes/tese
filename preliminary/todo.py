@@ -16,7 +16,7 @@ parser.add_argument("--out_dir", type=str, required=True)
 parser.add_argument("--epochs", type=int, default=50)
 parser.add_argument("--batch_size", type=int, default=8)
 parser.add_argument("--lr_g", type=float, default=2e-4)
-parser.add_argument("--lr_d", type=float, default=1e-5)
+parser.add_argument("--lr_d", type=float, default=5e-5)
 parser.add_argument("--max_samples", type=int, default=None)
 
 args = parser.parse_args()
@@ -249,16 +249,6 @@ def save_samples(G, epoch):
 
     print(f"[SAVE] Epoch {epoch} saved")
 
-debug_batch = next(iter(DataLoader(dataset, batch_size=8, shuffle=True)))
-debug_batch = debug_batch.to(device)
-
-sample = dataset[0][0].numpy()
-
-plt.imshow(sample, cmap="gray")
-plt.title("Dataset sample")
-plt.colorbar()
-plt.savefig(os.path.join(args.out_dir, "dataset_sample.png"))
-plt.close()
 
 # =========================================================
 # TRAIN
@@ -299,21 +289,6 @@ for epoch in range(args.epochs):
         real = real.to(device)
         b = real.size(0)
 
-        # DEBUG inicial
-        if i == 0:
-            print(f"[DEBUG] real min/max: {real.min().item():.3f} / {real.max().item():.3f}")
-
-        if i == 0 and epoch == 0:
-            print("\n[TRAIN DEBUG]")
-            print("real min/max:", real.min().item(), real.max().item())
-            print("real mean/std:", real.mean().item(), real.std().item())
-            print("")
-
-        if epoch == 0 and i == 0:
-            print("\n[SANITY CHECK]")
-            print("real batch std:", real.std().item())
-            print("real batch mean:", real.mean().item())
-
         # ================= D =================
         z = torch.randn(b, z_dim, device=device)
         fake = G(z).detach()
@@ -340,7 +315,7 @@ for epoch in range(args.epochs):
         _, real_feats = D(real_d)
 
         loss_G = adv_loss(fake_logits, torch.ones_like(fake_logits)*0.9) + \
-                 0.5 * fm_loss(fake_feats, real_feats)
+                 0.1 * fm_loss(fake_feats, real_feats) #antes de 0.1 era 0.5
 
         opt_G.zero_grad()
         loss_G.backward()
@@ -355,8 +330,6 @@ for epoch in range(args.epochs):
             print(f"real_logits: {real_logits.mean().item():.3f}")
             print(f"fake_logits: {fake_logits.mean().item():.3f}")
             print(f"logit_gap: {(real_logits.mean()-fake_logits.mean()).item():.3f}")
-
-        save_debug_progress(G, diffusion, debug_batch, epoch+1)
 
     print(f"\n[EPOCH {epoch+1}] D={loss_D_avg/len(loader):.3f} | G={loss_G_avg/len(loader):.3f}")
 
