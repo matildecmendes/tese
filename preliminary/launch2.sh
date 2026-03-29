@@ -1,4 +1,3 @@
-
 #!/bin/bash
 #
 #SBATCH --partition=gpu_min12gb_ext     # Reserved partition
