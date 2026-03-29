@@ -319,7 +319,12 @@ def training_loop(
         # Fetch training data.
         with torch.autograd.profiler.record_function('data_fetch'):
             phase_real_img, phase_real_c = next(training_set_iterator)
-            phase_real_img = (phase_real_img.to(device).to(torch.float32) / 127.5 - 1).split(batch_gpu)
+            phase_real_img = phase_real_img.to(device).to(torch.float32) #mudei
+            if batch_idx == 0:
+                print("DEBUG REAL BATCH:")
+                print("min:", phase_real_img[0].min().item())
+                print("max:", phase_real_img[0].max().item())
+                print("shape:", phase_real_img[0].shape)
             phase_real_c = phase_real_c.to(device).split(batch_gpu)
             all_gen_z = torch.randn([len(phases) * batch_size, G.z_dim], device=device)
             all_gen_z = [phase_gen_z.split(batch_gpu) for phase_gen_z in all_gen_z.split(batch_size)]
@@ -415,6 +420,8 @@ def training_loop(
                 print('Aborting...')
 
         # Save image snapshot.
+        print("DEBUG FAKE:")
+        print("min:", images.min(), "max:", images.max())
         if (rank == 0) and (image_snapshot_ticks is not None) and (done or cur_tick % image_snapshot_ticks == 0):
             images = torch.cat([G_ema(z=z, c=c, noise_mode='const').cpu() for z, c in zip(grid_z, grid_c)]).numpy()
             save_image_grid(images, os.path.join(run_dir, f'fakes{cur_nimg//1000:06d}.png'), drange=[-1,1], grid_size=grid_size)
