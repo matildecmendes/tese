@@ -36,8 +36,8 @@ class NPYDataset(Dataset):
         x = x.astype(np.float32)
 
         # MUDEI converter 1 canal → 3 canais
-        if x.shape[0] == 1:
-            x = np.repeat(x, 3, axis=0)
+        #if x.shape[0] == 1:
+        #    x = np.repeat(x, 3, axis=0)
 
         # DEBUG 
         if raw_idx == 0:
