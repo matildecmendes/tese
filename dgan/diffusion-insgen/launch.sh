@@ -19,6 +19,6 @@ python train.py \
   --noise_sd=0.02 \
   --t_min=10 \
   --t_max=250 \
-  --no_insgen=0 \
+  --no_insgen=False \
   --workers=2
 
