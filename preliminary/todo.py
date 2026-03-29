@@ -232,6 +232,32 @@ for epoch in range(args.epochs):
     loss_D_avg = 0
     loss_G_avg = 0
 
+    def save_debug_progress(G, diffusion, batch, epoch):
+        G.eval()
+        with torch.no_grad():
+
+            z = torch.randn(batch.size(0), 256, device=device)
+            fake = G(z)
+
+            # aplicar diffusion progressiva
+            imgs = []
+
+            for t_val in [0, 3, 6, 9]:
+                t = torch.full((batch.size(0),), t_val, device=device, dtype=torch.long)
+                img_t = diffusion.apply_at_t(fake, t)
+                imgs.append(img_t.cpu())
+
+        # guardar
+        fig, axes = plt.subplots(len(imgs), 4, figsize=(6,6))
+
+        for i in range(len(imgs)):
+            for j in range(4):
+                axes[i,j].imshow(imgs[i][j,0], cmap="gray")
+                axes[i,j].axis("off")
+
+        plt.savefig(os.path.join(args.out_dir, f"debug_epoch_{epoch}.png"))
+        plt.close()
+
     for i, real in enumerate(loader):
 
         real = real.to(device)
@@ -287,31 +313,5 @@ for epoch in range(args.epochs):
         save_debug_progress(G, diffusion, debug_batch, epoch+1)
 
     print(f"\n[EPOCH {epoch+1}] D={loss_D_avg/len(loader):.3f} | G={loss_G_avg/len(loader):.3f}")
-
-    def save_debug_progress(G, diffusion, batch, epoch):
-        G.eval()
-        with torch.no_grad():
-
-            z = torch.randn(batch.size(0), 256, device=device)
-            fake = G(z)
-
-            # aplicar diffusion progressiva
-            imgs = []
-
-            for t_val in [0, 3, 6, 9]:
-                t = torch.full((batch.size(0),), t_val, device=device, dtype=torch.long)
-                img_t = diffusion.apply_at_t(fake, t)
-                imgs.append(img_t.cpu())
-
-        # guardar
-        fig, axes = plt.subplots(len(imgs), 4, figsize=(6,6))
-
-        for i in range(len(imgs)):
-            for j in range(4):
-                axes[i,j].imshow(imgs[i][j,0], cmap="gray")
-                axes[i,j].axis("off")
-
-        plt.savefig(os.path.join(args.out_dir, f"debug_epoch_{epoch}.png"))
-        plt.close()
 
     save_samples(G, epoch+1)
