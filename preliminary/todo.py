@@ -234,18 +234,22 @@ def save_samples(G, epoch):
 
     grid = fake.squeeze().numpy()
 
-    plt.figure(figsize=(6,6))
-    for i in range(8):
-        plt.subplot(2,4,i+1)
-        plt.imshow(grid[i], cmap="gray")
-        plt.axis("off")
+    fig, axes = plt.subplots(2, 4, figsize=(4,2))  # mais compacto
+
+    for i in range(2):
+        for j in range(4):
+            idx = i * 4 + j
+            axes[i, j].imshow(grid[idx], cmap="gray")
+            axes[i, j].axis("off")
+
+    plt.subplots_adjust(wspace=0, hspace=0)
 
     path = os.path.join(args.out_dir, f"epoch_{epoch}.png")
-    plt.savefig(path)
+    plt.savefig(path, bbox_inches='tight', pad_inches=0)
     plt.close()
 
-    torch.save(G.state_dict(), os.path.join(args.out_dir, f"G_{epoch}.pt"))
-    torch.save(D.state_dict(), os.path.join(args.out_dir, f"D_{epoch}.pt"))
+    #torch.save(G.state_dict(), os.path.join(args.out_dir, f"G_{epoch}.pt"))
+    #torch.save(D.state_dict(), os.path.join(args.out_dir, f"D_{epoch}.pt"))
 
     print(f"[SAVE] Epoch {epoch} saved")
 
@@ -281,7 +285,7 @@ for epoch in range(args.epochs):
                 axes[i,j].imshow(imgs[i][j,0], cmap="gray")
                 axes[i,j].axis("off")
 
-        plt.savefig(os.path.join(args.out_dir, f"debug_epoch_{epoch}.png"))
+        plt.savefig(os.path.join(args.out_dir, f"debug_epoch_{epoch}.png"), dpi=150)
         plt.close()
 
     for i, real in enumerate(loader):
