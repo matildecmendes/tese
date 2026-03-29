@@ -48,10 +48,38 @@ class CTDataset(Dataset):
     def __getitem__(self, idx):
         x = np.load(self.files[idx]).astype(np.float32)
 
-        # mesma normalização (não alterei mais nada)
-        x = np.clip(x, -1000, 400)
-        x = (x + 1000) / 1400
-        x = x * 2 - 1
+        # =========================
+        # DEBUG RAW (1 vez apenas)
+        # =========================
+        if idx == 0:
+            print("\n[DATA DEBUG]")
+            print("RAW min/max:", x.min(), x.max())
+            print("RAW mean/std:", x.mean(), x.std())
+
+        # =========================
+        # VALIDAÇÃO AUTOMÁTICA
+        # =========================
+        assert x.shape == (256, 256), f"Shape errado: {x.shape}"
+
+        # DETECTAR RANGE
+        if x.min() >= -1.1 and x.max() <= 1.1:
+            # já está em [-1,1]
+            pass
+
+        elif x.min() >= 0.0 and x.max() <= 1.0:
+            # [0,1] → [-1,1]
+            x = x * 2 - 1
+
+        else:
+            raise ValueError(f"Range inesperado: min={x.min()}, max={x.max()}")
+
+        # =========================
+        # DEBUG FINAL
+        # =========================
+        if idx == 0:
+            print("FINAL min/max:", x.min(), x.max())
+            print("FINAL mean/std:", x.mean(), x.std())
+            print("")
 
         x = torch.from_numpy(x).unsqueeze(0)
 
@@ -224,6 +252,14 @@ def save_samples(G, epoch):
 debug_batch = next(iter(DataLoader(dataset, batch_size=8, shuffle=True)))
 debug_batch = debug_batch.to(device)
 
+sample = dataset[0][0].numpy()
+
+plt.imshow(sample, cmap="gray")
+plt.title("Dataset sample")
+plt.colorbar()
+plt.savefig(os.path.join(args.out_dir, "dataset_sample.png"))
+plt.close()
+
 # =========================================================
 # TRAIN
 # =========================================================
@@ -267,6 +303,17 @@ for epoch in range(args.epochs):
         if i == 0:
             print(f"[DEBUG] real min/max: {real.min().item():.3f} / {real.max().item():.3f}")
 
+        if i == 0 and epoch == 0:
+            print("\n[TRAIN DEBUG]")
+            print("real min/max:", real.min().item(), real.max().item())
+            print("real mean/std:", real.mean().item(), real.std().item())
+            print("")
+
+        if epoch == 0 and i == 0:
+            print("\n[SANITY CHECK]")
+            print("real batch std:", real.std().item())
+            print("real batch mean:", real.mean().item())
+
         # ================= D =================
         z = torch.randn(b, z_dim, device=device)
         fake = G(z).detach()
@@ -305,10 +352,9 @@ for epoch in range(args.epochs):
         # DEBUG intermédio
         if i % 50 == 0:
             print(f"[STEP {i}] D={loss_D.item():.3f} | G={loss_G.item():.3f}")
-
-        if i % 50 == 0:
-            print("real_logits:", real_logits.mean().item())
-            print("fake_logits:", fake_logits.mean().item())
+            print(f"real_logits: {real_logits.mean().item():.3f}")
+            print(f"fake_logits: {fake_logits.mean().item():.3f}")
+            print(f"logit_gap: {(real_logits.mean()-fake_logits.mean()).item():.3f}")
 
         save_debug_progress(G, diffusion, debug_batch, epoch+1)
 
