@@ -14,6 +14,7 @@ python train.py \
   --cfg=paper256 \
   --batch=4 \
   --aug=noaug \
+  --daug=NO \
   --kimg=100 \
   --gamma=0.5 \
   --noise_sd=0.02 \
