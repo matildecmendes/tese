@@ -319,12 +319,17 @@ def training_loop(
         # Fetch training data.
         with torch.autograd.profiler.record_function('data_fetch'):
             phase_real_img, phase_real_c = next(training_set_iterator)
-            phase_real_img = phase_real_img.to(device).to(torch.float32) #mudei
+
+            # mudei as 3 linhas abaixo
+            phase_real_img = phase_real_img.to(device).to(torch.float32)
+            phase_real_img = phase_real_img.contiguous() # forçar formato correto
+            assert phase_real_img.ndim == 4, f"Expected 4D tensor, got {phase_real_img.shape}"
+
             if batch_idx == 0:
                 print("DEBUG REAL BATCH:")
-                print("min:", phase_real_img[0].min().item())
-                print("max:", phase_real_img[0].max().item())
-                print("shape:", phase_real_img[0].shape)
+                print("shape:", phase_real_img.shape)  # <- isto é o importante
+                print("min:", phase_real_img.min().item())
+                print("max:", phase_real_img.max().item())
             phase_real_c = phase_real_c.to(device).split(batch_gpu)
             all_gen_z = torch.randn([len(phases) * batch_size, G.z_dim], device=device)
             all_gen_z = [phase_gen_z.split(batch_gpu) for phase_gen_z in all_gen_z.split(batch_size)]
