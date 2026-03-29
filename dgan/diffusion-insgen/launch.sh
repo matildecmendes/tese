@@ -13,16 +13,12 @@ python train.py \
   --gpus=1 \
   --cfg=paper256 \
   --batch=4 \
-  --mirror=0 \
   --aug=noaug \
-  --daug=ADA \
-  --target=0.6 \
-  --kimg=5000 \
+  --kimg=100 \
   --gamma=0.5 \
   --noise_sd=0.02 \
   --t_min=10 \
   --t_max=250 \
   --no_insgen=0 \
-  --workers=2 \
-  --kimg=100
+  --workers=2
 
