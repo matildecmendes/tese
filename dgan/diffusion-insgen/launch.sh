@@ -23,4 +23,5 @@ python train.py \
   --t_min=10 \
   --t_max=250 \
   --no_insgen=0 \
-  --workers=2
+  --workers=2 \
+  --kimg=100
