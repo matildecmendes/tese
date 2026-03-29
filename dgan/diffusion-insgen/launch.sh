@@ -14,7 +14,7 @@ python train.py \
   --cfg=paper256 \
   --batch=4 \
   --mirror=0 \
-  --aug=ada \
+  --aug=noaug \
   --daug=ADA \
   --target=0.6 \
   --kimg=5000 \
@@ -25,3 +25,4 @@ python train.py \
   --no_insgen=0 \
   --workers=2 \
   --kimg=100
+
