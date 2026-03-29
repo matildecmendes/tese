@@ -16,7 +16,7 @@ parser.add_argument("--out_dir", type=str, required=True)
 parser.add_argument("--epochs", type=int, default=50)
 parser.add_argument("--batch_size", type=int, default=8)
 parser.add_argument("--lr_g", type=float, default=2e-4)
-parser.add_argument("--lr_d", type=float, default=5e-5)
+parser.add_argument("--lr_d", type=float, default=1e-5)
 parser.add_argument("--max_samples", type=int, default=None)
 
 args = parser.parse_args()
@@ -72,7 +72,7 @@ loader = DataLoader(
 # DIFFUSION
 # =========================================================
 class Diffusion:
-    def __init__(self, T=30, beta_start=1e-4, beta_end=0.005):
+    def __init__(self, T=10, beta_start=1e-4, beta_end=0.002):
         self.T = T
         self.betas = torch.linspace(beta_start, beta_end, T).to(device)
         self.alphas = 1 - self.betas
@@ -221,6 +221,9 @@ def save_samples(G, epoch):
 
     print(f"[SAVE] Epoch {epoch} saved")
 
+debug_batch = next(iter(DataLoader(dataset, batch_size=8, shuffle=True)))
+debug_batch = debug_batch.to(device)
+
 # =========================================================
 # TRAIN
 # =========================================================
@@ -277,6 +280,38 @@ for epoch in range(args.epochs):
         if i % 50 == 0:
             print(f"[STEP {i}] D={loss_D.item():.3f} | G={loss_G.item():.3f}")
 
+        if i % 50 == 0:
+            print("real_logits:", real_logits.mean().item())
+            print("fake_logits:", fake_logits.mean().item())
+
+        save_debug_progress(G, diffusion, debug_batch, epoch+1)
+
     print(f"\n[EPOCH {epoch+1}] D={loss_D_avg/len(loader):.3f} | G={loss_G_avg/len(loader):.3f}")
+
+    def save_debug_progress(G, diffusion, batch, epoch):
+        G.eval()
+        with torch.no_grad():
+
+            z = torch.randn(batch.size(0), 256, device=device)
+            fake = G(z)
+
+            # aplicar diffusion progressiva
+            imgs = []
+
+            for t_val in [0, 3, 6, 9]:
+                t = torch.full((batch.size(0),), t_val, device=device, dtype=torch.long)
+                img_t = diffusion.apply_at_t(fake, t)
+                imgs.append(img_t.cpu())
+
+        # guardar
+        fig, axes = plt.subplots(len(imgs), 4, figsize=(6,6))
+
+        for i in range(len(imgs)):
+            for j in range(4):
+                axes[i,j].imshow(imgs[i][j,0], cmap="gray")
+                axes[i,j].axis("off")
+
+        plt.savefig(os.path.join(args.out_dir, f"debug_epoch_{epoch}.png"))
+        plt.close()
 
     save_samples(G, epoch+1)
