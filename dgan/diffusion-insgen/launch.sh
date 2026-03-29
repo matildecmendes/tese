@@ -20,5 +20,6 @@ python train.py \
   --t_min=10 \
   --t_max=250 \
   --no_insgen=False \
+  --mirror=False \
   --workers=2
 
