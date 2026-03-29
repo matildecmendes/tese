@@ -13,8 +13,9 @@ python train.py \
   --gpus=1 \
   --cfg=paper256 \
   --batch=4 \
-  --aug=noaug \
+  --aug=ada \
   --daug=DIFF \
+  --target=0.6 \
   --kimg=100 \
   --gamma=0.5 \
   --noise_sd=0.02 \

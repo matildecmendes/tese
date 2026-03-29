@@ -478,7 +478,7 @@ class CommaSeparatedList(click.ParamType):
 @click.option('--t_max', help='Maximum # of timesteps for adaptively modification', type=int, default=500)
 @click.option('--noise_sd', help='Diffusion noise standard deviation', type=float, default=0.05)
 @click.option('--ts_dist', help='Diffusion t sampling way', type=click.Choice(['priority', 'uniform']), default='uniform')
-@click.option('--target', help='Discriminator target value', type=float, default=None) #mudei: era 0.6 meti None
+@click.option('--target', help='Discriminator target value', type=float, default=0.6) #mudei: era 0.6 meti None
 
 # Transfer learning.
 @click.option('--resume', help='Resume training [default: noresume]', metavar='PKL')
