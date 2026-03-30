@@ -245,7 +245,7 @@ def save_samples(G, epoch):
     plt.subplots_adjust(wspace=0, hspace=0)
 
     path = os.path.join(args.out_dir, f"epoch_{epoch}.png")
-    plt.savefig(path, bbox_inches='tight', pad_inches=0, dpi=150) #antes sem o dpi de todo
+    plt.savefig(path, bbox_inches='tight', pad_inches=0)
     plt.close()
 
     # guardar modelos a cada epoch
