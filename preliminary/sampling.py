@@ -5,10 +5,55 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # =========================================================
-# IMPORTA A MESMA ARQUITETURA
-# (podes importar do teu train.py ou copiar)
+# MESMO GENERATOR
 # =========================================================
-from train import Generator  # assume que está no mesmo folder
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+class ResBlock(nn.Module):
+    def __init__(self, in_ch, out_ch, up=False):
+        super().__init__()
+        self.up = up
+        self.conv1 = nn.Conv2d(in_ch, out_ch, 3, padding=1)
+        self.conv2 = nn.Conv2d(out_ch, out_ch, 3, padding=1)
+        self.skip = nn.Conv2d(in_ch, out_ch, 1)
+        self.noise_strength = nn.Parameter(torch.zeros(1))
+
+    def forward(self, x):
+        h = x
+        if self.up:
+            h = F.interpolate(h, scale_factor=2)
+            x = F.interpolate(x, scale_factor=2)
+
+        h = self.conv1(h)
+        h = h + torch.randn_like(h) * self.noise_strength
+        h = F.leaky_relu(h, 0.2)
+        h = F.leaky_relu(self.conv2(h), 0.2)
+
+        return h + self.skip(x)
+
+
+class Generator(nn.Module):
+    def __init__(self, z_dim=256):
+        super().__init__()
+        self.fc = nn.Linear(z_dim, 512 * 4 * 4)
+
+        self.blocks = nn.Sequential(
+            ResBlock(512,256,True),
+            ResBlock(256,128,True),
+            ResBlock(128,64,True),
+            ResBlock(64,32,True),
+            ResBlock(32,16,True),
+            ResBlock(16,8,True),
+        )
+
+        self.to_img = nn.Conv2d(8,1,3,padding=1)
+
+    def forward(self, z):
+        h = self.fc(z).view(-1,512,4,4)
+        h = self.blocks(h)
+        return torch.tanh(self.to_img(h))
 
 # =========================================================
 # ARGUMENTS
