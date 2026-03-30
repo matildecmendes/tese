@@ -100,7 +100,7 @@ loader = DataLoader(
 # DIFFUSION
 # =========================================================
 class Diffusion:
-    def __init__(self, T=30, beta_start=1e-4, beta_end=0.005):
+    def __init__(self, T=20, beta_start=1e-4, beta_end=0.002):
         self.T = T
         self.betas = torch.linspace(beta_start, beta_end, T).to(device)
         self.alphas = 1 - self.betas
@@ -234,7 +234,7 @@ def save_samples(G, epoch):
 
     grid = fake.squeeze().numpy()
 
-    fig, axes = plt.subplots(2, 4, figsize=(4,2))  # mais compacto
+    fig, axes = plt.subplots(2, 4, figsize=(8,4))  # estava 4,2 (mais compacto antes)
 
     for i in range(2):
         for j in range(4):
@@ -245,7 +245,7 @@ def save_samples(G, epoch):
     plt.subplots_adjust(wspace=0, hspace=0)
 
     path = os.path.join(args.out_dir, f"epoch_{epoch}.png")
-    plt.savefig(path, bbox_inches='tight', pad_inches=0)
+    plt.savefig(path, bbox_inches='tight', pad_inches=0, dpi=150) #antes sem o dpi de todo
     plt.close()
 
     # guardar modelos a cada epoch
@@ -323,7 +323,7 @@ for epoch in range(args.epochs):
         _, real_feats = D(real_d)
 
         loss_G = adv_loss(fake_logits, torch.ones_like(fake_logits)*0.9) + \
-                 0.47 * fm_loss(fake_feats, real_feats) #antes era 0.5
+                 0.47 * fm_loss(fake_feats, real_feats) #antes era 0.5, esse parâmetro é o f_lambda
 
         opt_G.zero_grad()
         loss_G.backward()
