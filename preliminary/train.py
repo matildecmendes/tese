@@ -16,7 +16,7 @@ parser.add_argument("--out_dir", type=str, required=True)
 parser.add_argument("--epochs", type=int, default=50)
 parser.add_argument("--batch_size", type=int, default=8)
 parser.add_argument("--lr_g", type=float, default=2e-4)
-parser.add_argument("--lr_d", type=float, default=5e-5)
+parser.add_argument("--lr_d", type=float, default=1e-4)
 parser.add_argument("--max_samples", type=int, default=None)
 
 args = parser.parse_args()
@@ -100,7 +100,7 @@ loader = DataLoader(
 # DIFFUSION
 # =========================================================
 class Diffusion:
-    def __init__(self, T=20, beta_start=1e-4, beta_end=0.002):
+    def __init__(self, T=30, beta_start=1e-4, beta_end=0.005):
         self.T = T
         self.betas = torch.linspace(beta_start, beta_end, T).to(device)
         self.alphas = 1 - self.betas
