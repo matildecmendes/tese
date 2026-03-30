@@ -1,6 +1,7 @@
 import os
 import argparse
 import numpy as np
+import random
 from PIL import Image
 from tqdm import tqdm
 
@@ -23,12 +24,10 @@ def load_image(path, size=256):
 
 
 def to_rgb(img):
-    # [1,H,W] -> [3,H,W]
     return img.repeat(3, 1, 1)
 
 
 def normalize_lpips(img):
-    # [0,1] -> [-1,1]
     return img * 2 - 1
 
 
@@ -38,6 +37,24 @@ def get_image_paths(folder):
     for ext in exts:
         paths.extend([os.path.join(folder, f) for f in os.listdir(folder) if f.endswith(ext)])
     return sorted(paths)
+
+
+# =========================
+# Sampling 
+# =========================
+
+def match_sample_sizes(real_paths, fake_paths, seed=42):
+    random.seed(seed)
+
+    n_fake = len(fake_paths)
+    n_real = len(real_paths)
+
+    if n_real > n_fake:
+        real_paths = random.sample(real_paths, n_fake)
+    elif n_fake > n_real:
+        fake_paths = random.sample(fake_paths, n_real)
+
+    return real_paths, fake_paths
 
 
 # =========================
@@ -87,20 +104,40 @@ def compute_lpips(real_paths, fake_paths, device):
 
 
 # =========================
-# FID
+# FID 
 # =========================
 
-def compute_fid(real_folder, fake_folder):
-    import subprocess
+def compute_fid(real_paths, fake_paths, repeats=1):
+    from pytorch_fid.fid_score import calculate_fid_given_paths
+    import tempfile
+    import shutil
 
-    cmd = [
-        "python", "-m", "pytorch_fid",
-        real_folder,
-        fake_folder
-    ]
+    fid_scores = []
 
-    result = subprocess.run(cmd, capture_output=True, text=True)
-    print(result.stdout)
+    for i in range(repeats):
+        # sample subset (já equilibrado antes, mas randomizamos novamente)
+        real_sample = random.sample(real_paths, len(fake_paths))
+
+        # criar pastas temporárias
+        with tempfile.TemporaryDirectory() as real_tmp, tempfile.TemporaryDirectory() as fake_tmp:
+            
+            for j, path in enumerate(real_sample):
+                shutil.copy(path, os.path.join(real_tmp, f"{j}.png"))
+
+            for j, path in enumerate(fake_paths):
+                shutil.copy(path, os.path.join(fake_tmp, f"{j}.png"))
+
+            fid = calculate_fid_given_paths(
+                [real_tmp, fake_tmp],
+                batch_size=32,
+                device='cuda' if torch.cuda.is_available() else 'cpu',
+                dims=2048
+            )
+
+            fid_scores.append(fid)
+            print(f"FID run {i+1}: {fid:.4f}")
+
+    return np.mean(fid_scores), np.std(fid_scores)
 
 
 # =========================
@@ -113,7 +150,12 @@ def main(args):
     real_paths = get_image_paths(args.real)
     fake_paths = get_image_paths(args.fake)
 
-    print(f"Found {len(real_paths)} real and {len(fake_paths)} fake images")
+    print(f"Original: {len(real_paths)} real vs {len(fake_paths)} fake")
+
+    # balanceamento automático
+    real_paths, fake_paths = match_sample_sizes(real_paths, fake_paths, seed=args.seed)
+
+    print(f"Using: {len(real_paths)} real vs {len(fake_paths)} fake")
 
     if args.ssim:
         print("\nComputing SSIM...")
@@ -127,7 +169,8 @@ def main(args):
 
     if args.fid:
         print("\nComputing FID...")
-        compute_fid(args.real, args.fake)
+        mean_fid, std_fid = compute_fid(real_paths, fake_paths, repeats=args.fid_repeats)
+        print(f"\nFID: {mean_fid:.4f} ± {std_fid:.4f}")
 
 
 if __name__ == "__main__":
@@ -139,6 +182,9 @@ if __name__ == "__main__":
     parser.add_argument("--ssim", action="store_true")
     parser.add_argument("--lpips", action="store_true")
     parser.add_argument("--fid", action="store_true")
+
+    parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--fid_repeats", type=int, default=1)
 
     args = parser.parse_args()
 
