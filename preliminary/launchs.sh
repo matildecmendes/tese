@@ -8,7 +8,7 @@
 
 # Commands / scripts to run (e.g., python3 train.py)
 python sampling.py \
-  --model_path /nas-ctm01/homes/mcmendes/tese/preliminary/checkpoint_epoch_10.pt \
+  --model_path /nas-ctm01/homes/mcmendes/tese/preliminary/checkpoint_epoch_30.pt \
   --out_dir /nas-ctm01/homes/mcmendes/samples/preliminary \
   --num_samples 200 \
   --batch_size 16
