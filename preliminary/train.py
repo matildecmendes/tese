@@ -234,7 +234,7 @@ def save_samples(G, epoch):
 
     grid = fake.squeeze().numpy()
 
-    fig, axes = plt.subplots(2, 4, figsize=(8,4))  # estava 4,2 (mais compacto antes)
+    fig, axes = plt.subplots(2, 4, figsize=(4,2))  # estava 4,2 (mais compacto antes)
 
     for i in range(2):
         for j in range(4):
