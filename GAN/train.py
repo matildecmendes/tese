@@ -1,119 +1,263 @@
-import os
-import argparse
+import os, glob, argparse
+import numpy as np
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader
+import torch.nn.functional as F
+from torch.utils.data import Dataset, DataLoader
+import matplotlib.pyplot as plt
 
-from dataset import CTDataset
-from models import Generator, Discriminator
-from utils import save_images
+# =========================================================
+# ARGUMENTS
+# =========================================================
+parser = argparse.ArgumentParser()
 
+parser.add_argument("--data_path", type=str, required=True)
+parser.add_argument("--out_dir", type=str, required=True)
+parser.add_argument("--epochs", type=int, default=50)
+parser.add_argument("--batch_size", type=int, default=8)
+parser.add_argument("--lr_g", type=float, default=2e-4)
+parser.add_argument("--lr_d", type=float, default=5e-5)
+parser.add_argument("--max_samples", type=int, default=None)
 
-def train(data_path, output_path, batch_size=4, epochs=5, limit=None):
+args = parser.parse_args()
 
-    device = "cuda" if torch.cuda.is_available() else "cpu"
+os.makedirs(args.out_dir, exist_ok=True)
 
-    os.makedirs(output_path, exist_ok=True)
+# =========================================================
+# DEVICE
+# =========================================================
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print("Device:", device)
 
-    # -------- Dataset --------
-    dataset = CTDataset(data_path)
+# =========================================================
+# DATASET
+# =========================================================
+class CTDataset(Dataset):
+    def __init__(self, root, max_samples=None):
+        self.files = sorted(glob.glob(os.path.join(root, "*.npy")))
+        assert len(self.files) > 0, "Dataset vazio"
 
-    if limit is not None:
-        dataset.files = dataset.files[:limit]
+        if max_samples is not None:
+            self.files = self.files[:max_samples]
 
-    loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+        print(f"[DATASET] Found {len(self.files)} samples")
 
-    print(f"Dataset size: {len(dataset)}")
+    def __len__(self):
+        return len(self.files)
 
-    # -------- Models --------
-    G = Generator().to(device)
-    D = Discriminator().to(device)
+    def __getitem__(self, idx):
+        x = np.load(self.files[idx]).astype(np.float32)
 
-    criterion = nn.BCELoss()
+        if idx == 0:
+            print("\n[DATA DEBUG]")
+            print("RAW min/max:", x.min(), x.max())
 
-    opt_G = torch.optim.Adam(G.parameters(), lr=1e-4, betas=(0.5, 0.999))
-    opt_D = torch.optim.Adam(D.parameters(), lr=2e-4, betas=(0.5, 0.999))
+        assert x.shape == (256, 256), f"Shape errado: {x.shape}"
 
-    # -------- Training --------
-    for epoch in range(epochs):
-        for i, real in enumerate(loader):
+        if x.min() >= -1.1 and x.max() <= 1.1:
+            pass
+        elif x.min() >= 0.0 and x.max() <= 1.0:
+            x = x * 2 - 1
+        else:
+            raise ValueError(f"Range inesperado: {x.min()}, {x.max()}")
 
-            real = real.to(device)
-            batch_size_curr = real.size(0)
+        if idx == 0:
+            print("FINAL min/max:", x.min(), x.max())
 
-            # DEBUG REAL
-            if i == 0:
-                print("REAL min/max:", real.min().item(), real.max().item())
+        return torch.from_numpy(x).unsqueeze(0)
 
-            #real_labels = torch.ones(batch_size_curr, device=device)
-            #fake_labels = torch.zeros(batch_size_curr, device=device)
-            real_labels = torch.full((batch_size_curr,), 0.9, device=device)
-            fake_labels = torch.full((batch_size_curr,), 0.1, device=device)
+dataset = CTDataset(args.data_path, args.max_samples)
 
-            # -------- Train D --------
-            noise = torch.randn(batch_size_curr, 100, 1, 1, device=device)
-            fake = G(noise)
+loader = DataLoader(
+    dataset,
+    batch_size=args.batch_size,
+    shuffle=True,
+    num_workers=2,
+    pin_memory=True,
+    drop_last=True
+)
 
-            # DEBUG FAKE
-            if i == 0:
-                print("FAKE min/max:", fake.min().item(), fake.max().item())
+# =========================================================
+# MODELS
+# =========================================================
+class ResBlock(nn.Module):
+    def __init__(self, in_ch, out_ch, up=False):
+        super().__init__()
+        self.up = up
+        self.conv1 = nn.Conv2d(in_ch, out_ch, 3, padding=1)
+        self.conv2 = nn.Conv2d(out_ch, out_ch, 3, padding=1)
+        self.skip = nn.Conv2d(in_ch, out_ch, 1)
 
-            D_real = D(real)
-            D_fake = D(fake.detach())
+    def forward(self, x):
+        h = x
+        if self.up:
+            h = F.interpolate(h, scale_factor=2)
+            x = F.interpolate(x, scale_factor=2)
 
-            loss_D = criterion(D_real, real_labels) + criterion(D_fake, fake_labels)
+        h = F.leaky_relu(self.conv1(h), 0.2)
+        h = F.leaky_relu(self.conv2(h), 0.2)
 
-            opt_D.zero_grad()
-            loss_D.backward()
-            opt_D.step()
+        return h + self.skip(x)
 
-            # -------- Train G --------
-            D_fake = D(fake)
-            loss_G = criterion(D_fake, real_labels)
+class DiscResBlock(nn.Module):
+    def __init__(self, in_ch, out_ch, down=False):
+        super().__init__()
+        self.down = down
+        self.conv1 = nn.utils.spectral_norm(nn.Conv2d(in_ch, out_ch, 3, padding=1))
+        self.conv2 = nn.utils.spectral_norm(nn.Conv2d(out_ch, out_ch, 3, padding=1))
+        self.skip = nn.utils.spectral_norm(nn.Conv2d(in_ch, out_ch, 1))
 
-            opt_G.zero_grad()
-            loss_G.backward()
-            opt_G.step()
+    def forward(self, x):
+        h = F.leaky_relu(self.conv1(x), 0.2)
+        h = F.leaky_relu(self.conv2(h), 0.2)
 
-            if i % 20 == 0:
-                print(
-                    f"[Epoch {epoch}/{epochs}] Batch {i} "
-                    f"Loss D: {loss_D.item():.4f} | Loss G: {loss_G.item():.4f}"
-                )
+        if self.down:
+            h = F.avg_pool2d(h, 2)
+            x = F.avg_pool2d(x, 2)
 
-        # -------- Save images --------
-        with torch.no_grad():
-            noise = torch.randn(16, 100, 1, 1, device=device)
-            fake = G(noise)
-            save_images(fake, epoch, output_path)
+        return h + self.skip(x)
 
-        print(f"Saved samples for epoch {epoch}")
+class Generator(nn.Module):
+    def __init__(self, z_dim=256):
+        super().__init__()
+        self.fc = nn.Linear(z_dim, 512 * 4 * 4)
 
-    print("Training finished.")
+        self.blocks = nn.Sequential(
+            ResBlock(512,256,True),
+            ResBlock(256,128,True),
+            ResBlock(128,64,True),
+            ResBlock(64,32,True),
+            ResBlock(32,16,True),
+            ResBlock(16,8,True),
+        )
 
+        self.to_img = nn.Conv2d(8,1,3,padding=1)
 
-# ENTRY POINT
+    def forward(self, z):
+        h = self.fc(z).view(-1,512,4,4)
+        h = self.blocks(h)
+        return torch.tanh(self.to_img(h))
 
-if __name__ == "__main__":
+class Discriminator(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.blocks = nn.ModuleList([
+            DiscResBlock(1,32,True),
+            DiscResBlock(32,64,True),
+            DiscResBlock(64,128,True),
+            DiscResBlock(128,256,True),
+            DiscResBlock(256,512,True),
+        ])
+        self.pool = nn.AdaptiveAvgPool2d((4,4))
+        self.fc = nn.utils.spectral_norm(nn.Linear(512*4*4,1))
 
-    parser = argparse.ArgumentParser(description="Simple GAN Training")
+    def forward(self, x):
+        feats = []
+        for b in self.blocks:
+            x = b(x)
+            feats.append(x)
+        x = self.pool(x)
+        return self.fc(x.view(x.size(0),-1)), feats
 
-    parser.add_argument("--data_path", type=str, required=True,
-                        help="Path to dataset slices")
+# =========================================================
+# LOSS
+# =========================================================
+def adv_loss(logits, targets):
+    return F.binary_cross_entropy_with_logits(logits, targets)
 
-    parser.add_argument("--output_path", type=str, required=True,
-                        help="Path to save outputs (NAS)")
+def fm_loss(fake, real):
+    return sum(torch.mean(torch.abs(f - r.detach())) for f,r in zip(fake,real))
 
-    parser.add_argument("--batch_size", type=int, default=4)
-    parser.add_argument("--epochs", type=int, default=5)
-    parser.add_argument("--limit", type=int, default=None)
+# =========================================================
+# INIT
+# =========================================================
+z_dim = 256
+G = Generator(z_dim).to(device)
+D = Discriminator().to(device)
 
-    args = parser.parse_args()
+opt_G = torch.optim.Adam(G.parameters(), lr=args.lr_g, betas=(0.5,0.999))
+opt_D = torch.optim.Adam(D.parameters(), lr=args.lr_d, betas=(0.5,0.999))
 
-    train(
-        data_path=args.data_path,
-        output_path=args.output_path,
-        batch_size=args.batch_size,
-        epochs=args.epochs,
-        limit=args.limit
-    )
+z_fixed = torch.randn(8, z_dim, device=device)
+
+# =========================================================
+# SAVE
+# =========================================================
+def save_samples(G, epoch):
+    G.eval()
+    with torch.no_grad():
+        fake = G(z_fixed).cpu()
+
+    grid = fake.squeeze().numpy()
+
+    fig, axes = plt.subplots(2, 4, figsize=(4,2))
+
+    for i in range(2):
+        for j in range(4):
+            axes[i, j].imshow(grid[i*4+j], cmap="gray")
+            axes[i, j].axis("off")
+
+    plt.subplots_adjust(wspace=0, hspace=0)
+
+    plt.savefig(os.path.join(args.out_dir, f"epoch_{epoch}.png"),
+                bbox_inches='tight', pad_inches=0)
+    plt.close()
+
+    torch.save({
+        "epoch": epoch,
+        "G": G.state_dict(),
+        "D": D.state_dict()
+    }, os.path.join(args.out_dir, f"checkpoint_{epoch}.pt"))
+
+    print(f"[SAVE] Epoch {epoch}")
+
+# =========================================================
+# TRAIN
+# =========================================================
+for epoch in range(args.epochs):
+
+    loss_D_avg = 0
+    loss_G_avg = 0
+
+    for i, real in enumerate(loader):
+
+        real = real.to(device)
+        b = real.size(0)
+
+        # ===== D =====
+        z = torch.randn(b, z_dim, device=device)
+        fake = G(z).detach()
+
+        real_logits,_ = D(real)
+        fake_logits,_ = D(fake)
+
+        loss_D = adv_loss(real_logits, torch.ones_like(real_logits)*0.9) + \
+                 adv_loss(fake_logits, torch.zeros_like(fake_logits))
+
+        opt_D.zero_grad()
+        loss_D.backward()
+        opt_D.step()
+
+        # ===== G =====
+        z = torch.randn(b, z_dim, device=device)
+        fake = G(z)
+
+        fake_logits, fake_feats = D(fake)
+        _, real_feats = D(real)
+
+        loss_G = adv_loss(fake_logits, torch.ones_like(fake_logits)*0.9) + \
+                 0.5 * fm_loss(fake_feats, real_feats)
+
+        opt_G.zero_grad()
+        loss_G.backward()
+        opt_G.step()
+
+        loss_D_avg += loss_D.item()
+        loss_G_avg += loss_G.item()
+
+        if i % 50 == 0:
+            print(f"[STEP {i}] D={loss_D.item():.3f} | G={loss_G.item():.3f}")
+
+    print(f"\n[EPOCH {epoch+1}] D={loss_D_avg/len(loader):.3f} | G={loss_G_avg/len(loader):.3f}")
+
+    save_samples(G, epoch+1)
