@@ -100,7 +100,7 @@ loader = DataLoader(
 # DIFFUSION
 # =========================================================
 class Diffusion:
-    def __init__(self, T=10, beta_start=1e-4, beta_end=0.002):
+    def __init__(self, T=30, beta_start=1e-4, beta_end=0.005):
         self.T = T
         self.betas = torch.linspace(beta_start, beta_end, T).to(device)
         self.alphas = 1 - self.betas
@@ -319,7 +319,7 @@ for epoch in range(args.epochs):
         _, real_feats = D(real_d)
 
         loss_G = adv_loss(fake_logits, torch.ones_like(fake_logits)*0.9) + \
-                 0.1 * fm_loss(fake_feats, real_feats) #antes de 0.1 era 0.5
+                 0.5 * fm_loss(fake_feats, real_feats) #antes de 0.1 era 0.5
 
         opt_G.zero_grad()
         loss_G.backward()
