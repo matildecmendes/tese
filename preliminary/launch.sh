@@ -9,7 +9,7 @@
 # Commands / scripts to run (e.g., python3 train.py)
 python train.py \
   --data_path /nas-ctm01/datasets/public/lidc-mcmendes/slices \
-  --out_dir /nas-ctm01/homes/mcmendes/outputs/preliminary_work \
+  --out_dir /nas-ctm01/homes/mcmendes/outputs/preliminary_work/2 \
   --epochs 30 \
   --batch_size 8 \
   --max_samples 6000
