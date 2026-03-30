@@ -248,8 +248,13 @@ def save_samples(G, epoch):
     plt.savefig(path, bbox_inches='tight', pad_inches=0)
     plt.close()
 
-    #torch.save(G.state_dict(), os.path.join(args.out_dir, f"G_{epoch}.pt"))
-    #torch.save(D.state_dict(), os.path.join(args.out_dir, f"D_{epoch}.pt"))
+    # guardar modelos a cada epoch
+    checkpoint_path = os.path.join(args.out_dir, f"checkpoint_epoch_{epoch}.pt")
+    torch.save({
+        "epoch": epoch,
+        "G": G.state_dict(),
+        "D": D.state_dict()
+    }, checkpoint_path)
 
     print(f"[SAVE] Epoch {epoch} saved")
 
