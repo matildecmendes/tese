@@ -100,7 +100,7 @@ loader = DataLoader(
 # DIFFUSION
 # =========================================================
 class Diffusion:
-    def __init__(self, T=20, beta_start=1e-4, beta_end=0.002):
+    def __init__(self, T=30, beta_start=1e-4, beta_end=0.005):
         self.T = T
         self.betas = torch.linspace(beta_start, beta_end, T).to(device)
         self.alphas = 1 - self.betas
