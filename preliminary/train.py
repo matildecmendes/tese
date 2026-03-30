@@ -4,7 +4,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
-import torchvision.utils as vutils
 import matplotlib.pyplot as plt
 
 # =========================================================
@@ -233,24 +232,23 @@ def save_samples(G, epoch):
     with torch.no_grad():
         fake = G(z_fixed).cpu()
 
-    # normalizar automaticamente
-    grid = vutils.make_grid(
-        fake,
-        nrow=4,
-        normalize=True,
-        value_range=(-1, 1),
-        padding=2
-    )
+    grid = fake.squeeze().numpy()
 
-    plt.figure(figsize=(6,6))
-    plt.imshow(grid.permute(1,2,0).squeeze(), cmap="gray")
-    plt.axis("off")
+    fig, axes = plt.subplots(2, 4, figsize=(4,2))  # mais compacto
+
+    for i in range(2):
+        for j in range(4):
+            idx = i * 4 + j
+            axes[i, j].imshow(grid[idx], cmap="gray")
+            axes[i, j].axis("off")
+
+    plt.subplots_adjust(wspace=0, hspace=0)
 
     path = os.path.join(args.out_dir, f"epoch_{epoch}.png")
     plt.savefig(path, bbox_inches='tight', pad_inches=0)
     plt.close()
 
-        # guardar modelos a cada epoch
+    # guardar modelos a cada epoch
     checkpoint_path = os.path.join(args.out_dir, f"checkpoint_epoch_{epoch}.pt")
     torch.save({
         "epoch": epoch,
@@ -325,7 +323,7 @@ for epoch in range(args.epochs):
         _, real_feats = D(real_d)
 
         loss_G = adv_loss(fake_logits, torch.ones_like(fake_logits)*0.9) + \
-                 0.5 * fm_loss(fake_feats, real_feats) #antes de 0.1 era 0.5
+                 0.1 * fm_loss(fake_feats, real_feats) #antes de 0.1 era 0.5
 
         opt_G.zero_grad()
         loss_G.backward()
