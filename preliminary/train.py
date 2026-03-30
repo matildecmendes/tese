@@ -1,168 +1,340 @@
-import argparse
+import os, glob, argparse
+import numpy as np
 import torch
-from torch.utils.data import DataLoader
-
-from dataset import CTDataset
-from models import Generator, Discriminator
-from diffusion import Diffusion
-from utils import save_samples
-
+import torch.nn as nn
 import torch.nn.functional as F
+from torch.utils.data import Dataset, DataLoader
+import matplotlib.pyplot as plt
 
-# -------------------------
-# LOSSES
-# -------------------------
+# =========================================================
+# ARGUMENTS (para .sh)
+# =========================================================
+parser = argparse.ArgumentParser()
+
+parser.add_argument("--data_path", type=str, required=True)
+parser.add_argument("--out_dir", type=str, required=True)
+parser.add_argument("--epochs", type=int, default=50)
+parser.add_argument("--batch_size", type=int, default=8)
+parser.add_argument("--lr_g", type=float, default=2e-4)
+parser.add_argument("--lr_d", type=float, default=5e-5)
+parser.add_argument("--max_samples", type=int, default=None)
+
+args = parser.parse_args()
+
+os.makedirs(args.out_dir, exist_ok=True)
+
+# =========================================================
+# DEVICE
+# =========================================================
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print("Device:", device)
+
+# =========================================================
+# DATASET (CORRIGIDO)
+# =========================================================
+class CTDataset(Dataset):
+    def __init__(self, root, max_samples=None):
+        self.files = sorted(glob.glob(os.path.join(root, "*.npy")))
+        assert len(self.files) > 0, "Dataset vazio"
+
+        if max_samples is not None:
+            self.files = self.files[:max_samples]
+
+        print(f"[DATASET] Found {len(self.files)} samples")
+
+    def __len__(self):
+        return len(self.files)
+
+    def __getitem__(self, idx):
+        x = np.load(self.files[idx]).astype(np.float32)
+
+        # =========================
+        # DEBUG RAW (1 vez apenas)
+        # =========================
+        if idx == 0:
+            print("\n[DATA DEBUG]")
+            print("RAW min/max:", x.min(), x.max())
+            print("RAW mean/std:", x.mean(), x.std())
+
+        # =========================
+        # VALIDAÇÃO AUTOMÁTICA
+        # =========================
+        assert x.shape == (256, 256), f"Shape errado: {x.shape}"
+
+        # DETECTAR RANGE
+        if x.min() >= -1.1 and x.max() <= 1.1:
+            # já está em [-1,1]
+            pass
+
+        elif x.min() >= 0.0 and x.max() <= 1.0:
+            # [0,1] → [-1,1]
+            x = x * 2 - 1
+
+        else:
+            raise ValueError(f"Range inesperado: min={x.min()}, max={x.max()}")
+
+        # =========================
+        # DEBUG FINAL
+        # =========================
+        if idx == 0:
+            print("FINAL min/max:", x.min(), x.max())
+            print("FINAL mean/std:", x.mean(), x.std())
+            print("")
+
+        x = torch.from_numpy(x).unsqueeze(0)
+
+        return x
+
+dataset = CTDataset(args.data_path, args.max_samples)
+
+loader = DataLoader(
+    dataset,
+    batch_size=args.batch_size,
+    shuffle=True,
+    num_workers=2,
+    pin_memory=True,
+    drop_last=True
+)
+
+# =========================================================
+# DIFFUSION
+# =========================================================
+class Diffusion:
+    def __init__(self, T=30, beta_start=1e-4, beta_end=0.005):
+        self.T = T
+        self.betas = torch.linspace(beta_start, beta_end, T).to(device)
+        self.alphas = 1 - self.betas
+        self.alpha_bars = torch.cumprod(self.alphas, dim=0)
+
+    def forward(self, x):
+        b = x.size(0)
+        t = torch.randint(0, self.T, (b,), device=x.device)
+        return self.apply_at_t(x, t), t
+
+    def apply_at_t(self, x, t):
+        alpha_bar_t = self.alpha_bars[t].view(-1,1,1,1)
+        noise = torch.randn_like(x)
+        return torch.sqrt(alpha_bar_t) * x + torch.sqrt(1 - alpha_bar_t) * noise
+
+# =========================================================
+# MODELS
+# =========================================================
+class ResBlock(nn.Module):
+    def __init__(self, in_ch, out_ch, up=False):
+        super().__init__()
+        self.up = up
+        self.conv1 = nn.Conv2d(in_ch, out_ch, 3, padding=1)
+        self.conv2 = nn.Conv2d(out_ch, out_ch, 3, padding=1)
+        self.skip = nn.Conv2d(in_ch, out_ch, 1)
+        self.noise_strength = nn.Parameter(torch.zeros(1))
+
+    def forward(self, x):
+        h = x
+        if self.up:
+            h = F.interpolate(h, scale_factor=2)
+            x = F.interpolate(x, scale_factor=2)
+
+        h = self.conv1(h)
+        h = h + torch.randn_like(h) * self.noise_strength
+        h = F.leaky_relu(h, 0.2)
+        h = F.leaky_relu(self.conv2(h), 0.2)
+
+        return h + self.skip(x)
+
+class DiscResBlock(nn.Module):
+    def __init__(self, in_ch, out_ch, down=False):
+        super().__init__()
+        self.down = down
+        self.conv1 = nn.Conv2d(in_ch, out_ch, 3, padding=1)
+        self.conv2 = nn.Conv2d(out_ch, out_ch, 3, padding=1)
+        self.skip = nn.Conv2d(in_ch, out_ch, 1)
+
+    def forward(self, x):
+        h = F.leaky_relu(self.conv1(x), 0.2)
+        h = F.leaky_relu(self.conv2(h), 0.2)
+
+        if self.down:
+            h = F.avg_pool2d(h, 2)
+            x = F.avg_pool2d(x, 2)
+
+        return h + self.skip(x)
+
+class Generator(nn.Module):
+    def __init__(self, z_dim=256):
+        super().__init__()
+        self.fc = nn.Linear(z_dim, 512 * 4 * 4)
+
+        self.blocks = nn.Sequential(
+            ResBlock(512,256,True),
+            ResBlock(256,128,True),
+            ResBlock(128,64,True),
+            ResBlock(64,32,True),
+            ResBlock(32,16,True),
+            ResBlock(16,8,True),
+        )
+
+        self.to_img = nn.Conv2d(8,1,3,padding=1)
+
+    def forward(self, z):
+        h = self.fc(z).view(-1,512,4,4)
+        h = self.blocks(h)
+        return torch.tanh(self.to_img(h))
+
+class Discriminator(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.blocks = nn.ModuleList([
+            DiscResBlock(1,32,True),
+            DiscResBlock(32,64,True),
+            DiscResBlock(64,128,True),
+            DiscResBlock(128,256,True),
+            DiscResBlock(256,512,True),
+        ])
+        self.pool = nn.AdaptiveAvgPool2d((4,4))
+        self.fc = nn.Linear(512*4*4,1)
+
+    def forward(self, x):
+        feats = []
+        for b in self.blocks:
+            x = b(x)
+            feats.append(x)
+        x = self.pool(x)
+        return self.fc(x.view(x.size(0),-1)), feats
+
+# =========================================================
+# LOSS
+# =========================================================
 def adv_loss(logits, targets):
     return F.binary_cross_entropy_with_logits(logits, targets)
 
-def feature_matching_loss(fake_feats, real_feats):
-    loss = 0
-    for f, r in zip(fake_feats, real_feats):
-        loss += torch.mean(torch.abs(f - r.detach()))
-    return loss
+def fm_loss(fake, real):
+    return sum(torch.mean(torch.abs(f - r.detach())) for f,r in zip(fake,real))
 
-def debug_batch(real, fake, x_t_real, x_t_fake, epoch, i, out_dir):
-    import os
-    import torchvision.utils as vutils
+# =========================================================
+# INIT
+# =========================================================
+z_dim = 256
+G = Generator(z_dim).to(device)
+D = Discriminator().to(device)
 
-    debug_dir = os.path.join(out_dir, "debug")
-    os.makedirs(debug_dir, exist_ok=True)
+opt_G = torch.optim.Adam(G.parameters(), lr=args.lr_g, betas=(0.5,0.999))
+opt_D = torch.optim.Adam(D.parameters(), lr=args.lr_d, betas=(0.5,0.999))
 
-    # normalizar para [0,1]
-    def norm(x):
-        return (x + 1) / 2
+diffusion = Diffusion()
 
-    grid = torch.cat([
-        norm(real[:4]),
-        norm(x_t_real[:4]),
-        norm(fake[:4]),
-        norm(x_t_fake[:4])
-    ], dim=0)
+z_fixed = torch.randn(8, z_dim, device=device)
 
-    grid = vutils.make_grid(grid, nrow=4)
+# =========================================================
+# SAVE FUNCTION
+# =========================================================
+def save_samples(G, epoch):
+    G.eval()
+    with torch.no_grad():
+        fake = G(z_fixed).cpu()
 
-    vutils.save_image(
-        grid,
-        os.path.join(debug_dir, f"epoch{epoch}_batch{i}.png")
-    )
+    grid = fake.squeeze().numpy()
+
+    fig, axes = plt.subplots(2, 4, figsize=(4,2))  # mais compacto
+
+    for i in range(2):
+        for j in range(4):
+            idx = i * 4 + j
+            axes[i, j].imshow(grid[idx], cmap="gray")
+            axes[i, j].axis("off")
+
+    plt.subplots_adjust(wspace=0, hspace=0)
+
+    path = os.path.join(args.out_dir, f"epoch_{epoch}.png")
+    plt.savefig(path, bbox_inches='tight', pad_inches=0)
+    plt.close()
+
+    #torch.save(G.state_dict(), os.path.join(args.out_dir, f"G_{epoch}.pt"))
+    #torch.save(D.state_dict(), os.path.join(args.out_dir, f"D_{epoch}.pt"))
+
+    print(f"[SAVE] Epoch {epoch} saved")
 
 
-
+# =========================================================
 # TRAIN
+# =========================================================
+for epoch in range(args.epochs):
 
-def main(args):
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    loss_D_avg = 0
+    loss_G_avg = 0
 
-    # DATASET
+    def save_debug_progress(G, diffusion, batch, epoch):
+        G.eval()
+        with torch.no_grad():
 
-    dataset = CTDataset(args.data_path)
-
-    if args.limit is not None:
-        dataset.files = dataset.files[:args.limit]
-
-    print(f"Dataset size: {len(dataset)}")
-
-    loader = DataLoader(
-        dataset,
-        batch_size=args.batch_size,
-        shuffle=True,
-        num_workers=2,
-        pin_memory=True,
-        drop_last=True
-    )
-
-    G = Generator(args.z_dim).to(device)
-    D = Discriminator().to(device)
-
-    opt_G = torch.optim.Adam(G.parameters(), lr=3e-4, betas=(0.5, 0.999))
-    opt_D = torch.optim.Adam(D.parameters(), lr=1e-5, betas=(0.5, 0.999))
-
-    diffusion = Diffusion(device=device)
-
-    # LOOP DE TREINO
-
-    for epoch in range(args.epochs):
-        for i, real in enumerate(loader):
-
-            real = real.to(device)
-            b = real.size(0)
-
-            # ---------------- D ----------------
-            z = torch.randn(b, args.z_dim, device=device)
-            fake = G(z).detach()
-
-            x_t_real, _ = diffusion.forward(real)
-            x_t_fake, _ = diffusion.forward(fake)
-
-            real_logits, real_feats = D(x_t_real)
-            fake_logits, fake_feats = D(x_t_fake)
-
-            d_loss = adv_loss(real_logits, torch.ones_like(real_logits)) + \
-                    adv_loss(fake_logits, torch.zeros_like(fake_logits))
-
-            opt_D.zero_grad()
-            d_loss.backward()
-            opt_D.step()
-
-            # ---------------- G ----------------
-            z = torch.randn(b, args.z_dim, device=device)
+            z = torch.randn(batch.size(0), 256, device=device)
             fake = G(z)
 
-            x_t_fake, _ = diffusion.forward(fake)
+            # aplicar diffusion progressiva
+            imgs = []
 
-            fake_logits, fake_feats = D(x_t_fake)
-            #_, real_feats = D(x_t_real)
-            with torch.no_grad():
-                _, real_feats = D(x_t_real)
+            for t_val in [0, 3, 6, 9]:
+                t = torch.full((batch.size(0),), t_val, device=device, dtype=torch.long)
+                img_t = diffusion.apply_at_t(fake, t)
+                imgs.append(img_t.cpu())
 
-            g_loss = adv_loss(fake_logits, torch.ones_like(fake_logits))
-            g_loss += args.fm_lambda * feature_matching_loss(fake_feats, real_feats)
+        # guardar
+        fig, axes = plt.subplots(len(imgs), 4, figsize=(6,6))
 
-            opt_G.zero_grad()
-            g_loss.backward()
-            opt_G.step()
+        for i in range(len(imgs)):
+            for j in range(4):
+                axes[i,j].imshow(imgs[i][j,0], cmap="gray")
+                axes[i,j].axis("off")
 
-            # ---------------- PRINT DEBUG ----------------
-            if i % 10 == 0:
-                print(
-                    f"[Epoch {epoch+1}/{args.epochs}] "
-                    f"[Batch {i}/{len(loader)}] "
-                    f"D: {d_loss.item():.4f} | G: {g_loss.item():.4f}"
-                )
+        plt.savefig(os.path.join(args.out_dir, f"debug_epoch_{epoch}.png"), dpi=150)
+        plt.close()
 
-                #print(
-                #    f"  REAL   min/max: {real.min().item():.3f} / {real.max().item():.3f}"
-                #)
-                #print(
-                #    f"  x_t    min/max: {x_t_real.min().item():.3f} / {x_t_real.max().item():.3f}"
-                #)
-                #print(
-                #    f"  FAKE   min/max: {fake.min().item():.3f} / {fake.max().item():.3f}"
-                #)
+    for i, real in enumerate(loader):
 
-            if i == 0 and epoch % 5 == 0:
-                debug_batch(real, fake, x_t_real, x_t_fake, epoch, i, args.out_dir)
+        real = real.to(device)
+        b = real.size(0)
 
-            if i % 50 == 0:
-                print("STD real:", real.std().item())
-                print("STD fake:", fake.std().item())
+        # ================= D =================
+        z = torch.randn(b, z_dim, device=device)
+        fake = G(z).detach()
 
-        # guardar imagens só no fim do epoch
-        save_samples(G, args.z_dim, device, args.out_dir, epoch)
+        real_d, t = diffusion.forward(real)
+        fake_d = diffusion.apply_at_t(fake, t)
 
-    torch.save(G.state_dict(), f"{args.out_dir}/G.pt")
+        real_logits,_ = D(real_d)
+        fake_logits,_ = D(fake_d)
 
+        loss_D = adv_loss(real_logits, torch.ones_like(real_logits)*0.9) + \
+                 adv_loss(fake_logits, torch.zeros_like(fake_logits))
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+        opt_D.zero_grad()
+        loss_D.backward()
+        opt_D.step()
 
-    parser.add_argument("--data_path", type=str, required=True)
-    parser.add_argument("--out_dir", type=str, default="outputs")
-    parser.add_argument("--epochs", type=int, default=50)
-    parser.add_argument("--batch_size", type=int, default=8)
-    parser.add_argument("--z_dim", type=int, default=256)
-    parser.add_argument("--fm_lambda", type=float, default=0.5)
-    parser.add_argument("--limit", type=int, default=None)
+        # ================= G =================
+        z = torch.randn(b, z_dim, device=device)
+        fake = G(z)
+        fake_d = diffusion.apply_at_t(fake, t)
 
-    args = parser.parse_args()
-    main(args)
+        fake_logits, fake_feats = D(fake_d)
+        _, real_feats = D(real_d)
+
+        loss_G = adv_loss(fake_logits, torch.ones_like(fake_logits)*0.9) + \
+                 0.5 * fm_loss(fake_feats, real_feats) #antes de 0.1 era 0.5
+
+        opt_G.zero_grad()
+        loss_G.backward()
+        opt_G.step()
+
+        loss_D_avg += loss_D.item()
+        loss_G_avg += loss_G.item()
+
+        # DEBUG intermédio
+        if i % 50 == 0:
+            print(f"[STEP {i}] D={loss_D.item():.3f} | G={loss_G.item():.3f}")
+            print(f"real_logits: {real_logits.mean().item():.3f}")
+            print(f"fake_logits: {fake_logits.mean().item():.3f}")
+            print(f"logit_gap: {(real_logits.mean()-fake_logits.mean()).item():.3f}")
+
+    print(f"\n[EPOCH {epoch+1}] D={loss_D_avg/len(loader):.3f} | G={loss_G_avg/len(loader):.3f}")
+
+    save_samples(G, epoch+1)

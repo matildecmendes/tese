@@ -1,0 +1,12 @@
+dependências:
+    pip install torch torchvision
+    pip install lpips
+    pip install pytorch-fid
+    pip install scikit-image
+    pip install pillow tqdm
+
+como correr:
+    python metrics.py --real data/real --fake data/fake --ssim --lpips --fid
+
+Atenção:
+- SSIM e LPIPS assumem pares, só o fid é que não
