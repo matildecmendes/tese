@@ -7,8 +7,8 @@
 #SBATCH --error=slurm_%x.%j.err    # File containing STDERR output. If ommited, use STDOUT.
 
 # Commands / scripts to run (e.g., python3 train.py)
-python sampling.py \
-  --model_path /nas-ctm01/homes/mcmendes/outputs/preliminary_work/checkpoint_epoch_30.pt \
+python sampling_pairs.py \
+  --model_path /nas-ctm01/homes/mcmendes/outputs/preliminary_work/7/checkpoint_epoch_30.pt \
   --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png \
-  --out_dir /nas-ctm01/homes/mcmendes/samples/preliminary \
+  --out_dir /nas-ctm01/homes/mcmendes/samples/preliminary/pairs/7 \
   --num_samples 100 

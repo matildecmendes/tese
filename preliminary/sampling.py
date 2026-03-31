@@ -18,7 +18,8 @@ class ResBlock(nn.Module):
         self.conv1 = nn.Conv2d(in_ch, out_ch, 3, padding=1)
         self.conv2 = nn.Conv2d(out_ch, out_ch, 3, padding=1)
         self.skip = nn.Conv2d(in_ch, out_ch, 1)
-        self.noise_strength = nn.Parameter(torch.zeros(1))
+        #self.noise_strength = nn.Parameter(torch.zeros(1))
+        self.noise_strength = nn.Parameter(torch.zeros(1) - 2)
 
     def forward(self, x):
         h = x
@@ -33,26 +34,53 @@ class ResBlock(nn.Module):
 
         return h + self.skip(x)
 
-
-class Generator(nn.Module):
+class ConditionalGenerator(nn.Module):
     def __init__(self, z_dim=256):
         super().__init__()
-        self.fc = nn.Linear(z_dim, 512 * 4 * 4)
 
+        self.z_dim = z_dim
+
+        # noise → feature map (pequeno)
+        self.fc = nn.Linear(z_dim, 256 * 4 * 4)
+
+        # reduzir resolução da imagem real
+        self.down = nn.AvgPool2d(8)  # 256 → 32
+
+        # entrada: real (1 canal) + noise (256 canais)
+        self.initial = nn.Conv2d(1 + 256, 256, 3, padding=1)
+
+        # upsampling progressivo
         self.blocks = nn.Sequential(
-            ResBlock(512,256,True),
-            ResBlock(256,128,True),
-            ResBlock(128,64,True),
-            ResBlock(64,32,True),
-            ResBlock(32,16,True),
-            ResBlock(16,8,True),
+            ResBlock(256,128,True),  # 32 → 64
+            ResBlock(128,64,True),   # 64 → 128
+            ResBlock(64,32,True),    # 128 → 256
+            ResBlock(32,16,False),
+            ResBlock(16,8,False),
         )
 
         self.to_img = nn.Conv2d(8,1,3,padding=1)
 
-    def forward(self, z):
-        h = self.fc(z).view(-1,512,4,4)
+    def forward(self, x, z):
+        """
+        x: [B,1,256,256]
+        z: [B,z_dim]
+        """
+
+        B = x.size(0)
+
+        # ↓ imagem real para 32x32
+        x_small = self.down(x)
+
+        # z → feature map 32x32
+        z_feat = self.fc(z).view(B,256,4,4)
+        z_feat = F.interpolate(z_feat, size=(32,32))
+
+        # concat
+        h = torch.cat([x_small, z_feat], dim=1)
+
+        h = self.initial(h)
         h = self.blocks(h)
+
         return torch.tanh(self.to_img(h))
 
 # =========================================================
@@ -77,7 +105,7 @@ print("Device:", device)
 # =========================================================
 checkpoint = torch.load(args.model_path, map_location=device)
 
-G = Generator().to(device)
+G = ConditionalGenerator().to(device)
 G.load_state_dict(checkpoint["G"])
 G.eval()
 
