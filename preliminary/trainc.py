@@ -16,7 +16,7 @@ parser.add_argument("--out_dir", type=str, required=True)
 parser.add_argument("--epochs", type=int, default=50)
 parser.add_argument("--batch_size", type=int, default=8)
 parser.add_argument("--lr_g", type=float, default=2e-4)
-parser.add_argument("--lr_d", type=float, default=1e-4)
+parser.add_argument("--lr_d", type=float, default=5e-5)
 parser.add_argument("--max_samples", type=int, default=None)
 
 args = parser.parse_args()
@@ -354,7 +354,7 @@ for epoch in range(args.epochs):
         _, real_feats = D(real_d)
 
         loss_G = adv_loss(fake_logits, torch.ones_like(fake_logits)*0.9) + \
-                 0.47 * fm_loss(fake_feats, real_feats) #antes era 0.5, esse parâmetro é o f_lambda
+                 0.6 * fm_loss(fake_feats, real_feats) #antes era 0.5, esse parâmetro é o f_lambda
 
         opt_G.zero_grad()
         loss_G.backward()
