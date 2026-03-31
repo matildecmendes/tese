@@ -30,7 +30,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("Device:", device)
 
 # =========================================================
-# DATASET (CORRIGIDO)
+# DATASET 
 # =========================================================
 class CTDataset(Dataset):
     def __init__(self, root, max_samples=None):
@@ -49,7 +49,7 @@ class CTDataset(Dataset):
         x = np.load(self.files[idx]).astype(np.float32)
 
         # =========================
-        # DEBUG RAW (1 vez apenas)
+        # DEBUG RAW 
         # =========================
         if idx == 0:
             print("\n[DATA DEBUG]")
@@ -63,7 +63,7 @@ class CTDataset(Dataset):
 
         # DETECTAR RANGE
         if x.min() >= -1.1 and x.max() <= 1.1:
-            # já está em [-1,1]
+            # em [-1,1]
             pass
 
         elif x.min() >= 0.0 and x.max() <= 1.0:
@@ -100,7 +100,7 @@ loader = DataLoader(
 # DIFFUSION
 # =========================================================
 class Diffusion:
-    def __init__(self, T=30, beta_start=1e-4, beta_end=0.005):
+    def __init__(self, T=25, beta_start=1e-4, beta_end=0.002):
         self.T = T
         self.betas = torch.linspace(beta_start, beta_end, T).to(device)
         self.alphas = 1 - self.betas
@@ -126,7 +126,8 @@ class ResBlock(nn.Module):
         self.conv1 = nn.Conv2d(in_ch, out_ch, 3, padding=1)
         self.conv2 = nn.Conv2d(out_ch, out_ch, 3, padding=1)
         self.skip = nn.Conv2d(in_ch, out_ch, 1)
-        self.noise_strength = nn.Parameter(torch.zeros(1))
+        #self.noise_strength = nn.Parameter(torch.zeros(1))
+        self.noise_strength = nn.Parameter(torch.zeros(1) - 2)
 
     def forward(self, x):
         h = x
@@ -353,8 +354,10 @@ for epoch in range(args.epochs):
         fake_logits, fake_feats = D(fake_d)
         _, real_feats = D(real_d)
 
+        identity = torch.mean(torch.abs(fake - real)) #juntei para experimentar
+
         loss_G = adv_loss(fake_logits, torch.ones_like(fake_logits)*0.9) + \
-                 0.6 * fm_loss(fake_feats, real_feats) #antes era 0.5, esse parâmetro é o f_lambda
+                 0.7 * fm_loss(fake_feats, real_feats) + 5.0 * identity #antes era 0.5, esse parâmetro é o f_lambda
 
         opt_G.zero_grad()
         loss_G.backward()
