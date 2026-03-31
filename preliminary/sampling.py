@@ -4,6 +4,10 @@ import torch
 import numpy as np
 import matplotlib.pyplot as plt
 
+from PIL import Image
+from torchvision import transforms
+import random
+
 # =========================================================
 # MESMO GENERATOR
 # =========================================================
@@ -84,11 +88,30 @@ class ConditionalGenerator(nn.Module):
         return torch.tanh(self.to_img(h))
 
 # =========================================================
+# LOAD REAL IMAGES
+# =========================================================
+
+def load_image(path, size=256):
+    transform = transforms.Compose([
+        transforms.Resize((size, size)),
+        transforms.ToTensor(),
+    ])
+    img = Image.open(path).convert("L")
+    img = transform(img)
+    img = img * 2 - 1  # MUITO IMPORTANTE
+    return img
+
+def get_image_paths(folder):
+    exts = ["png", "jpg", "jpeg"]
+    return [os.path.join(folder, f) for f in os.listdir(folder) if f.split('.')[-1] in exts]
+
+# =========================================================
 # ARGUMENTS
 # =========================================================
 parser = argparse.ArgumentParser()
 
 parser.add_argument("--model_path", type=str, required=True)
+parser.add_argument("--real_dir", type=str, required=True)
 parser.add_argument("--out_dir", type=str, required=True)
 parser.add_argument("--num_samples", type=int, default=64)
 parser.add_argument("--batch_size", type=int, default=16)
@@ -111,6 +134,8 @@ G.eval()
 
 print(f"[INFO] Loaded model from epoch {checkpoint['epoch']}")
 
+real_paths = get_image_paths(args.real_dir)
+
 # =========================================================
 # SAMPLING
 # =========================================================
@@ -126,11 +151,17 @@ while generated < args.num_samples:
     z = torch.randn(b, z_dim, device=device)
 
     with torch.no_grad():
-        real = torch.zeros(b, 1, 256, 256, device=device)
-        fake = G(real, z).cpu()
+        selected = random.choices(real_paths, k=b)
+
+        real_batch = torch.stack([
+            load_image(p) for p in selected
+        ]).to(device)
+
+        fake = G(real_batch, z).cpu()
 
     for i in range(b):
         img = fake[i, 0].numpy()
+        img = (img + 1) / 2
 
         plt.imshow(img, cmap="gray")
         plt.axis("off")
