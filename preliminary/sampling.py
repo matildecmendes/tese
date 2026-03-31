@@ -98,7 +98,7 @@ def load_image(path, size=256):
     ])
     img = Image.open(path).convert("L")
     img = transform(img)
-    img = img * 2 - 1  # MUITO IMPORTANTE
+    img = img * 2 - 1 
     return img
 
 def get_image_paths(folder):
@@ -132,6 +132,10 @@ G = ConditionalGenerator().to(device)
 G.load_state_dict(checkpoint["G"])
 G.eval()
 
+for m in G.modules():
+    if hasattr(m, "noise_strength"):
+        m.noise_strength.data.fill_(0)
+
 print(f"[INFO] Loaded model from epoch {checkpoint['epoch']}")
 
 real_paths = get_image_paths(args.real_dir)
@@ -148,10 +152,13 @@ while generated < args.num_samples:
 
     b = min(args.batch_size, args.num_samples - generated)
 
-    z = torch.randn(b, z_dim, device=device)
+    z = torch.randn(b, z_dim, device=device)*0.3
 
     with torch.no_grad():
-        selected = random.choices(real_paths, k=b)
+        if b <= len(real_paths):
+            selected = random.sample(real_paths, k=b)
+        else:
+            selected = random.choices(real_paths, k=b)
 
         real_batch = torch.stack([
             load_image(p) for p in selected
@@ -162,6 +169,7 @@ while generated < args.num_samples:
     for i in range(b):
         img = fake[i, 0].numpy()
         img = (img + 1) / 2
+        img = np.clip(img, 0, 1)
 
         plt.imshow(img, cmap="gray")
         plt.axis("off")

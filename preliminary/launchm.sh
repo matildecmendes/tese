@@ -7,4 +7,4 @@
 #SBATCH --error=slurm_%x.%j.err    # File containing STDERR output. If ommited, use STDOUT.
 
 # Commands / scripts to run (e.g., python3 train.py)
-python metrics.py --real /nas-ctm01/datasets/public/lidc-mcmendes/slices_png --fake /nas-ctm01/homes/mcmendes/samples/preliminary/normal/7 --fid --fid_repeats 5
+python metrics.py --real /nas-ctm01/datasets/public/lidc-mcmendes/slices_png --fake /nas-ctm01/homes/mcmendes/samples/preliminary/normal/7.1 --fid --fid_repeats 5
