@@ -248,14 +248,18 @@ z_fixed = torch.randn(8, z_dim, device=device)
 # =========================================================
 # SAVE FUNCTION
 # =========================================================
-def save_samples(G, epoch):
+def save_samples(G, epoch, loader):
     G.eval()
+
+    real = next(iter(loader)).to(device)[:8]
+    z = torch.randn(real.size(0), z_dim, device=device)
+
     with torch.no_grad():
         fake = G(real, z).cpu()
 
     grid = fake.squeeze().numpy()
 
-    fig, axes = plt.subplots(2, 4, figsize=(8,4))  # estava 4,2 (mais compacto antes)
+    fig, axes = plt.subplots(2, 4, figsize=(8,4))
 
     for i in range(2):
         for j in range(4):
@@ -269,7 +273,6 @@ def save_samples(G, epoch):
     plt.savefig(path, bbox_inches='tight', pad_inches=0)
     plt.close()
 
-    # guardar modelos a cada epoch
     checkpoint_path = os.path.join(args.out_dir, f"checkpoint_epoch_{epoch}.pt")
     torch.save({
         "epoch": epoch,
@@ -292,7 +295,7 @@ for epoch in range(args.epochs):
         with torch.no_grad():
 
             z = torch.randn(batch.size(0), 256, device=device)
-            fake = G(z)
+            fake = G(batch, z)
 
             # aplicar diffusion progressiva
             imgs = []
@@ -337,7 +340,7 @@ for epoch in range(args.epochs):
 
         # ================= G =================
         z = torch.randn(b, z_dim, device=device)
-        fake = G(z)
+        fake = G(real, z)
         fake_d = diffusion.apply_at_t(fake, t)
 
         fake_logits, fake_feats = D(fake_d)
@@ -362,4 +365,4 @@ for epoch in range(args.epochs):
 
     print(f"\n[EPOCH {epoch+1}] D={loss_D_avg/len(loader):.3f} | G={loss_G_avg/len(loader):.3f}")
 
-    save_samples(G, epoch+1)
+    save_samples(G, epoch+1, loader)
