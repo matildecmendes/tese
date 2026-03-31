@@ -260,7 +260,7 @@ def save_samples(G, epoch, loader):
     G.eval()
 
     real = next(iter(loader)).to(device)[:8]
-    z = torch.randn(real.size(0), z_dim, device=device)
+    z = torch.randn(real.size(0), z_dim, device=device)*1.2
 
     with torch.no_grad():
         fake = G(real, z).cpu()
@@ -355,9 +355,10 @@ for epoch in range(args.epochs):
         _, real_feats = D(real_d)
 
         identity = torch.mean(torch.abs(fake - real)) #juntei para experimentar
+        l1 = torch.mean(torch.abs(fake - real)) #juntei para experimentar
 
         loss_G = adv_loss(fake_logits, torch.ones_like(fake_logits)*0.9) + \
-                 0.7 * fm_loss(fake_feats, real_feats) + 5.0 * identity #antes era 0.5, esse parâmetro é o f_lambda
+                 0.7 * fm_loss(fake_feats, real_feats) + 2.0 * identity + 1.0*l1 #antes era 0.5, esse parâmetro é o f_lambda
 
         opt_G.zero_grad()
         loss_G.backward()
