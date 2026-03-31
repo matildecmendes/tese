@@ -126,7 +126,8 @@ while generated < args.num_samples:
     z = torch.randn(b, z_dim, device=device)
 
     with torch.no_grad():
-        fake = G(z).cpu()
+        real = torch.zeros(b, 1, 256, 256, device=device)
+        fake = G(real, z)
 
     for i in range(b):
         img = fake[i, 0].numpy()

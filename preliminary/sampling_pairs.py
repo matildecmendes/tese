@@ -157,7 +157,9 @@ def main(args):
         z = torch.randn(1, z_dim, device=device)
 
         with torch.no_grad():
-            fake = G(z)
+            real_tensor = load_image(path).unsqueeze(0).to(device)
+            real_tensor = real_tensor * 2 - 1  # normalizar para [-1,1]
+            fake = G(real_tensor, z)
 
         fake_save = os.path.join(args.out_dir, "fake", f"{idx:05d}.png")
         save_image(fake.cpu(), fake_save)
