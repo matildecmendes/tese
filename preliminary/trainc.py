@@ -191,7 +191,7 @@ class ConditionalGenerator(nn.Module):
         B = x.size(0)
 
         z_feat = self.fc(z).view(B,512,4,4)
-        z_feat = F.interpolate(z_feat, size=(32,32))
+        z_feat = F.interpolate(z_feat, size=(256,256))
 
         # concat real + noise features
         h = torch.cat([x, z_feat], dim=1)
