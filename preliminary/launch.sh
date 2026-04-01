@@ -10,6 +10,6 @@
 CUDA_LAUNCH_BLOCKING=1 python trainc.py \
   --data_path /nas-ctm01/datasets/public/lidc-mcmendes/slices \
   --out_dir /nas-ctm01/homes/mcmendes/outputs/preliminary_work/8 \
-  --epochs 30 \
+  --epochs 100 \
   --batch_size 8 \
   --max_samples 6000
