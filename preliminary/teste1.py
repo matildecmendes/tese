@@ -89,8 +89,15 @@ diffusion = Diffusion(args.T)
 class ResBlockUp(nn.Module):
     def __init__(self, in_ch, out_ch):
         super().__init__()
-        self.conv1 = nn.Conv2d(in_ch, out_ch, 3, padding=1)
-        self.conv2 = nn.Conv2d(out_ch, out_ch, 3, padding=1)
+        self.conv1 = nn.Sequential(
+            nn.Conv2d(in_ch, out_ch, 3, padding=1),
+            nn.BatchNorm2d(out_ch),
+            nn.ReLU()
+        )
+        self.conv2 = nn.Sequential(
+            nn.Conv2d(out_ch, out_ch, 3, padding=1),
+            nn.BatchNorm2d(out_ch)
+        )
         self.skip = nn.Conv2d(in_ch, out_ch, 1)
 
     def forward(self, x):
@@ -99,7 +106,7 @@ class ResBlockUp(nn.Module):
         h = F.relu(self.conv1(x_up))
         h = self.conv2(h)
 
-        return h + self.skip(x_up)
+        return F.relu(h + self.skip(x_up))
 
 # =========================================================
 # GENERATOR
@@ -241,6 +248,12 @@ D = Discriminator(args.T).to(device)
 
 opt_G = torch.optim.Adam(G.parameters(), lr=args.lr_g, betas=(0.5,0.999))
 opt_D = torch.optim.Adam(D.parameters(), lr=args.lr_d, betas=(0.5,0.999))
+
+def init_weights(m):
+    if isinstance(m, nn.Conv2d) or isinstance(m, nn.Linear):
+        nn.init.kaiming_normal_(m.weight)
+
+G.apply(init_weights)
 
 # =========================================================
 # TRAIN
