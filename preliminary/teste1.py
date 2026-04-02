@@ -81,7 +81,7 @@ class Diffusion:
         noise = torch.randn_like(x)
         return torch.sqrt(alpha_bar)*x + torch.sqrt(1-alpha_bar)*noise
 
-#diffusion = Diffusion(args.T)
+diffusion = Diffusion(args.T)
 
 # =========================================================
 # RESIDUAL BLOCK
