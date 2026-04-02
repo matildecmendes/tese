@@ -16,6 +16,7 @@ parser.add_argument("--batch_size", type=int, default=8)
 parser.add_argument("--lr_g", type=float, default=2e-4)
 parser.add_argument("--lr_d", type=float, default=1e-4)
 parser.add_argument("--T", type=int, default=100)
+parser.add_argument("--max_samples", type=int, default=None)
 args = parser.parse_args()
 
 os.makedirs(args.out_dir, exist_ok=True)
@@ -26,9 +27,14 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # DATASET
 # =========================================================
 class CTDataset(Dataset):
-    def __init__(self, root):
+    def __init__(self, root, max_samples=None):
         self.files = sorted(glob.glob(os.path.join(root, "*.npy")))
-        assert len(self.files) > 0
+        assert len(self.files) > 0, "Dataset vazio"
+
+        if max_samples is not None:
+            self.files = self.files[:max_samples]
+
+        print(f"[DATASET] Found {len(self.files)} samples")
 
     def __len__(self):
         return len(self.files)
@@ -42,7 +48,7 @@ class CTDataset(Dataset):
         x = torch.from_numpy(x).unsqueeze(0)
         return x
 
-dataset = CTDataset(args.data_path)
+dataset = CTDataset(args.data_path, args.max_samples)
 loader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True, drop_last=True)
 
 # =========================================================
