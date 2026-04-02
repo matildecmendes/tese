@@ -30,7 +30,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("Device:", device)
 
 # =========================================================
-# DATASET (CORRIGIDO)
+# DATASET 
 # =========================================================
 class CTDataset(Dataset):
     def __init__(self, root, max_samples=None):

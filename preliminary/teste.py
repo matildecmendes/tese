@@ -23,7 +23,11 @@ args = parser.parse_args()
 
 os.makedirs(args.out_dir, exist_ok=True)
 
+# =========================================================
+# DEVICE
+# =========================================================
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print("Device:", device)
 
 # =========================================================
 # DATASET
@@ -157,7 +161,15 @@ def save_samples(G, epoch, z_dim, device, out_dir):
     plt.savefig(os.path.join(out_dir, f"epoch_{epoch}.png"))
     plt.close()
 
-    print(f"[SAVE] epoch {epoch}")
+    # guardar modelos a cada epoch
+    checkpoint_path = os.path.join(args.out_dir, f"checkpoint_epoch_{epoch}.pt")
+    torch.save({
+        "epoch": epoch,
+        "G": G.state_dict(),
+        "D": D.state_dict()
+    }, checkpoint_path)
+
+    print(f"[SAVE] Epoch {epoch} saved")
 
 
 # =========================================================
@@ -267,11 +279,5 @@ for epoch in range(args.epochs):
     # SAVE IMAGES
     save_samples(G, epoch, z_dim, device, args.out_dir)
 
-    # DEBUG DIFFUSION (opcional mas MUITO útil)
+    # DEBUG DIFFUSION (comentar se não quiser mais)
     save_diffusion_debug(diffusion, real, fake, epoch, args.out_dir)
-
-    # SAVE MODEL
-    torch.save({
-        "G": G.state_dict(),
-        "D": D.state_dict()
-    }, os.path.join(args.out_dir, f"model_{epoch}.pt"))
