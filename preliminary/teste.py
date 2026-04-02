@@ -5,6 +5,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
 
+import matplotlib.pyplot as plt
+
 # =========================================================
 # ARGUMENTS
 # =========================================================
@@ -74,7 +76,7 @@ class Diffusion:
 diffusion = Diffusion(args.T)
 
 # =========================================================
-# GENERATOR (NÃO CONDICIONAL)
+# GENERATOR
 # =========================================================
 class Generator(nn.Module):
     def __init__(self, z_dim=256):
@@ -101,7 +103,7 @@ class Generator(nn.Module):
         return self.net(h)
 
 # =========================================================
-# TIMESTEP-DISCRIMINATOR 🔥
+# TIMESTEP-DISCRIMINATOR 
 # =========================================================
 class Discriminator(nn.Module):
     def __init__(self, T):
@@ -129,6 +131,64 @@ class Discriminator(nn.Module):
         x = torch.cat([x, emb], dim=1)
         h = self.conv(x)
         return self.fc(h.view(h.size(0), -1))
+    
+# =========================================================
+# SAVE SAMPLES
+# =========================================================
+
+def save_samples(G, epoch, z_dim, device, out_dir):
+    G.eval()
+
+    with torch.no_grad():
+        z = torch.randn(8, z_dim, device=device)
+        fake = G(z).cpu()
+
+    imgs = fake.squeeze().numpy()
+
+    fig, axes = plt.subplots(2,4, figsize=(8,4))
+
+    for i in range(2):
+        for j in range(4):
+            idx = i*4+j
+            axes[i,j].imshow(imgs[idx], cmap="gray")
+            axes[i,j].axis("off")
+
+    plt.tight_layout()
+    plt.savefig(os.path.join(out_dir, f"epoch_{epoch}.png"))
+    plt.close()
+
+    print(f"[SAVE] epoch {epoch}")
+
+
+# =========================================================
+# DEBUG DIFFUSION
+# =========================================================
+
+def save_diffusion_debug(diffusion, real, fake, epoch, out_dir):
+    with torch.no_grad():
+        t_values = [0, 10, 30, 60, 90]
+
+        imgs = []
+        for t_val in t_values:
+            t = torch.full((real.size(0),), t_val, device=real.device, dtype=torch.long)
+
+            real_t = diffusion.apply(real, t)
+            fake_t = diffusion.apply(fake, t)
+
+            imgs.append((real_t.cpu(), fake_t.cpu()))
+
+    fig, axes = plt.subplots(len(t_values), 4, figsize=(6,8))
+
+    for i, (r, f) in enumerate(imgs):
+        for j in range(2):
+            axes[i, j*2].imshow(r[j,0], cmap="gray")
+            axes[i, j*2+1].imshow(f[j,0], cmap="gray")
+
+            axes[i, j*2].axis("off")
+            axes[i, j*2+1].axis("off")
+
+    plt.savefig(os.path.join(out_dir, f"diff_debug_{epoch}.png"))
+    plt.close()
 
 # =========================================================
 # INIT
@@ -145,7 +205,10 @@ opt_D = torch.optim.Adam(D.parameters(), lr=args.lr_d, betas=(0.5,0.999))
 # =========================================================
 for epoch in range(args.epochs):
 
-    for real in loader:
+    loss_D_avg = 0
+    loss_G_avg = 0
+
+    for i, real in enumerate(loader):
 
         real = real.to(device)
         b = real.size(0)
@@ -190,4 +253,25 @@ for epoch in range(args.epochs):
         loss_G.backward()
         opt_G.step()
 
-    print(f"[EPOCH {epoch}] D={loss_D.item():.3f} | G={loss_G.item():.3f}")
+        loss_D_avg += loss_D.item()
+        loss_G_avg += loss_G.item()
+
+        if i % 50 == 0:
+            print(f"[E{epoch}][{i}] D={loss_D.item():.3f} | G={loss_G.item():.3f}")
+            print(f"   real_logit: {real_logits.mean().item():.3f}")
+            print(f"   fake_logit: {fake_logits.mean().item():.3f}")
+            print(f"   gap: {(real_logits.mean()-fake_logits.mean()).item():.3f}")
+
+    print(f"\n[EPOCH {epoch}] D={loss_D_avg/len(loader):.3f} | G={loss_G_avg/len(loader):.3f}")
+
+    # SAVE IMAGES
+    save_samples(G, epoch, z_dim, device, args.out_dir)
+
+    # DEBUG DIFFUSION (opcional mas MUITO útil)
+    save_diffusion_debug(diffusion, real, fake, epoch, args.out_dir)
+
+    # SAVE MODEL
+    torch.save({
+        "G": G.state_dict(),
+        "D": D.state_dict()
+    }, os.path.join(args.out_dir, f"model_{epoch}.pt"))
