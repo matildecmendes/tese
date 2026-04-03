@@ -9,10 +9,10 @@
 # Commands / scripts to run (e.g., python3 train.py)
 python train_ddgan.py \
   --data_path /nas-ctm01/datasets/public/lidc-mcmendes/slices \
-  --output_dir /nas-ctm01/homes/mcmendes/outputs/denoising_dgan \
+  --output_dir /nas-ctm01/homes/mcmendes/outputs/denoising_dgan/2 \
   --exp test_run \
   --batch_size 8 \
-  --num_epoch 30 \
+  --num_epoch 100 \
   --num_channels 1 \
   --image_size 256 \
   --ch_mult 1 2 2 4 \
