@@ -89,25 +89,26 @@ diffusion = Diffusion(args.T)
 class ResBlockUp(nn.Module):
     def __init__(self, in_ch, out_ch):
         super().__init__()
-        self.conv1 = nn.Sequential(
-            nn.Conv2d(in_ch, out_ch, 3, padding=1),
-            nn.BatchNorm2d(out_ch),
-            nn.ReLU()
-        )
-        self.conv2 = nn.Sequential(
-            nn.Conv2d(out_ch, out_ch, 3, padding=1),
-            nn.BatchNorm2d(out_ch)
-        )
+
+        self.conv1 = nn.Conv2d(in_ch, out_ch, 3, padding=1)
+        self.bn1 = nn.BatchNorm2d(out_ch)
+
+        self.conv2 = nn.Conv2d(out_ch, out_ch, 3, padding=1)
+        self.bn2 = nn.BatchNorm2d(out_ch)
+
         self.skip = nn.Conv2d(in_ch, out_ch, 1)
 
     def forward(self, x):
         x_up = F.interpolate(x, scale_factor=2)
 
-        h = F.relu(self.conv1(x_up))
+        h = self.conv1(x_up)
+        h = self.bn1(h)
+        h = F.relu(h)
+
         h = self.conv2(h)
+        h = self.bn2(h)
 
         return F.relu(h + self.skip(x_up))
-
 # =========================================================
 # GENERATOR
 # =========================================================
@@ -223,6 +224,7 @@ def save_diffusion_debug(diffusion, real, fake, epoch, out_dir):
 
             real_t = diffusion.apply(real, t)
             fake_t = diffusion.apply(fake, t)
+            
 
             imgs.append((real_t.cpu(), fake_t.cpu()))
 
@@ -255,6 +257,9 @@ def init_weights(m):
 
 G.apply(init_weights)
 
+G.train()
+D.train()
+
 # =========================================================
 # TRAIN
 # =========================================================
@@ -271,7 +276,7 @@ for epoch in range(args.epochs):
         # ======================
         # DISCRIMINATOR
         # ======================
-        z = torch.randn(b, z_dim, device=device)
+        z = torch.randn(b, z_dim, device=device)*1.2
         fake = G(z).detach()
 
         t = diffusion.sample_t(b)
@@ -279,11 +284,15 @@ for epoch in range(args.epochs):
         real_t = diffusion.apply(real, t)
         fake_t = diffusion.apply(fake, t)
 
+        real_t = real_t + 0.05 * torch.randn_like(real_t)
+        fake_t = fake_t + 0.05 * torch.randn_like(fake_t)
+
         real_logits, _ = D(real_t, t)
         fake_logits, _ = D(fake_t, t)
 
+        #label smoothing (antes era 0.9)
         loss_D = (
-            F.binary_cross_entropy_with_logits(real_logits, torch.ones_like(real_logits)*0.9) +
+            F.binary_cross_entropy_with_logits(real_logits, torch.ones_like(real_logits)*0.85) +
             F.binary_cross_entropy_with_logits(fake_logits, torch.zeros_like(fake_logits))
         )
 
@@ -294,20 +303,24 @@ for epoch in range(args.epochs):
         # ======================
         # GENERATOR
         # ======================
-        z = torch.randn(b, z_dim, device=device)
+        z = torch.randn(b, z_dim, device=device)*1.2
         fake = G(z)
         fake_t = diffusion.apply(fake, t)
 
         fake_logits, fake_feats = D(fake_t, t)
-        _, real_feats = D(real_t, t)
+        #_, real_feats = D(real_t, t)
 
+        real_t_clean = diffusion.apply(real, t)
+        _, real_feats = D(real_t_clean, t)
+
+        # label smoothing (antes era 0.9)
         adv = F.binary_cross_entropy_with_logits(
-            fake_logits, torch.ones_like(fake_logits)*0.9
+            fake_logits, torch.ones_like(fake_logits)*0.85
         )
 
         fm = fm_loss(fake_feats, real_feats)
 
-        loss_G = adv + 0.1 * fm
+        loss_G = adv + 0.02 * fm
 
         opt_G.zero_grad()
         loss_G.backward()
