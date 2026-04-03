@@ -16,4 +16,5 @@ python train_ddgan.py \
   --num_channels 1 \
   --image_size 256 \
   --ch_mult 1 2 2 4 \
-  --dataset custom
+  --dataset custom \
+  --save_ckpt_every 5

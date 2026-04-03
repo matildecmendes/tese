@@ -548,7 +548,7 @@ if __name__ == '__main__':
     
     #geenrator and training
     parser.add_argument('--exp', default='experiment_cifar_default', help='name of experiment')
-    parser.add_argument('--dataset', default='custom', help='name of dataset')
+    parser.add_argument('--dataset', default='custom', help='name of dataset') #mudei para custom
     parser.add_argument('--nz', type=int, default=100)
     parser.add_argument('--num_timesteps', type=int, default=4)
 
