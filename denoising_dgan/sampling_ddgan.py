@@ -188,6 +188,9 @@ if __name__ == '__main__':
 
     parser.add_argument('--compute_fid', action='store_true', default=False)
 
+    parser.add_argument('--z_emb_dim', type=int, default=256)
+    parser.add_argument('--t_emb_dim', type=int, default=256)
+
     args = parser.parse_args()
 
     main(args)
