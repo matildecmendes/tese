@@ -1,3 +1,4 @@
+# funcional mas com resultados que deixam muito a desejar; antes de melhorar generator.
 import os, glob, argparse
 import numpy as np
 import torch
@@ -84,55 +85,6 @@ class Diffusion:
 diffusion = Diffusion(args.T)
 
 # =========================================================
-# BLOCO BASE
-# =========================================================
-
-class ConvBlock(nn.Module):
-    def __init__(self, in_ch, out_ch):
-        super().__init__()
-        self.net = nn.Sequential(
-            nn.Conv2d(in_ch, out_ch, 3, padding=1),
-            nn.BatchNorm2d(out_ch),
-            nn.ReLU(),
-            nn.Conv2d(out_ch, out_ch, 3, padding=1),
-            nn.BatchNorm2d(out_ch),
-            nn.ReLU()
-        )
-
-    def forward(self, x):
-        return self.net(x)
-
-# =========================================================
-# UP/DOWN BLOCKS
-# ========================================================= 
-
-class Down(nn.Module):
-    def __init__(self, in_ch, out_ch):
-        super().__init__()
-        self.conv = ConvBlock(in_ch, out_ch)
-        self.pool = nn.MaxPool2d(2)
-
-    def forward(self, x):
-        h = self.conv(x)
-        return h, self.pool(h)
-    
-class Up(nn.Module):
-    def __init__(self, in_ch, out_ch):
-        super().__init__()
-        self.up = nn.Upsample(scale_factor=2, mode="bilinear", align_corners=False)
-        self.conv = ConvBlock(in_ch, out_ch)
-
-    def forward(self, x, skip):
-        x = self.up(x)
-
-        # garantir alinhamento
-        if x.shape != skip.shape:
-            x = F.interpolate(x, size=skip.shape[2:])
-
-        x = torch.cat([x, skip], dim=1)
-        return self.conv(x)
-    
-# =========================================================
 # RESIDUAL BLOCK
 # =========================================================
 class ResBlockUp(nn.Module):
@@ -165,60 +117,23 @@ class Generator(nn.Module):
     def __init__(self, z_dim=256):
         super().__init__()
 
-        self.fc = nn.Linear(z_dim, 512*8*8)
+        self.fc = nn.Linear(z_dim, 512*4*4)
 
-        # encoder
-        self.down1 = Down(512, 256)   # 8 → 4
-        self.down2 = Down(256, 128)   # 4 → 2
-        self.down3 = Down(128, 64)    # 2 → 1
-
-        # bottleneck
-        self.middle = ConvBlock(64, 64)
-
-        # decoder
-        self.up1 = Up(64+64, 128)     # 1 → 2
-        self.up2 = Up(128+128, 256)   # 2 → 4
-        self.up3 = Up(256+256, 128)   # 4 → 8
-
-        # upsampling final até 256
-        self.final_up = nn.Sequential(
-            nn.Upsample(scale_factor=2),  # 16
-            nn.Conv2d(128,64,3,padding=1),
-            nn.ReLU(),
-
-            nn.Upsample(scale_factor=2),  # 32
-            nn.Conv2d(64,32,3,padding=1),
-            nn.ReLU(),
-
-            nn.Upsample(scale_factor=2),  # 64
-            nn.Conv2d(32,16,3,padding=1),
-            nn.ReLU(),
-
-            nn.Upsample(scale_factor=2),  # 128
-            nn.Conv2d(16,8,3,padding=1),
-            nn.ReLU(),
-
-            nn.Upsample(scale_factor=2),  # 256
-            nn.Conv2d(8,1,3,padding=1)
+        self.blocks = nn.Sequential(
+            ResBlockUp(512,256),  # 8
+            ResBlockUp(256,128),  # 16
+            ResBlockUp(128,64),   # 32
+            ResBlockUp(64,32),    # 64
+            ResBlockUp(32,16),    # 128
+            ResBlockUp(16,8),     # 256
         )
 
+        self.to_img = nn.Conv2d(8,1,3,padding=1)
+
     def forward(self, z):
-        x = self.fc(z).view(-1,512,8,8)
-
-        s1, x = self.down1(x)
-        s2, x = self.down2(x)
-        s3, x = self.down3(x)
-
-        x = self.middle(x)
-
-        x = self.up1(x, s3)
-        x = self.up2(x, s2)
-        x = self.up3(x, s1)
-
-        x = self.final_up(x)
-
-        return torch.tanh(x)
-    
+        h = self.fc(z).view(-1,512,4,4)
+        h = self.blocks(h)
+        return torch.tanh(self.to_img(h))
 # =========================================================
 # TIMESTEP-DISCRIMINATOR (SpectralNorm + features)
 # =========================================================
