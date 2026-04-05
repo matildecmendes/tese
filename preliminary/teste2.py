@@ -182,6 +182,41 @@ class MultiScaleD(nn.Module):
         return [o1,o2],[f1,f2]
 
 # =========================================================
+# SAVE SAMPLES
+# =========================================================
+
+def save_samples(G, epoch, z_dim, device, out_dir):
+    G.eval()
+
+    with torch.no_grad():
+        z = torch.randn(8, z_dim, device=device)
+        fake = G(z).cpu()
+
+    imgs = fake.squeeze().numpy()
+
+    fig, axes = plt.subplots(2,4, figsize=(8,4))
+
+    for i in range(2):
+        for j in range(4):
+            idx = i*4+j
+            axes[i,j].imshow(imgs[idx], cmap="gray")
+            axes[i,j].axis("off")
+
+    plt.tight_layout()
+    plt.savefig(os.path.join(out_dir, f"epoch_{epoch}.png"))
+    plt.close()
+
+    # guardar modelos a cada epoch
+    checkpoint_path = os.path.join(args.out_dir, f"checkpoint_epoch_{epoch}.pt")
+    torch.save({
+        "epoch": epoch,
+        "G": G.state_dict(),
+        "D": D.state_dict()
+    }, checkpoint_path)
+
+    print(f"[SAVE] Epoch {epoch} saved")
+
+# =========================================================
 # INIT
 # =========================================================
 z_dim=256
@@ -195,7 +230,8 @@ opt_D = torch.optim.Adam(D.parameters(), lr=args.lr_d, betas=(0.5,0.999))
 # TRAIN
 # =========================================================
 for epoch in range(args.epochs):
-    for real in loader:
+    
+    for i, real in enumerate(loader):
         real = real.to(device)
         b = real.size(0)
 
@@ -245,4 +281,11 @@ for epoch in range(args.epochs):
         torch.nn.utils.clip_grad_norm_(G.parameters(),1.0)
         opt_G.step()
 
-    print(f"[EPOCH {epoch}] D={loss_D.item():.3f} G={loss_G.item():.3f}")
+        if i % 50 == 0:
+            print(f"[E{epoch}][{i}] D={loss_D.item():.3f} | G={loss_G.item():.3f}")
+            print(f"   real_logit: {real_logits.mean().item():.3f}")
+            print(f"   fake_logit: {fake_logits.mean().item():.3f}")
+
+    print(f"\n[EPOCH {epoch}] D={loss_D_avg/len(loader):.3f} | G={loss_G_avg/len(loader):.3f}")
+
+    save_samples(G, epoch, z_dim, device, args.out_dir)
