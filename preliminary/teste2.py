@@ -11,16 +11,17 @@ from torch.utils.data import Dataset, DataLoader
 import matplotlib.pyplot as plt
 
 # =========================================================
-# ARGS
+# ARGUMENTS
 # =========================================================
 parser = argparse.ArgumentParser()
 parser.add_argument("--data_path", type=str, required=True)
 parser.add_argument("--out_dir", type=str, required=True)
 parser.add_argument("--epochs", type=int, default=100)
 parser.add_argument("--batch_size", type=int, default=8)
-parser.add_argument("--lr_g", type=float, default=5e-5)
-parser.add_argument("--lr_d", type=float, default=5e-5)
+parser.add_argument("--lr_g", type=float, default=2e-4)
+parser.add_argument("--lr_d", type=float, default=1e-4)
 parser.add_argument("--T", type=int, default=100)
+parser.add_argument("--max_samples", type=int, default=None)
 args = parser.parse_args()
 
 os.makedirs(args.out_dir, exist_ok=True)
