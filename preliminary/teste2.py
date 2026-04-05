@@ -45,7 +45,14 @@ class CTDataset(Dataset):
         x = torch.from_numpy(x).unsqueeze(0)
         return x
 
-loader = DataLoader(CTDataset(args.data_path), batch_size=args.batch_size, shuffle=True, drop_last=True)
+loader = DataLoader(
+    CTDataset(args.data_path),
+    batch_size=args.batch_size,
+    shuffle=True,
+    drop_last=True,
+    num_workers=4,       
+    pin_memory=True
+)
 
 # =========================================================
 # DIFFUSION
@@ -229,6 +236,8 @@ opt_D = torch.optim.Adam(D.parameters(), lr=args.lr_d, betas=(0.5,0.999))
 # =========================================================
 # TRAIN
 # =========================================================
+print("Starting training...", flush=True)
+
 for epoch in range(args.epochs):
     
     loss_D_avg = 0.0
@@ -287,8 +296,8 @@ for epoch in range(args.epochs):
         torch.nn.utils.clip_grad_norm_(G.parameters(),1.0)
         opt_G.step()
 
-        if i % 50 == 0:
-            print(f"[E{epoch}][{i}] D={loss_D.item():.3f} | G={loss_G.item():.3f}")
+        if i % 10 == 0:
+            print(f"[E{epoch}][{i}/{len(loader)}] D={loss_D.item():.3f} | G={loss_G.item():.3f}", flush=True)
 
     print(f"\n[EPOCH {epoch}] D={loss_D_avg/len(loader):.3f} | G={loss_G_avg/len(loader):.3f}")
 
