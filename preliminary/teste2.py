@@ -231,6 +231,9 @@ opt_D = torch.optim.Adam(D.parameters(), lr=args.lr_d, betas=(0.5,0.999))
 # =========================================================
 for epoch in range(args.epochs):
     
+    loss_D_avg = 0.0
+    loss_G_avg = 0.0
+
     for i, real in enumerate(loader):
         real = real.to(device)
         b = real.size(0)
@@ -276,6 +279,9 @@ for epoch in range(args.epochs):
 
         loss_G = adv + 0.05 * fm
 
+        loss_D_avg += loss_D.item()
+        loss_G_avg += loss_G.item()
+
         opt_G.zero_grad()
         loss_G.backward()
         torch.nn.utils.clip_grad_norm_(G.parameters(),1.0)
@@ -283,8 +289,6 @@ for epoch in range(args.epochs):
 
         if i % 50 == 0:
             print(f"[E{epoch}][{i}] D={loss_D.item():.3f} | G={loss_G.item():.3f}")
-            print(f"   real_logit: {real_logits.mean().item():.3f}")
-            print(f"   fake_logit: {fake_logits.mean().item():.3f}")
 
     print(f"\n[EPOCH {epoch}] D={loss_D_avg/len(loader):.3f} | G={loss_G_avg/len(loader):.3f}")
 
