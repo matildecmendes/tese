@@ -152,7 +152,8 @@ class Discriminator(nn.Module):
             SN(nn.Conv2d(128,256,4,2,1)),
             SN(nn.Conv2d(256,512,4,2,1)),
         ])
-        self.fc = SN(nn.Linear(512*16*16,1))
+        self.pool = nn.AdaptiveAvgPool2d(1)
+        self.fc = SN(nn.Linear(512,1))
 
     def forward(self, x, t):
         emb = self.embed(t).view(t.size(0), -1,1,1).expand(-1,-1,x.size(2),x.size(3))
@@ -161,7 +162,9 @@ class Discriminator(nn.Module):
         for l in self.blocks:
             x = F.leaky_relu(l(x),0.2)
             feats.append(x)
-        return self.fc(x.view(x.size(0),-1)), feats
+        x = self.pool(x)          # (B,512,1,1)
+        x = x.view(x.size(0), -1) # (B,512)
+        return self.fc(x), feats
 
 # =========================================================
 # MULTI-SCALE D
