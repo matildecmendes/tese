@@ -10,6 +10,6 @@
 python teste2.py \
   --data_path /nas-ctm01/datasets/public/lidc-mcmendes/slices \
   --out_dir /nas-ctm01/homes/mcmendes/outputs/preliminary_work/14 \
-  --epochs 30 \
+  --epochs 40 \
   --batch_size 8 \
   --max_samples 6000

@@ -88,7 +88,6 @@ diffusion = Diffusion(args.T)
 # =========================================================
 # BLOCO BASE
 # =========================================================
-
 class ConvBlock(nn.Module):
     def __init__(self, in_ch, out_ch):
         super().__init__()
@@ -96,6 +95,7 @@ class ConvBlock(nn.Module):
             nn.Conv2d(in_ch, out_ch, 3, padding=1),
             nn.InstanceNorm2d(out_ch, affine=True),
             nn.ReLU(),
+
             nn.Conv2d(out_ch, out_ch, 3, padding=1),
             nn.InstanceNorm2d(out_ch, affine=True),
             nn.ReLU()
@@ -103,7 +103,7 @@ class ConvBlock(nn.Module):
 
     def forward(self, x):
         return self.net(x)
-
+    
 # =========================================================
 # UP/DOWN BLOCKS
 # ========================================================= 
@@ -112,7 +112,7 @@ class Down(nn.Module):
     def __init__(self, in_ch, out_ch):
         super().__init__()
         self.conv = ConvBlock(in_ch, out_ch)
-        self.pool = nn.MaxPool2d(2)
+        self.pool = nn.AvgPool2d(2)
 
     def forward(self, x):
         h = self.conv(x)
@@ -127,7 +127,6 @@ class Up(nn.Module):
     def forward(self, x, skip):
         x = self.up(x)
 
-        # garantir alinhamento
         if x.shape != skip.shape:
             x = F.interpolate(x, size=skip.shape[2:])
 
@@ -167,21 +166,21 @@ class Generator(nn.Module):
     def __init__(self, z_dim=256):
         super().__init__()
 
+        # 🔥 MENOS agressivo que antes
         self.fc = nn.Linear(z_dim, 256*8*8)
 
-        # encoder
-        self.down2 = Down(256, 128)   # 4 → 2
-        self.down3 = Down(128, 64)    # 2 → 1
+        # encoder (mais leve)
+        self.down1 = Down(256, 128)  # 8 → 4
+        self.down2 = Down(128, 64)   # 4 → 2
 
         # bottleneck
         self.middle = ConvBlock(64, 64)
 
         # decoder
-        self.up1 = Up(64+64, 128)     # 1 → 2
-        self.up2 = Up(128+128, 256)   # 2 → 4
-        #self.up3 = Up(256+256, 128)   # 4 → 8
+        self.up1 = Up(64+64, 128)    # 2 → 4
+        self.up2 = Up(128+128, 128)  # 4 → 8
 
-        # upsampling final até 256
+        # upsampling final (controlado)
         self.final_up = nn.Sequential(
             nn.Upsample(scale_factor=2),  # 16
             nn.Conv2d(128,64,3,padding=1),
@@ -204,17 +203,15 @@ class Generator(nn.Module):
         )
 
     def forward(self, z):
-        x = self.fc(z).view(-1,512,8,8)
+        x = self.fc(z).view(-1,256,8,8)
 
         s1, x = self.down1(x)
         s2, x = self.down2(x)
-        s3, x = self.down3(x)
 
         x = self.middle(x)
 
-        x = self.up1(x, s3)
-        x = self.up2(x, s2)
-        x = self.up3(x, s1)
+        x = self.up1(x, s2)
+        x = self.up2(x, s1)
 
         x = self.final_up(x)
 
@@ -411,6 +408,7 @@ for epoch in range(args.epochs):
 
         opt_G.zero_grad()
         loss_G.backward()
+        torch.nn.utils.clip_grad_norm_(G.parameters(), 1.0)
         opt_G.step()
 
         loss_D_avg += loss_D.item()
