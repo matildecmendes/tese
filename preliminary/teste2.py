@@ -34,9 +34,11 @@ print("Device:", device)
 # DATASET
 # =========================================================
 class CTDataset(Dataset):
-    def __init__(self, root):
+    def __init__(self, root, max_samples=None):
         self.files = sorted(glob.glob(os.path.join(root, "*.npy")))
-        print(f"[DATASET] Found {len(self.files)} samples")
+        if max_samples is not None:
+            self.files = self.files[:max_samples]
+        #print(f"[DATASET] Found {len(self.files)} samples")
 
     def __len__(self):
         return len(self.files)
@@ -46,14 +48,8 @@ class CTDataset(Dataset):
         x = torch.from_numpy(x).unsqueeze(0)
         return x
 
-loader = DataLoader(
-    CTDataset(args.data_path),
-    batch_size=args.batch_size,
-    shuffle=True,
-    drop_last=True,
-    num_workers=4,       
-    pin_memory=True
-)
+dataset = CTDataset(args.data_path, args.max_samples)
+loader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True, drop_last=True, num_workers=4, pin_memory=True)
 
 # =========================================================
 # DIFFUSION
