@@ -144,7 +144,7 @@ def save_samples(G, D, epoch, z_dim, device, out_dir):
     plt.close()
 
     # guardar modelos a cada epoch
-    checkpoint_path = os.path.join(out_dir, f"checkpoint_epoch_{epoch}.pt")
+    checkpoint_path = os.path.join(args.out_dir, f"checkpoint_epoch_{epoch}.pt")
     torch.save({
         "epoch": epoch,
         "G": G.state_dict(),
@@ -180,7 +180,7 @@ def train(args):
 
     for epoch in range(args.epochs):
         print("Entered dataloader loop")
-        
+
         for i, real in enumerate(loader):
             real = real.to(device)
             b = real.size(0)
