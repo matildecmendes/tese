@@ -1,3 +1,5 @@
+import torch
+
 class Diffusion:
     def __init__(self, T, device):
         self.T = T
