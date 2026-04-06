@@ -127,10 +127,11 @@ class Discriminator(nn.Module):
             block(1 + emb_dim, 64),
             block(64, 128),
             block(128, 256),
-            block(256, 512)
+            block(256, 512),
+            nn.AdaptiveAvgPool2d(1)  
         )
 
-        self.fc = nn.Linear(512*16*16, 1)
+        self.fc = nn.Linear(512, 1)
 
     def forward(self, x, t):
         t_emb = self.embed(t)[:, :, None, None]
