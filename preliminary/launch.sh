@@ -7,9 +7,9 @@
 #SBATCH --error=slurm_%x.%j.err    # File containing STDERR output. If ommited, use STDOUT.
 
 # Commands / scripts to run (e.g., python3 train.py)
-python teste2.py \
+python teste3.py \
   --data_path /nas-ctm01/datasets/public/lidc-mcmendes/slices \
-  --out_dir /nas-ctm01/homes/mcmendes/outputs/preliminary_work/15 \
+  --out_dir /nas-ctm01/homes/mcmendes/outputs/preliminary_work/16 \
   --epochs 40 \
   --batch_size 8 \
   --max_samples 6000
