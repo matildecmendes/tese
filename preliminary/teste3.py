@@ -121,8 +121,7 @@ class Diffusion:
 # =========================================================
 # SAVE SAMPLES
 # =========================================================
-
-def save_samples(G, D, epoch, z_dim, device, out_dir):
+def save_samples(G, epoch, z_dim, device, out_dir):
     G.eval()
 
     with torch.no_grad():
