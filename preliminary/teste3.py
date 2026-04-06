@@ -1,7 +1,7 @@
-# =========================================
-# DIFFUSION-GAN (CORRECT IMPLEMENTATION)
-# Adapted for Lung CT (1-channel, 256x256)
-# =========================================
+# =============================
+# DIFFUSION-GAN
+# Lung CT (1-channel, 256x256)
+# =============================
 
 import os
 import glob
@@ -11,6 +11,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
+
+import matplotlib.pyplot as plt
 
 # =========================================================
 # DATASET
@@ -120,7 +122,7 @@ class Diffusion:
 # SAVE SAMPLES
 # =========================================================
 
-def save_samples(G, epoch, z_dim, device, out_dir):
+def save_samples(G, D, epoch, z_dim, device, out_dir):
     G.eval()
 
     with torch.no_grad():
@@ -142,7 +144,7 @@ def save_samples(G, epoch, z_dim, device, out_dir):
     plt.close()
 
     # guardar modelos a cada epoch
-    checkpoint_path = os.path.join(args.out_dir, f"checkpoint_epoch_{epoch}.pt")
+    checkpoint_path = os.path.join(out_dir, f"checkpoint_epoch_{epoch}.pt")
     torch.save({
         "epoch": epoch,
         "G": G.state_dict(),
@@ -159,7 +161,7 @@ def train(args):
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print("Device:", device)
 
-    dataset = CTDataset(args.data_path)
+    dataset = CTDataset(args.data_path, max_samples=args.max_samples)
     loader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True, num_workers=4)
 
     print("Dataset size:", len(dataset))
@@ -174,7 +176,11 @@ def train(args):
 
     diffusion = Diffusion(T=args.T, device=device)
 
+    print("Starting training loop...")
+
     for epoch in range(args.epochs):
+        print("Entered dataloader loop")
+        
         for i, real in enumerate(loader):
             real = real.to(device)
             b = real.size(0)
