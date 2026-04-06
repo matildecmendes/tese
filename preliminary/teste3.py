@@ -121,7 +121,7 @@ class Diffusion:
 # =========================================================
 # SAVE SAMPLES
 # =========================================================
-def save_samples(G, epoch, z_dim, device, out_dir):
+def save_samples(G, D, epoch, z_dim, device, out_dir):
     G.eval()
 
     with torch.no_grad():
@@ -224,7 +224,7 @@ def train(args):
             if i % 10 == 0:
                 print(f"Epoch {epoch} | Step {i} | D {loss_D.item():.3f} | G {loss_G.item():.3f}")
 
-        save_samples(G, epoch, z_dim, device, args.out_dir)
+        save_samples(G, D, epoch, z_dim, device, args.out_dir)
 
 # =========================================================
 # MAIN
