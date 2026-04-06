@@ -39,22 +39,25 @@ class CTDataset(Dataset):
 # =========================================================
 # SIMPLE GENERATOR (StyleGAN2-like)
 # =========================================================
-
 class Generator(nn.Module):
     def __init__(self, z_dim=256):
         super().__init__()
         self.fc = nn.Linear(z_dim, 512*8*8)
 
+        def block(in_c, out_c):
+            return nn.Sequential(
+                nn.Upsample(scale_factor=2, mode='bilinear'),
+                nn.Conv2d(in_c, out_c, 3, padding=1),
+                nn.BatchNorm2d(out_c),
+                nn.LeakyReLU(0.2)
+            )
+
         self.net = nn.Sequential(
-            nn.ConvTranspose2d(512, 256, 4, 2, 1),
-            nn.ReLU(),
-            nn.ConvTranspose2d(256, 128, 4, 2, 1),
-            nn.ReLU(),
-            nn.ConvTranspose2d(128, 64, 4, 2, 1),
-            nn.ReLU(),
-            nn.ConvTranspose2d(64, 32, 4, 2, 1),
-            nn.ReLU(),
-            nn.ConvTranspose2d(32, 1, 4, 2, 1),
+            block(512, 256),
+            block(256, 128),
+            block(128, 64),
+            block(64, 32),
+            nn.Conv2d(32, 1, 3, padding=1),
             nn.Tanh()
         )
 
@@ -62,7 +65,7 @@ class Generator(nn.Module):
         x = self.fc(z)
         x = x.view(z.size(0), 512, 8, 8)
         return self.net(x)
-
+    
 # =========================================================
 # DISCRIMINATOR WITH T-EMBEDDING
 # =========================================================
@@ -237,7 +240,7 @@ if __name__ == '__main__':
     parser.add_argument('--batch_size', type=int, default=16)
     parser.add_argument('--epochs', type=int, default=100)
     parser.add_argument('--z_dim', type=int, default=256)
-    parser.add_argument('--T', type=int, default=1000)
+    parser.add_argument('--T', type=int, default=200)
     parser.add_argument("--max_samples", type=int, default=None)
 
     args = parser.parse_args()

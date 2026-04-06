@@ -11,5 +11,5 @@ python teste3.py \
   --data_path /nas-ctm01/datasets/public/lidc-mcmendes/slices \
   --out_dir /nas-ctm01/homes/mcmendes/outputs/preliminary_work/16 \
   --epochs 40 \
-  --batch_size 8 \
+  --batch_size 32 \
   --max_samples 6000
