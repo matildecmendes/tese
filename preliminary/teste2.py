@@ -19,7 +19,7 @@ parser.add_argument("--out_dir", type=str, required=True)
 parser.add_argument("--epochs", type=int, default=100)
 parser.add_argument("--batch_size", type=int, default=8)
 parser.add_argument("--lr_g", type=float, default=2e-4)
-parser.add_argument("--lr_d", type=float, default=1e-4)
+parser.add_argument("--lr_d", type=float, default=5e-5)
 parser.add_argument("--T", type=int, default=100)
 parser.add_argument("--max_samples", type=int, default=None)
 
@@ -178,13 +178,17 @@ class MultiScaleD(nn.Module):
         super().__init__()
         self.D1 = Discriminator(T)
         self.D2 = Discriminator(T)
+        self.use_second = False 
 
     def forward(self, x, t):
-        x_small = F.avg_pool2d(x,2)
         o1,f1 = self.D1(x,t)
-        o2,f2 = self.D2(x_small,t)
-        return [o1,o2],[f1,f2]
 
+        if self.use_second:
+            x_small = F.avg_pool2d(x,2)
+            o2,f2 = self.D2(x_small,t)
+            return [o1,o2],[f1,f2]
+        else:
+            return [o1],[f1]
 # =========================================================
 # SAVE SAMPLES
 # =========================================================
@@ -244,12 +248,15 @@ for epoch in range(args.epochs):
         real = real.to(device)
         b = real.size(0)
 
-        z = torch.randn(b,z_dim,device=device)*1.5
+        z = torch.randn(b,z_dim,device=device)
         fake = G(z).detach()
 
         t = diffusion.sample_t(b)
         real_t = diffusion.apply(real,t)
         fake_t = diffusion.apply(fake,t)
+
+        if epoch > 10:
+            D.use_second = True
 
         real_logits, _ = D(real_t,t)
         fake_logits, _ = D(fake_t,t)
@@ -265,7 +272,7 @@ for epoch in range(args.epochs):
         opt_D.step()
 
         # G
-        z = torch.randn(b,z_dim,device=device)*1.5
+        z = torch.randn(b,z_dim,device=device)
         fake = G(z)
         fake_t = diffusion.apply(fake,t)
 
@@ -283,7 +290,7 @@ for epoch in range(args.epochs):
             for f1,f2 in zip(fake_feats, real_feats)
         )
 
-        loss_G = adv + 0.05 * fm
+        loss_G = adv + 0.02 * fm
 
         loss_D_avg += loss_D.item()
         loss_G_avg += loss_G.item()
