@@ -63,6 +63,8 @@ class Diffusion:
         self.T = T_min
         self.sigma = sigma
 
+        self.T = min(self.T, self.T_max)
+
         self.update_schedule()
 
         self.d_target = 0.6
@@ -82,13 +84,12 @@ class Diffusion:
         return self.tepl[idx]
 
     def apply(self, x, t):
-        # alpha_bar controla quantidade de sinal vs ruído
-        alpha_bar = self.alpha_bars[t].view(-1,1,1,1)
+        # garantir segurança dos índices
+        t = torch.clamp(t, 0, self.T - 1)
 
-        # ruído gaussiano
+        alpha_bar = self.alpha_bars[t].view(-1,1,1,1)
         noise = torch.randn_like(x)
 
-        # forward diffusion
         return torch.sqrt(alpha_bar)*x + torch.sqrt(1-alpha_bar)*self.sigma*noise
 
     def update_T(self, real_logits):
@@ -196,7 +197,7 @@ def SN(layer): return nn.utils.spectral_norm(layer)
 class Discriminator(nn.Module):
     def __init__(self, T):
         super().__init__()
-        self.embed = nn.Embedding(T, 64)
+        self.embed = nn.Embedding(1000, 64)
         self.blocks = nn.ModuleList([
             SN(nn.Conv2d(1+64,64,4,2,1)),
             SN(nn.Conv2d(64,128,4,2,1)),
@@ -207,6 +208,7 @@ class Discriminator(nn.Module):
         self.fc = SN(nn.Linear(512,1))
 
     def forward(self, x, t):
+        t = torch.clamp(t, 0, self.embed.num_embeddings - 1)
         emb = self.embed(t).view(t.size(0), -1,1,1).expand(-1,-1,x.size(2),x.size(3))
         x = torch.cat([x, emb], dim=1)
         feats = []
