@@ -280,4 +280,4 @@ for epoch in range(args.epochs):
     save_samples(G, epoch, z_dim, device, args.out_dir)
 
     # DEBUG DIFFUSION (comentar se não quiser mais)
-    save_diffusion_debug(diffusion, real, fake, epoch, args.out_dir)
+    #save_diffusion_debug(diffusion, real, fake, epoch, args.out_dir)
