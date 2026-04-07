@@ -94,27 +94,29 @@ class Diffusion:
 
     def update_T(self, real_logits):
         with torch.no_grad():
-            # mede confiança do discriminator (overfitting proxy)
             r = torch.cat(real_logits)
-            rd = torch.mean(torch.sign(torch.sigmoid(r) - 0.5))
 
-            # ajustar dificuldade
+            # probabilidade média do D acertar (mais estável)
+            prob_real = torch.sigmoid(r)
+            rd = prob_real.mean()
+
+            # DEBUG
+            # print("rd:", rd.item())
+
             if rd > self.d_target:
-                self.T = min(self.T + self.C, self.T_max)  # D muito forte → mais ruído
+                self.T = min(self.T + self.C, self.T_max)
             else:
-                self.T = max(self.T - self.C, self.T_min)  # D fraco → menos ruído
+                self.T = max(self.T - self.C, self.T_min)
 
-            # atualizar diffusion schedule
             self.update_schedule()
 
-            # sampling com prioridade (mais peso para t grandes)
+            # sampling com prioridade
             weights = torch.arange(1, self.T+1, device=device).float()
             weights /= weights.sum()
             t_vals = torch.multinomial(weights, 32, replacement=True)
 
-            # exploration list (mistura de fácil + difícil)
             self.tepl = torch.cat([
-                torch.zeros(32, dtype=torch.long, device=device),
+                torch.randint(0, max(1, self.T//4), (32,), device=device),  # baixos mas não só 0
                 t_vals
             ])
 
@@ -329,6 +331,8 @@ for epoch in range(args.epochs):
         # ADAPTIVE T (atualizar T adaptativamente (a cada 4 batches))
         if i % 4 == 0:
             diffusion.update_T(real_logits)
+            # re-sample t com novo T
+            t = diffusion.sample_t(b)
 
         # GENERATOR
         z = torch.randn(b,z_dim,device=device)
