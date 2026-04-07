@@ -61,14 +61,14 @@ loader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True, drop_last
 # DIFFUSION
 # =========================================================
 class Diffusion:
-    def __init__(self, T_init=20, T_min=5, T_max=100):
+    def __init__(self, T_init=20, T_min=5, T_max=30):
         self.T = T_init
         self.T_min = T_min
         self.T_max = T_max
 
         self.update_schedule()
 
-        self.target = 0.6   # alvo do discriminador
+        self.target = 0.55  # alvo do discriminador
         self.adjust_step = 1
 
     def update_schedule(self):
@@ -91,14 +91,15 @@ class Diffusion:
 
             acc = (real_prob.mean() + (1 - fake_prob.mean())) / 2
 
-            if acc > self.target:
-                self.T = min(self.T + self.adjust_step, self.T_max)
-            else:
-                self.T = max(self.T - self.adjust_step, self.T_min)
+            # MUITO MAIS CONSERVADOR
+            if acc > self.target + 0.05:
+                self.T = min(self.T + 1, self.T_max)
+            elif acc < self.target - 0.05:
+                self.T = max(self.T - 1, self.T_min)
 
             self.update_schedule()
 
-diffusion = Diffusion(T_init=20, T_min=5, T_max=100)
+diffusion = Diffusion(T_init=20, T_min=5, T_max=30)
 
 # =========================================================
 # GENERATOR
@@ -269,8 +270,8 @@ for epoch in range(args.epochs):
         loss_D.backward()
         opt_D.step()
 
-        # if i % 10 == 0:
-        #     diffusion.update_T(real_logits.detach(), fake_logits.detach())
+        if i % 50 == 0:
+            diffusion.update_T(real_logits.detach(), fake_logits.detach())
 
         # ======================
         # GENERATOR
@@ -297,6 +298,8 @@ for epoch in range(args.epochs):
             print(f"   real_logit: {real_logits.mean().item():.3f}")
             print(f"   fake_logit: {fake_logits.mean().item():.3f}")
             print(f"   gap: {(real_logits.mean()-fake_logits.mean()).item():.3f}")
+
+            print("T:", diffusion.T)
 
     print(f"\n[EPOCH {epoch}] D={loss_D_avg/len(loader):.3f} | G={loss_G_avg/len(loader):.3f}")
 
