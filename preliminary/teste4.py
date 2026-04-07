@@ -235,7 +235,7 @@ def save_samples(G, epoch, z_dim, device, out_dir):
 # =========================================================
 z_dim=256
 G = Generator().to(device)
-D = Discriminator(50).to(device)
+D = Discriminator(diffusion.T).to(device)
 
 import copy
 G_ema = copy.deepcopy(G).eval()
@@ -251,38 +251,37 @@ opt_D = torch.optim.Adam(D.parameters(), lr=args.lr_d, betas=(0.5,0.999))
 print("Starting training...", flush=True)
 
 for epoch in range(args.epochs):
-    
+
     for i, real in enumerate(loader):
         real = real.to(device)
         b = real.size(0)
 
-        if epoch > 5:
-            D.use_second = False # para já
+        # =====================
+        # DISCRIMINATOR
+        # =====================
+        z = torch.randn(b, z_dim, device=device)
+        fake = G(z).detach()
 
         t = diffusion.sample_t(b)
 
-        t_real = diffusion.apply(real, t)
-        t_fake = diffusion.apply(fake, t)
+        real_t = diffusion.apply(real, t)
+        fake_t = diffusion.apply(fake, t)
 
-        z = torch.randn(b,z_dim,device=device)
-        fake = G(z).detach()
+        real_logits,_ = D(real_t, t)
+        fake_logits,_ = D(fake_t, t)
 
-        real_t = diffusion.apply(real,t_real)
-        fake_t = diffusion.apply(fake,t_fake)
-
-        real_logits,_ = D(real_t,t_real)
-        fake_logits,_ = D(fake_t,t_fake)
-
-        loss_D = sum(
-            torch.mean(F.relu(1 - r)) + torch.mean(F.relu(1 + f))
-            for r,f in zip(real_logits,fake_logits)
+        loss_D = (
+            torch.mean(F.relu(1 - real_logits)) +
+            torch.mean(F.relu(1 + fake_logits))
         )
 
         opt_D.zero_grad()
         loss_D.backward()
         opt_D.step()
 
-
+        # =====================
+        # GENERATOR
+        # =====================
         z = torch.randn(b, z_dim, device=device)
         fake = G(z)
 
@@ -291,7 +290,7 @@ for epoch in range(args.epochs):
 
         fake_logits,_ = D(fake_t, t)
 
-        loss_G = -sum(torch.mean(f) for f in fake_logits)
+        loss_G = -torch.mean(fake_logits)
 
         opt_G.zero_grad()
         loss_G.backward()
@@ -303,6 +302,6 @@ for epoch in range(args.epochs):
                 p_ema.mul_(0.999).add_(p, alpha=0.001)
 
         if i % 50 == 0:
-            print(f"[E{epoch}] T={diffusion.T} D={loss_D.item():.3f} G={loss_G.item():.3f}")
+            print(f"[E{epoch}] D={loss_D.item():.3f} G={loss_G.item():.3f}")
 
     save_samples(G, epoch, z_dim, device, args.out_dir)
