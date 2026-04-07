@@ -125,7 +125,7 @@ def main(args):
             torchvision.utils.save_image(fake[j], path)
 
         total += fake.size(0)
-        print(f"Generated {total}/{args.num_samples}")
+        #print(f"Generated {total}/{args.num_samples}")
 
     print("Sampling finished!")
 
