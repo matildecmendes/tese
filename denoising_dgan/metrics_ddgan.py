@@ -126,7 +126,10 @@ def main(args):
             "python", "-m", "frd_score",
             args.fake_dir,
             args.real_dir,
-            "--match_sample_count"
+            "--match_sample_count",
+            "--verbose",
+            "--num_workers=16",
+            "--frd_version", "v0"
         ]
 
         print("[INFO] Running FRD:", " ".join(cmd))
