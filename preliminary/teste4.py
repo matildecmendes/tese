@@ -167,7 +167,7 @@ class Up(nn.Module):
 class Generator(nn.Module):
     def __init__(self, z_dim=256, t_dim=128):
         super().__init__()
-        self.fc = nn.Linear(z_dim + t_dim, 256*8*8)
+        self.fc = nn.Linear(z_dim, 256*8*8)
 
         self.down1 = Down(256,128)
         self.down2 = Down(128,64)
@@ -259,7 +259,7 @@ def save_samples(G, epoch, z_dim, device, out_dir):
     with torch.no_grad():
         z = torch.randn(8, z_dim, device=device)
         t = torch.zeros(z.size(0), dtype=torch.long, device=device)
-        fake = G(z, t).cpu()
+        fake = G(z).cpu()
 
     imgs = fake.squeeze().numpy()
 
