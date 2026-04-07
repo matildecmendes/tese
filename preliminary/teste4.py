@@ -91,31 +91,31 @@ class Diffusion:
         # forward diffusion
         return torch.sqrt(alpha_bar)*x + torch.sqrt(1-alpha_bar)*self.sigma*noise
 
-def update_T(self, real_logits):
-    with torch.no_grad():
-        # mede confiança do discriminator (overfitting proxy)
-        r = torch.cat(real_logits)
-        rd = torch.mean(torch.sign(torch.sigmoid(r) - 0.5))
+    def update_T(self, real_logits):
+        with torch.no_grad():
+            # mede confiança do discriminator (overfitting proxy)
+            r = torch.cat(real_logits)
+            rd = torch.mean(torch.sign(torch.sigmoid(r) - 0.5))
 
-        # ajustar dificuldade
-        if rd > self.d_target:
-            self.T = min(self.T + self.C, self.T_max)  # D muito forte → mais ruído
-        else:
-            self.T = max(self.T - self.C, self.T_min)  # D fraco → menos ruído
+            # ajustar dificuldade
+            if rd > self.d_target:
+                self.T = min(self.T + self.C, self.T_max)  # D muito forte → mais ruído
+            else:
+                self.T = max(self.T - self.C, self.T_min)  # D fraco → menos ruído
 
-        # atualizar diffusion schedule
-        self.update_schedule()
+            # atualizar diffusion schedule
+            self.update_schedule()
 
-        # sampling com prioridade (mais peso para t grandes)
-        weights = torch.arange(1, self.T+1, device=device).float()
-        weights /= weights.sum()
-        t_vals = torch.multinomial(weights, 32, replacement=True)
+            # sampling com prioridade (mais peso para t grandes)
+            weights = torch.arange(1, self.T+1, device=device).float()
+            weights /= weights.sum()
+            t_vals = torch.multinomial(weights, 32, replacement=True)
 
-        # exploration list (mistura de fácil + difícil)
-        self.tepl = torch.cat([
-            torch.zeros(32, dtype=torch.long, device=device),
-            t_vals
-        ])
+            # exploration list (mistura de fácil + difícil)
+            self.tepl = torch.cat([
+                torch.zeros(32, dtype=torch.long, device=device),
+                t_vals
+            ])
 
 diffusion = Diffusion(T_max=500, T_min=5, sigma=0.05)
 
