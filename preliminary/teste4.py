@@ -167,7 +167,6 @@ class Up(nn.Module):
 class Generator(nn.Module):
     def __init__(self, z_dim=256, t_dim=128):
         super().__init__()
-        self.t_embed = nn.Embedding(1000, t_dim)
         self.fc = nn.Linear(z_dim + t_dim, 256*8*8)
 
         self.down1 = Down(256,128)
@@ -189,10 +188,8 @@ class Generator(nn.Module):
             nn.Conv2d(8,1,3,padding=1)
         )
 
-    def forward(self, z, t):
-        t_emb = self.t_embed(t)
-        x = torch.cat([z, t_emb], dim=1)
-        x = self.fc(x).view(-1,256,8,8)
+    def forward(self, z):
+        x = self.fc(z).view(-1,256,8,8)
         s1, x = self.down1(x)
         s2, x = self.down2(x)
         x = self.middle(x)
@@ -309,102 +306,56 @@ opt_D = torch.optim.Adam(D.parameters(), lr=args.lr_d, betas=(0.5,0.999))
 print("Starting training...", flush=True)
 
 for epoch in range(args.epochs):
-    
-    loss_D_avg = 0.0
-    loss_G_avg = 0.0
 
     for i, real in enumerate(loader):
         real = real.to(device)
         b = real.size(0)
 
-        # sample timestep 
-        t = diffusion.sample_t(b)
+        t_real = diffusion.sample_t(b)
+        t_fake = diffusion.sample_t(b)
+
         z = torch.randn(b,z_dim,device=device)
+        fake = G(z).detach()
 
-        fake = G(z, t).detach()
-        # aplicar diffusion a real e fake
-        real_t = diffusion.apply(real,t)
-        fake_t = diffusion.apply(fake,t)
+        real_t = diffusion.apply(real,t_real)
+        fake_t = diffusion.apply(fake,t_fake)
 
-        # DISCRIMINATOR
-
-        if epoch > 2:
-            D.use_second = True
-
-        real_t = real_t.detach().requires_grad_(True)
-
-
-        real_logits, _ = D(real_t,t)
-        fake_logits, _ = D(fake_t,t)
-
-        grad_real = torch.autograd.grad(
-            outputs=sum([r.sum() for r in real_logits]),
-            inputs=real_t,
-            create_graph=True
-        )[0]
-
-        r1 = grad_real.view(grad_real.size(0), -1).norm(2, dim=1).mean()
+        real_logits,_ = D(real_t,t_real)
+        fake_logits,_ = D(fake_t,t_fake)
 
         loss_D = sum(
-            F.softplus(-r).mean() + F.softplus(f).mean()
+            F.binary_cross_entropy_with_logits(r, torch.ones_like(r)*0.9) +
+            F.binary_cross_entropy_with_logits(f, torch.zeros_like(f))
             for r,f in zip(real_logits,fake_logits)
         )
 
-        loss_D += 0.05 * r1
-
-        # atualizar D
         opt_D.zero_grad()
         loss_D.backward()
         opt_D.step()
 
-        # ADAPTIVE T (atualizar T adaptativamente (a cada 4 batches))
-        if i % 4 == 0:
-            diffusion.update_T(real_logits, fake_logits)
+        diffusion.update_T(real_logits,fake_logits)
 
-        # GENERATOR
         z = torch.randn(b,z_dim,device=device)
+        fake = G(z)
+        fake_t = diffusion.apply(fake,t_fake)
 
-        # Generator forward (sem detach → permite gradiente passar pelo diffusion)
-        fake = G(z, t)
-        fake_t = diffusion.apply(fake,t)
+        fake_logits,_ = D(fake_t,t_fake)
 
-        fake_logits, fake_feats = D(fake_t,t)
-        # Feature matching
-        with torch.no_grad():
-            _, real_feats = D(real_t,t)
-
-        adv = sum(
-            F.softplus(-f).mean()
+        loss_G = sum(
+            F.binary_cross_entropy_with_logits(f, torch.ones_like(f)*0.9)
             for f in fake_logits
         )
 
-        fm = sum(
-            sum(torch.mean(torch.abs(ff - rf.detach())) for ff,rf in zip(f1,f2))
-            for f1,f2 in zip(fake_feats, real_feats)
-        )
-
-        loss_G = adv + 0.02 * fm
-
-        loss_D_avg += loss_D.item()
-        loss_G_avg += loss_G.item()
-
         opt_G.zero_grad()
         loss_G.backward()
-        torch.nn.utils.clip_grad_norm_(G.parameters(),1.0)
         opt_G.step()
 
-        # EMA update
+        # EMA
         with torch.no_grad():
-            for p, ema_p in zip(G.parameters(), G_ema.parameters()):
-                ema_p.data.mul_(0.999).add_(p.data, alpha=0.001)
+            for p_ema, p in zip(G_ema.parameters(), G.parameters()):
+                p_ema.mul_(0.999).add_(p, alpha=0.001)
 
-        # DEBUGS
-        if i % 10 == 0:
-            print(f"[E{epoch}][{i}/{len(loader)}] D={loss_D.item():.3f} | G={loss_G.item():.3f}", flush=True)
-        
         if i % 50 == 0:
-            print(f"T current: {diffusion.T}")
-
-    print(f"\n[EPOCH {epoch}] D={loss_D_avg/len(loader):.3f} | G={loss_G_avg/len(loader):.3f}")
+            print(f"[E{epoch}] T={diffusion.T} D={loss_D.item():.3f} G={loss_G.item():.3f}")
 
     save_samples(G, epoch, z_dim, device, args.out_dir)
