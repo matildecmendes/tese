@@ -19,7 +19,7 @@ parser.add_argument("--out_dir", type=str, required=True)
 parser.add_argument("--epochs", type=int, default=100)
 parser.add_argument("--batch_size", type=int, default=8)
 parser.add_argument("--lr_g", type=float, default=1e-4)
-parser.add_argument("--lr_d", type=float, default=2e-4)
+parser.add_argument("--lr_d", type=float, default=4e-4)
 parser.add_argument("--T", type=int, default=100)
 parser.add_argument("--max_samples", type=int, default=None)
 
@@ -68,7 +68,7 @@ class Diffusion:
 
         self.update_schedule()
 
-        self.d_target = 0.1
+        self.d_target = 0.2
         self.C = 1
 
         self.tepl = None
@@ -79,10 +79,7 @@ class Diffusion:
         self.alpha_bars = torch.cumprod(self.alphas, dim=0)
 
     def sample_t(self, b):
-        if self.tepl is None:
-            return torch.randint(0, self.T, (b,), device=device)
-        idx = torch.randint(0, len(self.tepl), (b,), device=device)
-        return self.tepl[idx]
+        return torch.randint(0, self.T, (b,), device=device)
 
     def apply(self, x, t):
         # garantir segurança dos índices
@@ -91,7 +88,7 @@ class Diffusion:
         alpha_bar = self.alpha_bars[t].view(-1,1,1,1)
         noise = torch.randn_like(x)
 
-        return torch.sqrt(alpha_bar)*x + torch.sqrt(1-alpha_bar)*noise
+        return torch.sqrt(alpha_bar)*x + torch.sqrt(1-alpha_bar)*(self.sigma*noise)
 
     def update_T(self, real_logits, fake_logits):
         with torch.no_grad():
@@ -116,17 +113,8 @@ class Diffusion:
 
             self.update_schedule()
 
-            # sampling com prioridade
-            weights = torch.arange(1, self.T+1, device=device).float()
-            weights /= weights.sum()
-            t_vals = torch.multinomial(weights, 32, replacement=True)
 
-            self.tepl = torch.cat([
-                torch.randint(0, max(1, self.T//4), (32,), device=device),  # baixos mas não só 0
-                t_vals
-            ])
-
-diffusion = Diffusion(T_max=200, T_min=5, sigma=0.1)
+diffusion = Diffusion(T_max=200, T_min=5, sigma=0.03)
 
 # =========================================================
 # GENERATOR (UNET-LITE)
@@ -306,10 +294,17 @@ opt_D = torch.optim.Adam(D.parameters(), lr=args.lr_d, betas=(0.5,0.999))
 print("Starting training...", flush=True)
 
 for epoch in range(args.epochs):
-
+    
+    if epoch < 5:
+                diffusion.T = min(diffusion.T + 5, diffusion.T_max)
+                diffusion.update_schedule()
+    
     for i, real in enumerate(loader):
         real = real.to(device)
         b = real.size(0)
+
+        if epoch > 5:
+            D.use_second = True
 
         t_real = diffusion.sample_t(b)
         t_fake = diffusion.sample_t(b)
@@ -320,12 +315,14 @@ for epoch in range(args.epochs):
         real_t = diffusion.apply(real,t_real)
         fake_t = diffusion.apply(fake,t_fake)
 
+        real_t = real_t + 0.01 * torch.randn_like(real_t)
+        fake_t = fake_t + 0.01 * torch.randn_like(fake_t)
+
         real_logits,_ = D(real_t,t_real)
         fake_logits,_ = D(fake_t,t_fake)
 
         loss_D = sum(
-            F.binary_cross_entropy_with_logits(r, torch.ones_like(r)*0.9) +
-            F.binary_cross_entropy_with_logits(f, torch.zeros_like(f))
+            torch.mean(F.relu(1 - r)) + torch.mean(F.relu(1 + f))
             for r,f in zip(real_logits,fake_logits)
         )
 
@@ -338,13 +335,11 @@ for epoch in range(args.epochs):
         z = torch.randn(b,z_dim,device=device)
         fake = G(z)
         fake_t = diffusion.apply(fake,t_fake)
+        fake_t = fake_t + 0.01 * torch.randn_like(fake_t)
 
         fake_logits,_ = D(fake_t,t_fake)
 
-        loss_G = sum(
-            F.binary_cross_entropy_with_logits(f, torch.ones_like(f)*0.9)
-            for f in fake_logits
-        )
+        loss_G = -sum(torch.mean(f) for f in fake_logits)
 
         opt_G.zero_grad()
         loss_G.backward()
