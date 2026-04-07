@@ -18,8 +18,8 @@ parser.add_argument("--data_path", type=str, required=True)
 parser.add_argument("--out_dir", type=str, required=True)
 parser.add_argument("--epochs", type=int, default=100)
 parser.add_argument("--batch_size", type=int, default=8)
-parser.add_argument("--lr_g", type=float, default=2e-4)
-parser.add_argument("--lr_d", type=float, default=5e-5)
+parser.add_argument("--lr_g", type=float, default=1e-4)
+parser.add_argument("--lr_d", type=float, default=2e-4)
 parser.add_argument("--T", type=int, default=100)
 parser.add_argument("--max_samples", type=int, default=None)
 
@@ -57,7 +57,7 @@ loader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True, drop_last
 # - sigma=0.05 (noise scale)
 # =========================================================
 class Diffusion:
-    def __init__(self, T_max=500, T_min=5, sigma=0.05):
+    def __init__(self, T_max=500, T_min=5, sigma=0.03):
         self.T_max = T_max
         self.T_min = T_min
         self.T = T_min
@@ -67,7 +67,7 @@ class Diffusion:
 
         self.update_schedule()
 
-        self.d_target = 0.6
+        self.d_target = 0.4
         self.C = 1
 
         self.tepl = None
@@ -311,7 +311,7 @@ for epoch in range(args.epochs):
 
         # DISCRIMINATOR
 
-        if epoch > 10:
+        if epoch > 2:
             D.use_second = True
 
         real_logits, _ = D(real_t,t)
