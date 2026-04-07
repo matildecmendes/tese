@@ -91,7 +91,7 @@ class Diffusion:
         alpha_bar = self.alpha_bars[t].view(-1,1,1,1)
         noise = torch.randn_like(x)
 
-        return torch.sqrt(alpha_bar)*x + torch.sqrt(1-alpha_bar)*self.sigma*noise
+        return torch.sqrt(alpha_bar)*x + torch.sqrt(1-alpha_bar)*noise
 
     def update_T(self, real_logits, fake_logits):
         with torch.no_grad():
@@ -126,7 +126,7 @@ class Diffusion:
                 t_vals
             ])
 
-diffusion = Diffusion(T_max=200, T_min=5, sigma=0.05)
+diffusion = Diffusion(T_max=200, T_min=5, sigma=0.1)
 
 # =========================================================
 # GENERATOR (UNET-LITE)
@@ -165,9 +165,11 @@ class Up(nn.Module):
         return self.conv(x)
 
 class Generator(nn.Module):
-    def __init__(self, z_dim=256):
+    def __init__(self, z_dim=256, t_dim=128):
         super().__init__()
-        self.fc = nn.Linear(z_dim, 256*8*8)
+        self.t_embed = nn.Embedding(1000, t_dim)
+        self.fc = nn.Linear(z_dim + t_dim, 256*8*8)
+
         self.down1 = Down(256,128)
         self.down2 = Down(128,64)
         self.middle = ConvBlock(64,64)
@@ -187,8 +189,10 @@ class Generator(nn.Module):
             nn.Conv2d(8,1,3,padding=1)
         )
 
-    def forward(self, z):
-        x = self.fc(z).view(-1,256,8,8)
+    def forward(self, z, t):
+        t_emb = self.t_embed(t)
+        x = torch.cat([z, t_emb], dim=1)
+        x = self.fc(x).view(-1,256,8,8)
         s1, x = self.down1(x)
         s2, x = self.down2(x)
         x = self.middle(x)
@@ -246,6 +250,15 @@ class MultiScaleD(nn.Module):
             return [o1,o2],[f1,f2]
         else:
             return [o1],[f1]
+
+# =========================================================
+# EMA
+# =========================================================     
+import copy
+G_ema = copy.deepcopy(G).eval()
+for p in G_ema.parameters():
+    p.requires_grad = False
+
 # =========================================================
 # SAVE SAMPLES
 # =========================================================
@@ -254,8 +267,8 @@ def save_samples(G, epoch, z_dim, device, out_dir):
     G.eval()
 
     with torch.no_grad():
-        z = torch.randn(8, z_dim, device=device)
-        fake = G(z).cpu()
+        t = torch.zeros(z.size(0), dtype=torch.long, device=device)
+        fake = G(z, t).cpu()
 
     imgs = fake.squeeze().numpy()
 
@@ -306,7 +319,7 @@ for epoch in range(args.epochs):
         b = real.size(0)
 
         z = torch.randn(b,z_dim,device=device)
-        fake = G(z).detach()
+        fake = G(z, t).detach()
 
         # sample timestep 
         t = diffusion.sample_t(b)
@@ -320,14 +333,26 @@ for epoch in range(args.epochs):
         if epoch > 2:
             D.use_second = True
 
+        real_t.requires_grad_(True)
+
+
         real_logits, _ = D(real_t,t)
         fake_logits, _ = D(fake_t,t)
 
+        grad_real = torch.autograd.grad(
+            outputs=sum([r.sum() for r in real_logits]),
+            inputs=real_t,
+            create_graph=True
+        )[0]
+
+        r1 = grad_real.view(grad_real.size(0), -1).norm(2, dim=1).mean()
+
         loss_D = sum(
-            F.binary_cross_entropy_with_logits(r, torch.ones_like(r)*0.9) +
-            F.binary_cross_entropy_with_logits(f, torch.zeros_like(f))
+            F.softplus(-r).mean() + F.softplus(f).mean()
             for r,f in zip(real_logits,fake_logits)
         )
+
+        loss_D += 0.05 * r1
 
         # atualizar D
         opt_D.zero_grad()
@@ -342,15 +367,16 @@ for epoch in range(args.epochs):
         z = torch.randn(b,z_dim,device=device)
 
         # Generator forward (sem detach → permite gradiente passar pelo diffusion)
-        fake = G(z)
+        fake = G(z, t)
         fake_t = diffusion.apply(fake,t)
 
         fake_logits, fake_feats = D(fake_t,t)
         # Feature matching
-        _, real_feats = D(real_t,t)
+        with torch.no_grad():
+            _, real_feats = D(real_t,t)
 
         adv = sum(
-            F.binary_cross_entropy_with_logits(f, torch.ones_like(f)*0.85)
+            F.softplus(-f).mean()
             for f in fake_logits
         )
 
@@ -368,6 +394,11 @@ for epoch in range(args.epochs):
         loss_G.backward()
         torch.nn.utils.clip_grad_norm_(G.parameters(),1.0)
         opt_G.step()
+
+        # EMA update
+        with torch.no_grad():
+            for p, ema_p in zip(G.parameters(), G_ema.parameters()):
+                ema_p.data.mul_(0.999).add_(p.data, alpha=0.001)
 
         # DEBUGS
         if i % 10 == 0:
