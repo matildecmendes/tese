@@ -53,68 +53,25 @@ loader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True, drop_last
 
 # =========================================================
 # DIFFUSION
-# - adaptive difficulty
-# - sigma=0.05 (noise scale)
 # =========================================================
 class Diffusion:
-    def __init__(self, T_max=200, T_min=5, sigma=0.03):
-        self.T_max = T_max
-        self.T_min = T_min
-        self.T = T_min
-        self.sigma = sigma
+    def __init__(self, T=50, beta_start=1e-4, beta_end=0.02):
+        self.T = T
 
-        self.T = int(self.T)
-        self.T = max(self.T_min, min(self.T, self.T_max))
-
-        self.update_schedule()
-
-        self.d_target = 0.2
-        self.C = 1
-
-        self.tepl = None
-
-    def update_schedule(self):
-        self.betas = torch.linspace(1e-4, 0.02, self.T).to(device)
-        self.alphas = 1 - self.betas
+        self.betas = torch.linspace(beta_start, beta_end, T).to(device)
+        self.alphas = 1.0 - self.betas
         self.alpha_bars = torch.cumprod(self.alphas, dim=0)
 
     def sample_t(self, b):
         return torch.randint(0, self.T, (b,), device=device)
 
     def apply(self, x, t):
-        # garantir segurança dos índices
-        t = torch.clamp(t, 0, self.T - 1)
-
         alpha_bar = self.alpha_bars[t].view(-1,1,1,1)
         noise = torch.randn_like(x)
-
-        return torch.sqrt(alpha_bar)*x + torch.sqrt(1-alpha_bar)*(self.sigma*noise)
-
-    def update_T(self, real_logits, fake_logits):
-        with torch.no_grad():
-            r = torch.cat(real_logits)
-
-            # probabilidade média do D acertar (mais estável)
-            real_prob = torch.sigmoid(torch.cat(real_logits))
-            fake_prob = torch.sigmoid(torch.cat(fake_logits))
-
-            rd = (real_prob.mean() - fake_prob.mean())
+        return torch.sqrt(alpha_bar)*x + torch.sqrt(1 - alpha_bar)*noise
 
 
-            # DEBUG
-            # print("rd:", rd.item())
-
-            if rd > self.d_target:
-                self.T = min(self.T + self.C, self.T_max)
-            else:
-                self.T = max(self.T - self.C, self.T_min)
-
-            self.T = int(self.T)
-
-            self.update_schedule()
-
-
-diffusion = Diffusion(T_max=200, T_min=5, sigma=0.03)
+diffusion = Diffusion(T=50, beta_start=1e-4, beta_end=0.02)
 
 # =========================================================
 # GENERATOR (UNET-LITE)
@@ -194,7 +151,7 @@ def SN(layer): return nn.utils.spectral_norm(layer)
 class Discriminator(nn.Module):
     def __init__(self, T):
         super().__init__()
-        self.embed = nn.Embedding(1000, 64)
+        self.embed = nn.Embedding(T, 64)
         self.blocks = nn.ModuleList([
             SN(nn.Conv2d(1+64,64,4,2,1)),
             SN(nn.Conv2d(64,128,4,2,1)),
@@ -278,7 +235,7 @@ def save_samples(G, epoch, z_dim, device, out_dir):
 # =========================================================
 z_dim=256
 G = Generator().to(device)
-D = MultiScaleD(500).to(device)  # tem de cobrir T_max
+D = Discriminator(50).to(device)
 
 import copy
 G_ema = copy.deepcopy(G).eval()
@@ -295,28 +252,23 @@ print("Starting training...", flush=True)
 
 for epoch in range(args.epochs):
     
-    if epoch < 5:
-                diffusion.T = min(diffusion.T + 5, diffusion.T_max)
-                diffusion.update_schedule()
-    
     for i, real in enumerate(loader):
         real = real.to(device)
         b = real.size(0)
 
         if epoch > 5:
-            D.use_second = True
+            D.use_second = False # para já
 
-        t_real = diffusion.sample_t(b)
-        t_fake = diffusion.sample_t(b)
+        t = diffusion.sample_t(b)
+
+        t_real = diffusion.apply(real, t)
+        t_fake = diffusion.apply(fake, t)
 
         z = torch.randn(b,z_dim,device=device)
         fake = G(z).detach()
 
         real_t = diffusion.apply(real,t_real)
         fake_t = diffusion.apply(fake,t_fake)
-
-        real_t = real_t + 0.01 * torch.randn_like(real_t)
-        fake_t = fake_t + 0.01 * torch.randn_like(fake_t)
 
         real_logits,_ = D(real_t,t_real)
         fake_logits,_ = D(fake_t,t_fake)
@@ -330,14 +282,14 @@ for epoch in range(args.epochs):
         loss_D.backward()
         opt_D.step()
 
-        diffusion.update_T(real_logits,fake_logits)
 
-        z = torch.randn(b,z_dim,device=device)
+        z = torch.randn(b, z_dim, device=device)
         fake = G(z)
-        fake_t = diffusion.apply(fake,t_fake)
-        fake_t = fake_t + 0.01 * torch.randn_like(fake_t)
 
-        fake_logits,_ = D(fake_t,t_fake)
+        t = diffusion.sample_t(b)
+        fake_t = diffusion.apply(fake, t)
+
+        fake_logits,_ = D(fake_t, t)
 
         loss_G = -sum(torch.mean(f) for f in fake_logits)
 
