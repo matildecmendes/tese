@@ -269,8 +269,8 @@ for epoch in range(args.epochs):
         loss_D.backward()
         opt_D.step()
 
-        if i % 10 == 0:
-            diffusion.update_T(real_logits.detach(), fake_logits.detach())
+        # if i % 10 == 0:
+        #     diffusion.update_T(real_logits.detach(), fake_logits.detach())
 
         # ======================
         # GENERATOR
