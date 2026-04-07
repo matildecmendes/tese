@@ -260,6 +260,7 @@ def save_samples(G, epoch, z_dim, device, out_dir):
     G.eval()
 
     with torch.no_grad():
+        z = torch.randn(8, z_dim, device=device)
         t = torch.zeros(z.size(0), dtype=torch.long, device=device)
         fake = G(z, t).cpu()
 
@@ -316,12 +317,11 @@ for epoch in range(args.epochs):
         real = real.to(device)
         b = real.size(0)
 
-        z = torch.randn(b,z_dim,device=device)
-        fake = G(z, t).detach()
-
         # sample timestep 
         t = diffusion.sample_t(b)
+        z = torch.randn(b,z_dim,device=device)
 
+        fake = G(z, t).detach()
         # aplicar diffusion a real e fake
         real_t = diffusion.apply(real,t)
         fake_t = diffusion.apply(fake,t)
@@ -331,7 +331,7 @@ for epoch in range(args.epochs):
         if epoch > 2:
             D.use_second = True
 
-        real_t.requires_grad_(True)
+        real_t = real_t.detach().requires_grad_(True)
 
 
         real_logits, _ = D(real_t,t)
