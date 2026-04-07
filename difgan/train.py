@@ -228,7 +228,7 @@ def save_diffusion_debug(diffusion, real, fake, epoch, out_dir):
 # =========================================================
 z_dim = 256
 G = Generator(z_dim).to(device)
-D = Discriminator(args.T).to(device)
+D = Discriminator(diffusion.T_max).to(device)
 
 opt_G = torch.optim.Adam(G.parameters(), lr=args.lr_g, betas=(0.5,0.999))
 opt_D = torch.optim.Adam(D.parameters(), lr=args.lr_d, betas=(0.5,0.999))
