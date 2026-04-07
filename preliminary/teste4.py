@@ -251,13 +251,6 @@ class MultiScaleD(nn.Module):
         else:
             return [o1],[f1]
 
-# =========================================================
-# EMA
-# =========================================================     
-import copy
-G_ema = copy.deepcopy(G).eval()
-for p in G_ema.parameters():
-    p.requires_grad = False
 
 # =========================================================
 # SAVE SAMPLES
@@ -300,6 +293,11 @@ def save_samples(G, epoch, z_dim, device, out_dir):
 z_dim=256
 G = Generator().to(device)
 D = MultiScaleD(500).to(device)  # tem de cobrir T_max
+
+import copy
+G_ema = copy.deepcopy(G).eval()
+for p in G_ema.parameters():
+    p.requires_grad = False
 
 opt_G = torch.optim.Adam(G.parameters(), lr=args.lr_g, betas=(0.5,0.999))
 opt_D = torch.optim.Adam(D.parameters(), lr=args.lr_d, betas=(0.5,0.999))
