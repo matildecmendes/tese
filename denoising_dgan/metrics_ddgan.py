@@ -82,7 +82,6 @@ def main(args):
                                        device='cuda:0',
                                        dims=2048)
 
-        print("[WARNING] FID is using FULL real dataset (like your sampling script)")
         print(f"[RESULT] FID: {fid}\n")
 
     # =====================================================
@@ -101,7 +100,7 @@ def main(args):
         ]
 
         print("[INFO] Running CMMD command:", " ".join(cmd))
-        subprocess.run(cmd)
+        subprocess.run(cmd, check=True, text=True)
 
     # =====================================================
     # MS-SSIM
@@ -116,6 +115,22 @@ def main(args):
         print(f"[RESULT] MS-SSIM (real): {real_score}\n")
 
     print("\n===== DONE =====")
+
+    # =====================================================
+    # FRD
+    # =====================================================
+    if args.compute_frd:
+        print("\n===== COMPUTING FRD =====")
+
+        cmd = [
+            "python", "-m", "frd_score",
+            args.fake_dir,
+            args.real_dir,
+            "--match_sample_count"
+        ]
+
+        print("[INFO] Running FRD:", " ".join(cmd))
+        subprocess.run(cmd, check=True)
 
 
 # =========================================================
@@ -133,6 +148,7 @@ if __name__ == "__main__":
     parser.add_argument('--compute_fid', action='store_true')
     parser.add_argument('--compute_cmmd', action='store_true')
     parser.add_argument('--compute_msssim', action='store_true')
+    parser.add_argument('--compute_frd', action='store_true')
 
     parser.add_argument('--cmmd_path', type=str, default='cmmd-pytorch')
 

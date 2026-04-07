@@ -10,8 +10,7 @@
 python metrics_ddgan.py \
   --fake_dir /nas-ctm01/homes/mcmendes/samples/denoising_dgan/2 \
   --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png \
-  --compute_fid \
   --compute_cmmd \
-  --compute_msssim \
+  --compute_frd \
   --cmmd_path /nas-ctm01/homes/mcmendes/tese/cmmd-pytorch
 
