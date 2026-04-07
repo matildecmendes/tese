@@ -57,17 +57,18 @@ loader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True, drop_last
 # - sigma=0.05 (noise scale)
 # =========================================================
 class Diffusion:
-    def __init__(self, T_max=500, T_min=5, sigma=0.03):
+    def __init__(self, T_max=200, T_min=5, sigma=0.03):
         self.T_max = T_max
         self.T_min = T_min
         self.T = T_min
         self.sigma = sigma
 
-        self.T = min(self.T, self.T_max)
+        self.T = int(self.T)
+        self.T = max(self.T_min, min(self.T, self.T_max))
 
         self.update_schedule()
 
-        self.d_target = 0.4
+        self.d_target = 0.1
         self.C = 1
 
         self.tepl = None
@@ -92,13 +93,16 @@ class Diffusion:
 
         return torch.sqrt(alpha_bar)*x + torch.sqrt(1-alpha_bar)*self.sigma*noise
 
-    def update_T(self, real_logits):
+    def update_T(self, real_logits, fake_logits):
         with torch.no_grad():
             r = torch.cat(real_logits)
 
             # probabilidade média do D acertar (mais estável)
-            prob_real = torch.sigmoid(r)
-            rd = prob_real.mean()
+            real_prob = torch.sigmoid(torch.cat(real_logits))
+            fake_prob = torch.sigmoid(torch.cat(fake_logits))
+
+            rd = (real_prob.mean() - fake_prob.mean())
+
 
             # DEBUG
             # print("rd:", rd.item())
@@ -107,6 +111,8 @@ class Diffusion:
                 self.T = min(self.T + self.C, self.T_max)
             else:
                 self.T = max(self.T - self.C, self.T_min)
+
+            self.T = int(self.T)
 
             self.update_schedule()
 
@@ -120,7 +126,7 @@ class Diffusion:
                 t_vals
             ])
 
-diffusion = Diffusion(T_max=500, T_min=5, sigma=0.05)
+diffusion = Diffusion(T_max=200, T_min=5, sigma=0.05)
 
 # =========================================================
 # GENERATOR (UNET-LITE)
@@ -330,9 +336,7 @@ for epoch in range(args.epochs):
 
         # ADAPTIVE T (atualizar T adaptativamente (a cada 4 batches))
         if i % 4 == 0:
-            diffusion.update_T(real_logits)
-            # re-sample t com novo T
-            t = diffusion.sample_t(b)
+            diffusion.update_T(real_logits, fake_logits)
 
         # GENERATOR
         z = torch.randn(b,z_dim,device=device)
