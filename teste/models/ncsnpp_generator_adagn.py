@@ -177,7 +177,7 @@ class NCSNpp(nn.Module):
     if progressive_input != 'none':
       input_pyramid_ch = channels
 
-    modules.append(conv3x3(channels, nf))
+    modules.append(conv3x3(nf, nf))
     hs_c = [nf]
 
     in_ch = nf
