@@ -173,7 +173,7 @@ class NCSNpp(nn.Module):
 
     # Downsampling block
 
-    channels = config.num_channels
+    channels = nf
     if progressive_input != 'none':
       input_pyramid_ch = channels
 
@@ -231,7 +231,7 @@ class NCSNpp(nn.Module):
           if progressive == 'output_skip':
             modules.append(nn.GroupNorm(num_groups=min(in_ch // 4, 32),
                                         num_channels=in_ch, eps=1e-6))
-            modules.append(conv3x3(in_ch, channels, init_scale=init_scale))
+            modules.append(conv3x3(in_ch, config.num_channels, init_scale=init_scale))
             pyramid_ch = channels
           elif progressive == 'residual':
             modules.append(nn.GroupNorm(num_groups=min(in_ch // 4, 32),
@@ -263,7 +263,7 @@ class NCSNpp(nn.Module):
     if progressive != 'output_skip':
       modules.append(nn.GroupNorm(num_groups=min(in_ch // 4, 32),
                                   num_channels=in_ch, eps=1e-6))
-      modules.append(conv3x3(in_ch, channels, init_scale=init_scale))
+      modules.append(conv3x3(in_ch, config.num_channels, init_scale=init_scale))
 
     self.all_modules = nn.ModuleList(modules)
     
