@@ -28,20 +28,39 @@ transform = transforms.Compose([
 ])
 
 
-def compute_msssim(paths):
-    print(f"[INFO] Computing MS-SSIM for {len(paths)} images...")
+# def compute_msssim(paths):
+#     print(f"[INFO] Computing MS-SSIM for {len(paths)} images...")
+
+#     scores = []
+
+#     for i in range(len(paths) - 1):
+#         img1 = transform(Image.open(paths[i])).unsqueeze(0)
+#         img2 = transform(Image.open(paths[i + 1])).unsqueeze(0)
+
+#         score = ms_ssim(img1, img2, data_range=1.0, size_average=True)
+#         scores.append(score.item())
+
+#         if i % 100 == 0:
+#             print(f"[MS-SSIM] Progress: {i}/{len(paths)}")
+
+#     return sum(scores) / len(scores)
+
+def compute_msssim(paths, num_pairs=1000):
+    print(f"[INFO] Computing MS-SSIM with {num_pairs} random pairs...")
 
     scores = []
 
-    for i in range(len(paths) - 1):
-        img1 = transform(Image.open(paths[i])).unsqueeze(0)
-        img2 = transform(Image.open(paths[i + 1])).unsqueeze(0)
+    for i in range(num_pairs):
+        idx1, idx2 = random.sample(range(len(paths)), 2)
+
+        img1 = transform(Image.open(paths[idx1])).unsqueeze(0)
+        img2 = transform(Image.open(paths[idx2])).unsqueeze(0)
 
         score = ms_ssim(img1, img2, data_range=1.0, size_average=True)
         scores.append(score.item())
 
         if i % 100 == 0:
-            print(f"[MS-SSIM] Progress: {i}/{len(paths)}")
+            print(f"[MS-SSIM] Pair {i}/{num_pairs}")
 
     return sum(scores) / len(scores)
 
