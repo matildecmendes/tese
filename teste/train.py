@@ -104,8 +104,8 @@ def q_sample(coeff, x_start, t, *, noise=None):
 
 #%%
 def train(rank, gpu, args):
-    from score_sde.models.discriminator import Discriminator_small, Discriminator_large
-    from score_sde.models.ncsnpp_generator_adagn import NCSNpp
+    from models.discriminator import Discriminator_small, Discriminator_large
+    from models.ncsnpp_generator_adagn import NCSNpp
     from EMA import EMA
     
     torch.manual_seed(args.seed + rank)
@@ -185,7 +185,7 @@ def train(rank, gpu, args):
     
     
     coeff = Diffusion_Coefficients(args, device)
-    pos_coeff = Posterior_Coefficients(args, device)
+    #pos_coeff = Posterior_Coefficients(args, device)
     T = get_time_schedule(args, device)
     
     if args.resume:
@@ -294,10 +294,6 @@ def train(rank, gpu, args):
 
             output = netD(x_fake_t, t).view(-1)
 
-            #Debug adicionado por mim
-            if iteration == 0 and rank == 0:
-                print("FAKE min/max:", x_0_predict.min().item(), x_0_predict.max().item())
-
             
             errD_fake = F.softplus(output)
             errD_fake = errD_fake.mean()
@@ -356,8 +352,12 @@ def train(rank, gpu, args):
         
         if rank == 0:
             if epoch % 10 == 0:
-                save_path = os.path.join(exp_path, f'xpos_epoch_{epoch}.png')
-                torchvision.utils.save_image(x_pos_sample, save_path, normalize=True)
+                with torch.no_grad():
+                    latent_z = torch.randn(16, nz, device=device)
+                    fake_sample = netG(latent_z)
+
+                save_path = os.path.join(exp_path, f'fake_epoch_{epoch}.png')
+                torchvision.utils.save_image(fake_sample, save_path, normalize=True)
                 print(f"[Epoch {epoch}] Saved training sample -> {save_path}")
                         
             latent_z = torch.randn(16, nz, device=device)
