@@ -139,7 +139,15 @@ def train(rank, gpu, args):
         persistent_workers=True
     )
     
-    netG = NCSNpp(args).to(device)
+    #netG = NCSNpp(args).to(device)
+    from models.simple_generator import SimpleGenerator
+
+    netG = SimpleGenerator(
+        nz=args.nz,
+        ngf=64,
+        nc=args.num_channels,
+        image_size=args.image_size
+    ).to(device)
     
 
     if args.dataset == 'cifar10' or args.dataset == 'stackmnist':    
