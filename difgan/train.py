@@ -61,7 +61,7 @@ loader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True, drop_last
 # DIFFUSION
 # =========================================================
 class Diffusion:
-    def __init__(self, T_init=20, T_min=5, T_max=30):
+    def __init__(self, T_init=10, T_min=5, T_max=20):
         self.T = T_init
         self.T_min = T_min
         self.T_max = T_max
@@ -72,7 +72,7 @@ class Diffusion:
         self.adjust_step = 1
 
     def update_schedule(self):
-        self.betas = torch.linspace(1e-4, 0.02, self.T).to(device)
+        self.betas = torch.linspace(1e-4, 0.01, self.T).to(device)
         self.alphas = 1 - self.betas
         self.alpha_bars = torch.cumprod(self.alphas, dim=0)
 
@@ -247,6 +247,9 @@ for epoch in range(args.epochs):
         real = real.to(device)
         b = real.size(0)
 
+        def blur(x):
+            return F.avg_pool2d(x, 2, stride=1, padding=1)
+
         # ======================
         # DISCRIMINATOR
         # ======================
@@ -258,13 +261,17 @@ for epoch in range(args.epochs):
         real_t = diffusion.apply(real, t)
         fake_t = diffusion.apply(fake, t)
 
-        real_logits = D(real_t, t)
-        fake_logits = D(fake_t, t)
+        # real_logits = D(real_t, t)
+        # fake_logits = D(fake_t, t)
+        real_logits = D(blur(real_t), t)
+        fake_logits = D(blur(fake_t), t)
 
         loss_D = (
             F.binary_cross_entropy_with_logits(real_logits, torch.ones_like(real_logits)*0.9) +
             F.binary_cross_entropy_with_logits(fake_logits, torch.zeros_like(fake_logits))
         )
+        
+        loss_D += 0.001 * (real_logits**2).mean()
 
         opt_D.zero_grad()
         loss_D.backward()
