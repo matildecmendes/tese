@@ -288,7 +288,7 @@ def train(rank, gpu, args):
             #alterado por mim
             latent_z = torch.randn(real_data.size(0), nz, device=device)
 
-            x_fake = netG(None, None, latent_z)   # (vamos ajustar o generator depois)
+            x_fake = netG(latent_z)  # (vamos ajustar o generator depois)
 
             x_fake_t = q_sample(coeff, x_fake.detach(), t)
 
