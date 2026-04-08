@@ -275,6 +275,7 @@ class NCSNpp(nn.Module):
         mapping_layers.append(dense(z_emb_dim, z_emb_dim))
         mapping_layers.append(self.act)
     self.z_transform = nn.Sequential(*mapping_layers)
+    self.linear_proj = nn.Linear(z_emb_dim, nf * (self.config.image_size // (2 ** (self.num_resolutions - 1)))**2)
     
 
   def forward(self, z):
@@ -290,12 +291,11 @@ class NCSNpp(nn.Module):
     # h = h.repeat(1, 1, self.config.image_size // (2 ** (self.num_resolutions - 1)), 
     #                   self.config.image_size // (2 ** (self.num_resolutions - 1)))
     
-    h = zemb.unsqueeze(-1).unsqueeze(-1)
-    h = torch.randn_like(h) + h
 
     base_res = self.config.image_size // (2 ** (self.num_resolutions - 1))
 
-    h = h.repeat(1, 1, base_res, base_res)
+    h = self.linear_proj(zemb)
+    h = h.view(zemb.shape[0], self.nf, base_res, base_res)
   
 
     hs = [modules[m_idx](h)]
