@@ -282,7 +282,16 @@ class NCSNpp(nn.Module):
     # timestep/noise_level embedding; only for continuous training
     zemb = self.z_transform(z)
     modules = self.all_modules
+
+    # saltar módulos de embedding (time embedding)
     m_idx = 0
+    if self.embedding_type == 'fourier':
+        m_idx += 1
+    elif self.embedding_type == 'positional':
+        pass
+
+    if self.conditional:
+        m_idx += 2
 
     temb = None
 
@@ -297,7 +306,7 @@ class NCSNpp(nn.Module):
     h = self.linear_proj(zemb)
     h = h.view(zemb.shape[0], self.nf, base_res, base_res)
   
-
+    print(type(modules[m_idx]))
     hs = [modules[m_idx](h)]
     m_idx += 1
 
