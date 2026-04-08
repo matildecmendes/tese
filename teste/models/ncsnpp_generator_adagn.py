@@ -283,15 +283,7 @@ class NCSNpp(nn.Module):
     modules = self.all_modules
     m_idx = 0
 
-    if self.conditional:
-      temb = modules[m_idx](temb)
-      m_idx += 1
-      temb = modules[m_idx](self.act(temb))
-      m_idx += 1
-    else:
-      temb = None
-
-    zemb = self.z_transform(z)
+    temb = None
 
     # transformar z em feature map inicial
     # h = zemb[:, :, None, None]  # (B, C, 1, 1)
@@ -300,6 +292,9 @@ class NCSNpp(nn.Module):
     
     h = zemb.unsqueeze(-1).unsqueeze(-1)
     h = torch.randn_like(h) + h
+
+    base_res = self.config.image_size // (2 ** (self.num_resolutions - 1))
+
     h = h.repeat(1, 1, base_res, base_res)
   
 
