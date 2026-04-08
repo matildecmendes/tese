@@ -279,6 +279,13 @@ class NCSNpp(nn.Module):
     
 
   def forward(self, z):
+
+    def run_module(module, x, zemb):
+      try:
+          return module(x, None, zemb)
+      except TypeError:
+          return module(x)
+      
     # timestep/noise_level embedding; only for continuous training
     zemb = self.z_transform(z)
     modules = self.all_modules
@@ -314,7 +321,7 @@ class NCSNpp(nn.Module):
     for i_level in range(self.num_resolutions):
       # Residual blocks for this resolution
       for i_block in range(self.num_res_blocks):
-        h = modules[m_idx](hs[-1], None, zemb)
+        h = run_module(modules[m_idx], hs[-1], zemb)
         m_idx += 1
         if h.shape[-1] in self.attn_resolutions:
           h = modules[m_idx](h)
@@ -327,7 +334,7 @@ class NCSNpp(nn.Module):
           h = modules[m_idx](hs[-1])
           m_idx += 1
         else:
-          h = modules[m_idx](hs[-1], None, zemb)
+          h = run_module(modules[m_idx], hs[-1], zemb)
           m_idx += 1
 
 
