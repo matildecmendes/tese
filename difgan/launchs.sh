@@ -8,7 +8,7 @@
 
 # Commands / scripts to run (e.g., python3 train.py)
 python sampling_difgan.py \
-  --model_path /nas-ctm01/homes/mcmendes/outputs/denoising_dgan/2/test_run/netG_90.pth \
+  --model_path /nas-ctm01/homes/mcmendes/outputs/difgan/3/test_run/netG_95.pth \
   --output_dir /nas-ctm01/homes/mcmendes/samples/difgan/1 \
   --num_samples 5000 \
   --batch_size 8 \
