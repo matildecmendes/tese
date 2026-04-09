@@ -10,6 +10,6 @@
 python metrics_ddgan.py \
   --fake_dir /nas-ctm01/homes/mcmendes/samples/denoising_dgan/2 \
   --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png \
-  --compute_frd 
+  --compute_msssim
 
 
