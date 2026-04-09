@@ -18,4 +18,6 @@ python train.py \
   --ch_mult 1 2 2 4 \
   --dataset custom \
   --save_ckpt_every 5 \
-  --num_timesteps 4
+  --num_timesteps 4 \
+  --use_ema \
+  --lazy_reg
