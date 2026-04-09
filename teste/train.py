@@ -253,7 +253,7 @@ def train(rank, gpu, args):
                 print("REAL shape:", real_data.shape)
                 print("REAL min/max:", real_data.min().item(), real_data.max().item())
             
-            #sample t
+            #sample t (timestep)
             t = torch.randint(0, args.num_timesteps, (real_data.size(0),), device=device)
             
             x_t = q_sample(coeff, real_data, t) #alterado
