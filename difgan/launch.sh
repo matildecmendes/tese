@@ -19,5 +19,4 @@ python train.py \
   --dataset custom \
   --save_ckpt_every 5 \
   --num_timesteps 4 \
-  --use_ema \
-  --lazy_reg
+  --use_ema 
