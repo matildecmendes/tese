@@ -7,7 +7,7 @@
 #SBATCH --error=slurm_%x.%j.err    # File containing STDERR output. If ommited, use STDOUT.
 
 # Commands / scripts to run (e.g., python3 train.py)
-python metrics_ddgan.py \
+python metrics_difgan2.py \
   --fake_dir /nas-ctm01/homes/mcmendes/samples/difgan/1 \
   --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png \
   --compute_fid \
