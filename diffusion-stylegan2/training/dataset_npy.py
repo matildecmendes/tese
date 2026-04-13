@@ -27,8 +27,9 @@ class NPYDataset(Dataset):
             raw_shape=[len(self._files), 3, 256, 256],
             **super_kwargs
         )
-
-        self.resolution = 256
+        
+        print(f"[DATASET] Loaded {len(self._files)} samples")
+        #self.resolution = 256
 
     def _load_raw_image(self, raw_idx):
         img = np.load(self._files[raw_idx]).astype(np.float32)

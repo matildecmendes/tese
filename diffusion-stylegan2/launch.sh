@@ -10,6 +10,8 @@
 python train.py \
   --outdir /nas-ctm01/homes/mcmendes/outputs/diffusion-stylegan2/1 \
   --data /nas-ctm01/datasets/public/lidc-mcmendes/slices \
+  --subset 6000 \
+  --kimg 500 \
   --gpus 1 \
   --cfg paper256 \
   --batch 16 \
@@ -19,5 +21,5 @@ python train.py \
   --noise_sd 0.02 \
   --t_min 5 \
   --t_max 500 \
-  --exp_id lungCT_npy
+  --exp_id debug
 
