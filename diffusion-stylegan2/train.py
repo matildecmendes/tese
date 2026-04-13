@@ -9,6 +9,8 @@
 """Train a GAN using the techniques described in the paper
 "Diffusion-GAN: Training GANs with Diffusion"."""
 """Modified on the StyleGAN2-ADA Pytorch implementation. """
+import warnings
+warnings.filterwarnings("ignore")
 
 import os
 import click

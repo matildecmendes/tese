@@ -5,6 +5,8 @@
 # and any modifications thereto.  Any use, reproduction, disclosure or
 # distribution of this software and related documentation without an express
 # license agreement from NVIDIA CORPORATION is strictly prohibited.
+import warnings
+warnings.filterwarnings("ignore")
 
 import os
 import time
@@ -25,44 +27,15 @@ import legacy
 from metrics import metric_main
 
 #----------------------------------------------------------------------------
-
+# mudei para grelha mais pequena
 def setup_snapshot_image_grid(training_set, random_seed=0):
+    gw, gh = 4, 2
+
     rnd = np.random.RandomState(random_seed)
-    gw = np.clip(7680 // training_set.image_shape[2], 7, 32)
-    gh = np.clip(4320 // training_set.image_shape[1], 4, 32)
+    indices = rnd.choice(len(training_set), gw * gh, replace=False)
 
-    # No labels => show random subset of training samples.
-    if not training_set.has_labels:
-        all_indices = list(range(len(training_set)))
-        rnd.shuffle(all_indices)
-        grid_indices = [all_indices[i % len(all_indices)] for i in range(gw * gh)]
-
-    else:
-        # Group training samples by label.
-        label_groups = dict() # label => [idx, ...]
-        for idx in range(len(training_set)):
-            label = tuple(training_set.get_details(idx).raw_label.flat[::-1])
-            if label not in label_groups:
-                label_groups[label] = []
-            label_groups[label].append(idx)
-
-        # Reorder.
-        label_order = sorted(label_groups.keys())
-        for label in label_order:
-            rnd.shuffle(label_groups[label])
-
-        # Organize into grid.
-        grid_indices = []
-        for y in range(gh):
-            label = label_order[y % len(label_order)]
-            indices = label_groups[label]
-            grid_indices += [indices[x % len(indices)] for x in range(gw)]
-            label_groups[label] = [indices[(i + gw) % len(indices)] for i in range(len(indices))]
-
-    # Load data.
-    images, labels = zip(*[training_set[i] for i in grid_indices])
+    images, labels = zip(*[training_set[i] for i in indices])
     return (gw, gh), np.stack(images), np.stack(labels)
-
 #----------------------------------------------------------------------------
 
 def save_image_grid(img, fname, drange, grid_size):
@@ -259,6 +232,9 @@ def training_loop(
         except ImportError as err:
             print('Skipping tfevents export:', err)
 
+    if rank == 0:
+        print("TRAINING STARTED")
+
     # Train.
     if rank == 0:
         print(f'Training for {total_kimg} kimg...')
@@ -359,8 +335,12 @@ def training_loop(
         fields += [f"T {training_stats.report0('Progress/augment_T', float(diffusion.num_timesteps) if diffusion is not None else 0)}"]
         training_stats.report0('Timing/total_hours', (tick_end_time - start_time) / (60 * 60))
         training_stats.report0('Timing/total_days', (tick_end_time - start_time) / (24 * 60 * 60))
+        # if rank == 0:
+        #     print(' '.join(fields))
+
+        #mudei
         if rank == 0:
-            print(' '.join(fields))
+            print(f"[{cur_tick}/{total_kimg}] kimg={cur_nimg//1000}")
 
         # Check for abort.
         if (not done) and (abort_fn is not None) and abort_fn():
@@ -467,6 +447,7 @@ def training_loop(
     # Done.
     if rank == 0:
         print()
+        print("Training finished!!!")
         print('Exiting...')
 
 #----------------------------------------------------------------------------
