@@ -34,14 +34,13 @@ class NPYDataset(Dataset):
     def _load_raw_image(self, raw_idx):
         img = np.load(self._files[raw_idx]).astype(np.float32)
 
-        # garantir [-1,1]
-        if img.max() > 1:
-            img = img / 127.5 - 1
+        # conversão on-the-fly
+        img = ((img + 1) * 127.5).clip(0,255).astype(np.uint8)
 
-        # (H,W) -> (3,H,W)
         img = np.stack([img, img, img], axis=0)
 
         return img
+
 
     def _load_raw_labels(self):
         return None
