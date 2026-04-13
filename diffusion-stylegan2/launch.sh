@@ -14,10 +14,10 @@ python train.py \
   --kimg 500 \
   --gpus 1 \
   --cfg paper256 \
-  --batch 16 \
+  --batch 8 \
   --snap 5 \
   --mirror False \
-  --aug no \
+  --aug diff \
   --noise_sd 0.02 \
   --t_min 5 \
   --t_max 500 \
