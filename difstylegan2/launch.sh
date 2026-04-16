@@ -21,4 +21,5 @@ python train.py \
   --noise_sd 0.02 \
   --t_min 5 \
   --t_max 500 \
-  --exp_id debug
+  --exp_id debug \
+  -- fp32 1
