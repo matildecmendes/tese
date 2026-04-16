@@ -122,8 +122,9 @@ def training_loop(
     progress_fn             = None,     # Callback function for updating training progress. Called for all ranks.
 ):
     # Initialize.
+    print("CUDA available:", torch.cuda.is_available())
     start_time = time.time()
-    device = torch.device('cuda', rank)
+    device = torch.device('cuda', rank) if torch.cuda.is_available() else torch.device('cpu')
     np.random.seed(random_seed * num_gpus + rank)
     torch.manual_seed(random_seed * num_gpus + rank)
     torch.backends.cudnn.benchmark = cudnn_benchmark    # Improves training speed.
