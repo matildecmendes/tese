@@ -8,9 +8,9 @@
 
 # Commands / scripts to run (e.g., python3 train.py)
 python main.py \
-  --base configs/custom_ct_vqgan.yaml \
+  --base configs/custom_vqgan.yaml \
   -t True \
-  --gpus 1, \
-  --precision 16 \
-  --log_every_n_steps 50 \
-  -- max_epochs 1
+  --gpus 0, \
+  --no-test True \
+  --log_every_n_steps 10 \
+  data.params.train.params.data_root=/nas-ctm01/datasets/public/lidc-mcmendes/slices

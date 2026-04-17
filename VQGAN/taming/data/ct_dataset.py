@@ -1,23 +1,23 @@
 import os
+import glob
 import numpy as np
 import torch
 from torch.utils.data import Dataset
 
 class CTDataset(Dataset):
-    def __init__(self, data_root, file_list):
-        with open(file_list, "r") as f:
-            self.paths = f.read().splitlines()
+    def __init__(self, data_root):
+        self.paths = sorted(glob.glob(os.path.join(data_root, "*.npy")))
 
-        self.data_root = data_root
+        if len(self.paths) == 0:
+            raise ValueError(f"No .npy files found in {data_root}")
 
     def __len__(self):
         return len(self.paths)
 
     def __getitem__(self, idx):
-        path = os.path.join(self.data_root, self.paths[idx])
-        x = np.load(path)  # shape (256,256)
+        path = self.paths[idx]
+        x = np.load(path)
 
-        # garantir formato [C,H,W]
         if x.ndim == 2:
             x = x[None, ...]
 
