@@ -43,4 +43,7 @@ class CTDataset(Dataset):
 
         x = torch.from_numpy(x)
 
+        print("FINAL SHAPE:", x.shape)
+        print("MIN MAX:", x.min().item(), x.max().item())
+
         return x
