@@ -13,7 +13,7 @@ nvidia-smi
 python main.py \
   --base configs/custom_vqgan.yaml \
   -t True \
-  --gpus 1, \
+  --gpus 0, \
   --no-test True \
   --log_every_n_steps 10 \
   --name lung_ct \
