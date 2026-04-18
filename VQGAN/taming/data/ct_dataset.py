@@ -4,6 +4,9 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 
+import os
+print("DATASET PATH:", os.path.abspath(__file__))
+
 
 class CTDataset(Dataset):
     

@@ -13,6 +13,8 @@ from pytorch_lightning.utilities import rank_zero_only
 
 from taming.data.utils import custom_collate
 
+import sys
+print(sys.path)
 
 def get_obj_from_str(string, reload=False):
     module, cls = string.rsplit(".", 1)
