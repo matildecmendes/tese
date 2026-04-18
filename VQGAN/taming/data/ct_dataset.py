@@ -4,9 +4,12 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 
+
 class CTDataset(Dataset):
+    
     def __init__(self, data_root):
         self.paths = sorted(glob.glob(os.path.join(data_root, "*.npy")))
+        print(" USING MY CT DATASET FILE ")
 
         if len(self.paths) == 0:
             raise ValueError(f"No .npy files found in {data_root}")
