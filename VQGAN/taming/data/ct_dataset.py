@@ -18,8 +18,20 @@ class CTDataset(Dataset):
         path = self.paths[idx]
         x = np.load(path)
 
+        # DEBUG 
+        # print("shape original:", x.shape)
+
+        # garantir formato correto
         if x.ndim == 2:
             x = x[None, ...]
+
+        elif x.ndim == 3:
+            # casos comuns errados
+            if x.shape[0] == 256:
+                x = x.transpose(1, 0, 2)  # (256,1,256) -> (1,256,256)
+
+            elif x.shape[-1] == 1:
+                x = x.transpose(2, 0, 1)  # (256,256,1) -> (1,256,256)
 
         x = torch.tensor(x, dtype=torch.float32)
 

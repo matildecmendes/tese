@@ -6,9 +6,6 @@
 #SBATCH --output=slurm_%x.%j.out   # File containing STDOUT output
 #SBATCH --error=slurm_%x.%j.err    # File containing STDERR output. If ommited, use STDOUT.
 
-echo $CUDA_VISIBLE_DEVICES
-nvidia-smi
-
 # Commands / scripts to run (e.g., python3 train.py)
 python main.py \
   --base configs/custom_vqgan.yaml \
