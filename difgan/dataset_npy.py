@@ -1,59 +1,29 @@
 import os
-import glob
 import numpy as np
 import torch
 from torch.utils.data import Dataset
 
-class CTDataset(Dataset):
-    def __init__(self, data_root):
-        self.paths = sorted(glob.glob(os.path.join(data_root, "*.npy")))
-
-        if len(self.paths) == 0:
-            raise ValueError(f"No .npy files found in {data_root}")
+class NPYDataset(Dataset):
+    def __init__(self, folder):
+        self.files = [os.path.join(folder, f) for f in os.listdir(folder) if f.endswith('.npy')]
 
     def __len__(self):
-        return len(self.paths)
+        return len(self.files)
 
     def __getitem__(self, idx):
-        path = self.paths[idx]
-        x = np.load(path)
+        img = np.load(self.files[idx])  # shape: (256,256)
 
-        # -------------------------
-        # 1) GARANTIR SHAPE CORRETO
-        # -------------------------
-        x = np.squeeze(x)
+        # garantir float32
+        img = img.astype(np.float32)
 
-        if x.ndim == 2:
-            pass
+        # adicionar canal -> (1,256,256)
+        img = np.expand_dims(img, axis=0)
 
-        elif x.ndim == 3:
-            # caso volume (ex: [N,256,256])
-            x = x[x.shape[0] // 2]
+        # converter para tensor
+        img = torch.from_numpy(img)
 
-        else:
-            raise ValueError(f"Unsupported shape: {x.shape}")
+        # garantir [-1,1]
+        if img.max() > 1.0:
+            img = img / 127.5 - 1.0
 
-        if x.shape != (256, 256):
-            raise ValueError(f"Final shape wrong: {x.shape}")
-
-        # -------------------------
-        # 2) NORMALIZAÇÃO 
-        # -------------------------
-        x = x.astype(np.float32)
-
-        # normalizar para [-1,1] independentemente da escala
-        x_min, x_max = x.min(), x.max()
-
-        if x_max > x_min:
-            x = (x - x_min) / (x_max - x_min)  # [0,1]
-            x = x * 2.0 - 1.0                 # [-1,1]
-        else:
-            x = np.zeros_like(x)
-
-        # -------------------------
-        # 3) FORMATO FINAL
-        # -------------------------
-        x = np.expand_dims(x, axis=0)  # (1,256,256)
-        x = torch.from_numpy(x)
-
-        return {"image": x}
+        return img
