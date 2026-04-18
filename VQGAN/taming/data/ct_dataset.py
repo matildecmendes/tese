@@ -1,60 +1,26 @@
 import os
-import glob
 import numpy as np
 import torch
 from torch.utils.data import Dataset
 
-import os
-print("DATASET PATH:", os.path.abspath(__file__))
-
-
 class CTDataset(Dataset):
-    
-    def __init__(self, data_root):
-        self.paths = sorted(glob.glob(os.path.join(data_root, "*.npy")))
-        print(" USING MY CT DATASET FILE ")
+    def __init__(self, data_root, file_list):
+        with open(file_list, "r") as f:
+            self.paths = f.read().splitlines()
 
-        if len(self.paths) == 0:
-            raise ValueError(f"No .npy files found in {data_root}")
+        self.data_root = data_root
 
     def __len__(self):
         return len(self.paths)
 
     def __getitem__(self, idx):
-        path = self.paths[idx]
-        x = np.load(path)
+        path = os.path.join(self.data_root, self.paths[idx])
+        x = np.load(path)  # shape (256,256)
 
-        x = np.squeeze(x)
+        # garantir formato [C,H,W]
+        if x.ndim == 2:
+            x = x[None, ...]
 
-        if x.ndim == 3:
-            x = x[x.shape[0] // 2]
-
-        if x.shape != (256, 256):
-            raise ValueError(f"Wrong shape: {x.shape}")
-
-        x = x.astype(np.float32)
-
-        eps = 1e-8
-        den = x.max() - x.min()
-
-        if den < eps:
-            x = np.zeros_like(x)
-        else:
-            x = (x - x.min()) / (den + eps)
-            x = x * 2 - 1
-
-        # adicionar canal
-        x = np.expand_dims(x, axis=0)
-
-        x = torch.from_numpy(x)
-
-        print("FINAL SHAPE:", x.shape)
-        print("MIN MAX:", x.min().item(), x.max().item())
-
-        if torch.isnan(x).any():
-            raise ValueError("NaNs detected")
-
-        if torch.isinf(x).any():
-            raise ValueError("Infs detected")
+        x = torch.tensor(x, dtype=torch.float32)
 
         return x
