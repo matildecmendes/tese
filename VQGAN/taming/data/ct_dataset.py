@@ -34,9 +34,14 @@ class CTDataset(Dataset):
 
         x = x.astype(np.float32)
 
-        # normalização robusta
-        x = (x - x.min()) / (x.max() - x.min() + 1e-8)
-        x = x * 2 - 1
+        eps = 1e-8
+        den = x.max() - x.min()
+
+        if den < eps:
+            x = np.zeros_like(x)
+        else:
+            x = (x - x.min()) / (den + eps)
+            x = x * 2 - 1
 
         # adicionar canal
         x = np.expand_dims(x, axis=0)
@@ -45,5 +50,11 @@ class CTDataset(Dataset):
 
         print("FINAL SHAPE:", x.shape)
         print("MIN MAX:", x.min().item(), x.max().item())
+
+        if torch.isnan(x).any():
+            raise ValueError("NaNs detected")
+
+        if torch.isinf(x).any():
+            raise ValueError("Infs detected")
 
         return x
