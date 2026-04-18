@@ -11,7 +11,7 @@ class CTDataset(Dataset):
         if len(self.paths) == 0:
             raise ValueError(f"No .npy files found in {data_root}")
 
-        print("✅ USING CORRECT CT DATASET")
+        print("USING CORRECT CT DATASET")
 
     def __len__(self):
         return len(self.paths)
