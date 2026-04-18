@@ -26,7 +26,7 @@ model:
         disc_start: 10000
         disc_weight: 0.8
         codebook_weight: 1.0
-
+        perceptual_weight: 0.0   # 🔥 AQUI
 
 data:
   target: main.DataModuleFromConfig

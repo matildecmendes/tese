@@ -35,9 +35,6 @@ class CTDataset(Dataset):
         # adicionar canal
         x = np.expand_dims(x, axis=0)
 
-        # grayscale -> RGB
-        x = np.repeat(x, 3, axis=0)
-
         x = torch.from_numpy(x)
 
         return {"image": x}
