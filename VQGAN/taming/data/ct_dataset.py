@@ -30,4 +30,6 @@ class CTDataset(Dataset):
 
         x = torch.tensor(x, dtype=torch.float32)
 
+        print("RAW SHAPE:", x.shape)
+
         return {"image": x}
