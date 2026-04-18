@@ -43,4 +43,4 @@ class CTDataset(Dataset):
 
         x = torch.from_numpy(x)
 
-        return {"image": x}
+        return x
