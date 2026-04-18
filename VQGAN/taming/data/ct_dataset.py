@@ -18,18 +18,35 @@ class CTDataset(Dataset):
         path = self.paths[idx]
         x = np.load(path)
 
-        # remover dimensões inúteis
+        # DEBUG (mantém isto temporariamente!)
+        print("RAW SHAPE:", x.shape)
+
         x = np.squeeze(x)
 
-        #  garantir que é 2D
-        if x.ndim != 2:
-            raise ValueError(f"Unexpected shape after squeeze: {x.shape}")
+        # CASOS CORRETOS
+        if x.ndim == 2:
+            pass
 
-        # adicionar canal
+        # CASO 3D (ex: volume ou canal extra)
+        elif x.ndim == 3:
+            # escolher a dimensão menor como canal
+            if 1 in x.shape:
+                x = np.squeeze(x)
+            else:
+                # volume 3D → escolher slice central
+                x = x[x.shape[0] // 2]
+
+        else:
+            raise ValueError(f"Unsupported shape: {x.shape}")
+
+        # garantir final
+        if x.shape != (256, 256):
+            raise ValueError(f"Final shape wrong: {x.shape}")
+
         x = x[None, ...]  # (1,256,256)
 
-        x = torch.tensor(x, dtype=torch.float32)
+        print("FINAL SHAPE:", x.shape)
 
-        print("RAW SHAPE:", x.shape)
+        x = torch.tensor(x, dtype=torch.float32)
 
         return {"image": x}
