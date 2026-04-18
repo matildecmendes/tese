@@ -74,11 +74,26 @@ class VQModel(pl.LightningModule):
         return dec, diff
 
     def get_input(self, batch, k):
-        x = batch[k]
-        if len(x.shape) == 3:
-            x = x[..., None]
-        x = x.permute(0, 3, 1, 2).to(memory_format=torch.contiguous_format)
-        return x.float()
+        # caso 1: dataset devolve dict (formato original do repo)
+        if isinstance(batch, dict):
+            x = batch[k]
+
+        # caso 2: dataset devolve tensor diretamente (teu caso)
+        else:
+            x = batch
+
+        # garantir que tem dimensão de canal
+        if x.dim() == 3:
+            x = x.unsqueeze(1)  # (B,H,W) -> (B,1,H,W)
+
+        # caso raro: formato (B,H,W,C)
+        elif x.dim() == 4 and x.shape[-1] in [1, 3]:
+            x = x.permute(0, 3, 1, 2)
+
+        # garantir contiguous + float
+        x = x.contiguous().float()
+
+        return x
 
     def training_step(self, batch, batch_idx, optimizer_idx):
         x = self.get_input(batch, self.image_key)
