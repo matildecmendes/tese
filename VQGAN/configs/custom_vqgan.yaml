@@ -26,7 +26,13 @@ model:
         disc_start: 10000
         disc_weight: 0.8
         codebook_weight: 1.0
-        perceptual_weight: 0.0   # 🔥 AQUI
+        perceptual_weight: 0.0  
+
+    lightning:
+      modelcheckpoint:
+        params:
+          every_n_epochs: 2
+          save_top_k: -1
 
 data:
   target: main.DataModuleFromConfig
@@ -39,3 +45,4 @@ data:
       target: taming.data.ct_dataset.CTDataset
       params:
         data_root: null
+        max_samples: 6000

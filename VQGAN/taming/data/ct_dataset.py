@@ -5,13 +5,15 @@ import torch
 from torch.utils.data import Dataset
 
 class CTDataset(Dataset):
-    def __init__(self, data_root):
+    def __init__(self, data_root, max_samples=None):
         self.paths = sorted(glob.glob(os.path.join(data_root, "*.npy")))
+
+        if max_samples is not None:
+            self.paths = self.paths[:max_samples]
+            print("[DATASET]: Using {} samples".format(len(self.paths)))
 
         if len(self.paths) == 0:
             raise ValueError(f"No .npy files found in {data_root}")
-
-        print("USING CORRECT CT DATASET")
 
     def __len__(self):
         return len(self.paths)
