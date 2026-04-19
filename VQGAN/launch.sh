@@ -14,5 +14,5 @@ python main.py \
   --no-test True \
   --log_every_n_steps 10 \
   --name lung_ct \
-  --max_epochs 10 \
+  --max_epochs 100 \
   data.params.train.params.data_root=/nas-ctm01/datasets/public/lidc-mcmendes/slices

@@ -317,7 +317,22 @@ class ImageLogger(Callback):
     def on_validation_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx):
         self.log_img(pl_module, batch, batch_idx, split="val")
 
+class SimpleLogger(Callback):
+    def on_train_start(self, trainer, pl_module):
+        if trainer.global_rank == 0:
+            print("Start training")
 
+    def on_train_epoch_start(self, trainer, pl_module):
+        if trainer.global_rank == 0:
+            print(f"Epoch {trainer.current_epoch} started")
+
+    def on_train_epoch_end(self, trainer, pl_module, outputs):
+        if trainer.global_rank == 0:
+            print(f"Epoch {trainer.current_epoch} finished")
+
+    def on_train_end(self, trainer, pl_module):
+        if trainer.global_rank == 0:
+            print("Training finished")
 
 if __name__ == "__main__":
     # custom parser to specify config files, train, test and debug mode,
@@ -407,7 +422,7 @@ if __name__ == "__main__":
             name = ""
         nowname = now+name+opt.postfix
         #logdir = os.path.join("logs", nowname)
-        logdir = os.path.join("/nas-ctm01/homes/mcmendes/outputs/VQGAN/2", nowname) # onde guardo!!!!
+        logdir = os.path.join("/nas-ctm01/homes/mcmendes/outputs/VQGAN/3", nowname) # onde guardo!!!!
 
     ckptdir = os.path.join(logdir, "checkpoints")
     cfgdir = os.path.join(logdir, "configs")
@@ -518,6 +533,9 @@ if __name__ == "__main__":
                     #"log_momentum": True
                 }
             },
+            "simple_logger": {
+                "target": "main.SimpleLogger"
+            }
         }
         callbacks_cfg = lightning_config.callbacks or OmegaConf.create()
         callbacks_cfg = OmegaConf.merge(default_callbacks_cfg, callbacks_cfg)
