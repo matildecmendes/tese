@@ -28,7 +28,6 @@ model:
         codebook_weight: 1.0
         perceptual_weight: 0.0  
 
-# 🔥 AQUI (fora de model)
 lightning:
   trainer:
     progress_bar_refresh_rate: 0
