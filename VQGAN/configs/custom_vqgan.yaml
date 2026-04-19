@@ -35,8 +35,9 @@ lightning:
 
   modelcheckpoint:
     params:
-      every_n_epochs: 2
+      period: 2
       save_top_k: -1
+      save_last: True
 
 data:
   target: main.DataModuleFromConfig
