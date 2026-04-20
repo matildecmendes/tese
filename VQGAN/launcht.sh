@@ -10,7 +10,7 @@
 python main.py \
   --base configs/transformer_ct.yaml \
   -t \
-  --gpus 1, \
+  --gpus 0, \
   --name transformer_ct \
   --logdir /nas-ctm01/homes/mcmendes/outputs/VQGAN/transformer_ct \
   --ckpt /nas-ctm01/homes/mcmendes/outputs/VQGAN/3/2026-04-19T15-50-17_lung_ct/checkpoints/last.ckpt \
