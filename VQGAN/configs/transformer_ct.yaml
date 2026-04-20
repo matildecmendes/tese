@@ -1,0 +1,72 @@
+model:
+  base_learning_rate: 4.5e-6
+  target: taming.models.cond_transformer.Net2NetTransformer
+
+  params:
+    cond_stage_config: "__is_unconditional__"
+
+    first_stage_config:
+      target: taming.models.vqgan.VQModel
+      params:
+        embed_dim: 256
+        n_embed: 1024
+
+        ddconfig:
+          double_z: False
+          z_channels: 256
+          resolution: 256
+          in_channels: 1
+          out_ch: 1
+          ch: 128
+          ch_mult: [1,1,2,2,4]
+          num_res_blocks: 2
+          attn_resolutions: [16]
+          dropout: 0.0
+
+        lossconfig:
+          target: taming.modules.losses.vqperceptual.VQLPIPSWithDiscriminator
+          params:
+            disc_conditional: False
+            disc_in_channels: 1
+            disc_start: 10000
+            disc_weight: 0.8
+            codebook_weight: 1.0
+            perceptual_weight: 0.0
+
+    first_stage_key: "image"
+
+    transformer_config:
+      target: taming.modules.transformer.mingpt.GPT
+      params:
+        vocab_size: 1024
+        block_size: 256   # 16x16 tokens
+        n_layer: 24
+        n_head: 8
+        n_embd: 512
+
+data:
+  target: main.DataModuleFromConfig
+
+  params:
+    batch_size: 4
+    num_workers: 4
+
+    train:
+      target: taming.data.ct_dataset.CTDataset
+      params:
+        data_root: null
+        max_samples: 6000
+
+lightning:
+  trainer:
+    gpus: 1
+    progress_bar_refresh_rate: 0
+    log_every_n_steps: 50
+
+  modelcheckpoint:
+    params:
+      dirpath: /nas-ctm01/homes/mcmendes/outputs/transformer/checkpoints
+      filename: "epoch{epoch:03d}"
+      save_last: True
+      save_top_k: -1
+      period: 2
