@@ -271,15 +271,31 @@ class Net2NetTransformer(pl.LightningModule):
         log["samples_det"] = x_sample_det
         return log
 
+    # def get_input(self, key, batch):
+    #     x = batch[key]
+    #     if len(x.shape) == 3:
+    #         x = x[..., None]
+    #     if len(x.shape) == 4:
+    #         x = x.permute(0, 3, 1, 2).to(memory_format=torch.contiguous_format)
+    #     if x.dtype == torch.double:
+    #         x = x.float()
+    #     return x
+
     def get_input(self, key, batch):
-        x = batch[key]
-        if len(x.shape) == 3:
-            x = x[..., None]
-        if len(x.shape) == 4:
-            x = x.permute(0, 3, 1, 2).to(memory_format=torch.contiguous_format)
-        if x.dtype == torch.double:
-            x = x.float()
-        return x
+        # suporta dict e tensor
+        if isinstance(batch, dict):
+            x = batch[key]
+        else:
+            x = batch
+
+        # garantir formato (B,C,H,W)
+        if x.dim() == 3:
+            x = x.unsqueeze(1)
+
+        elif x.dim() == 4 and x.shape[-1] in [1, 3]:
+            x = x.permute(0, 3, 1, 2)
+
+        return x.contiguous().float()
 
     def get_xc(self, batch, N=None):
         x = self.get_input(self.first_stage_key, batch)
