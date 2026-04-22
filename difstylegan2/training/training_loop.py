@@ -415,7 +415,7 @@ def training_loop(
             if rank == 0:
                 print('Evaluating metrics...')
             for metric in metrics:
-                result_dict = metric_main.calc_metric(metric=metric, G=snapshot_data['G_ema'],
+                result_dict = metric_main.calc_metric(metric=metric, G=G_ema, #antes era , G=snapshot_data['G_ema']
                     dataset_kwargs=training_set_kwargs, num_gpus=num_gpus, rank=rank, device=device)
                 if rank == 0:
                     metric_main.report_metric(result_dict, run_dir=run_dir, snapshot_pkl=snapshot_pkl)
