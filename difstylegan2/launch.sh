@@ -8,7 +8,7 @@
 
 # Commands / scripts to run (e.g., python3 train.py)
 python train.py \
-  --outdir /nas-ctm01/homes/mcmendes/outputs/diffusion-stylegan2/6 \
+  --outdir /nas-ctm01/homes/mcmendes/outputs/diffusion-stylegan2/final \
   --data /nas-ctm01/datasets/public/lidc-mcmendes/slices \
   --subset 6000 \
   --kimg 500 \
