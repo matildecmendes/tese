@@ -1,5 +1,6 @@
 model:
-  base_learning_rate: 4.5e-6
+  base_learning_rate: 1e-4
+
   target: taming.models.cond_transformer.Net2NetTransformer
 
   params:
@@ -39,14 +40,18 @@ model:
       target: taming.modules.transformer.mingpt.GPT
       params:
         vocab_size: 1024
-        block_size: 256   # 16x16 tokens
-        n_layer: 24
+        block_size: 256
+
+        n_layer: 12
         n_head: 8
-        n_embd: 512
+        n_embd: 256
+
+        resid_pdrop: 0.1
+        attn_pdrop: 0.1
+        embd_pdrop: 0.1
 
 data:
   target: main.DataModuleFromConfig
-
   params:
     batch_size: 4
     num_workers: 4
@@ -55,7 +60,7 @@ data:
       target: taming.data.ct_dataset.CTDataset
       params:
         data_root: null
-        max_samples: 6000
+        max_samples: 20000
 
 lightning:
   trainer:
@@ -65,8 +70,8 @@ lightning:
 
   modelcheckpoint:
     params:
-      dirpath: /nas-ctm01/homes/mcmendes/outputs/transformer/checkpoints
-      filename: "epoch{epoch:03d}"
       save_last: True
       save_top_k: -1
       period: 2
+
+      

@@ -423,7 +423,7 @@ if __name__ == "__main__":
             name = ""
         nowname = now+name+opt.postfix
         #logdir = os.path.join("logs", nowname)
-        logdir = os.path.join("/nas-ctm01/homes/mcmendes/outputs/VQGAN/3", nowname) # onde guardo!!!!
+        logdir = os.path.join("/nas-ctm01/homes/mcmendes/outputs/VQGAN/transf2", nowname) # onde guardo!!!!
 
     ckptdir = os.path.join(logdir, "checkpoints")
     cfgdir = os.path.join(logdir, "configs")

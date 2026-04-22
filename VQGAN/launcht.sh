@@ -14,5 +14,5 @@ python main.py \
   --name transformer_ct \
   --logdir /nas-ctm01/homes/mcmendes/outputs/VQGAN/transformer_ct \
   --ckpt /nas-ctm01/homes/mcmendes/outputs/VQGAN/3/2026-04-19T15-50-17_lung_ct/checkpoints/last.ckpt \
-  --max_epochs 100 \
+  --max_epochs 250 \
   data.params.train.params.data_root=/nas-ctm01/datasets/public/lidc-mcmendes/slices
