@@ -400,7 +400,8 @@ def training_loop(
             snapshot_data['progress'] = {
                 'cur_nimg': torch.LongTensor([cur_nimg]),
                 'cur_tick': torch.LongTensor([cur_tick]),
-                'cur_p': torch.FloatTensor([diffusion.p]),
+                #'cur_p': torch.FloatTensor([diffusion.p])
+                'cur_p': torch.FloatTensor([diffusion.p if diffusion is not None else 0.0]),
                 'batch_idx': torch.LongTensor([batch_idx]),
                 'best_fid': best_fid,
             }
@@ -411,7 +412,8 @@ def training_loop(
                 pickle.dump(snapshot_data, f)
 
         # Evaluate metrics.
-        if (snapshot_data is not None) and (len(metrics) > 0):
+        #if (snapshot_data is not None) and (len(metrics) > 0):
+        if (snapshot_data is not None) and (len(metrics) > 0) and (cur_tick > 0):
             if rank == 0:
                 print('Evaluating metrics...')
             for metric in metrics:

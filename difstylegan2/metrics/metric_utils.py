@@ -236,12 +236,27 @@ def compute_feature_stats_for_generator(opts, detector_url, detector_kwargs, rel
 
     # Setup generator and load labels.
     G = copy.deepcopy(opts.G).eval().requires_grad_(False).to(opts.device)
+    # adicionei: forçar FP32 
+    for p in G.parameters():
+        p.data = p.data.float()
+    for b in G.buffers():
+        if torch.is_floating_point(b):
+            b.data = b.data.float()
     dataset = dnnlib.util.construct_class_by_name(**opts.dataset_kwargs)
 
     # Image generation func.
+    # def run_generator(z, c):
+    #     img = G(z=z, c=c, **opts.G_kwargs)
+    #     img = (img * 127.5 + 128).clamp(0, 255).to(torch.uint8)
+    #     return img
+
     def run_generator(z, c):
-        img = G(z=z, c=c, **opts.G_kwargs)
-        img = (img * 127.5 + 128).clamp(0, 255).to(torch.uint8)
+        with torch.no_grad():
+            #img = G(z=z, c=c, **opts.G_kwargs)
+            img = G(z=z, c=c, noise_mode='const', **opts.G_kwargs)
+
+            # forçar FP32
+            img = img.float()
         return img
 
     # JIT.
