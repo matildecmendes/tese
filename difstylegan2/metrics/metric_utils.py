@@ -237,6 +237,9 @@ def compute_feature_stats_for_generator(opts, detector_url, detector_kwargs, rel
     # Setup generator and load labels.
     G = copy.deepcopy(opts.G).eval().requires_grad_(False).to(opts.device)
     # adicionei: forçar FP32 
+    if hasattr(G, 'synthesis'):
+        G.synthesis.num_fp16_res = 0
+        G.synthesis.conv_clamp = None
     for p in G.parameters():
         p.data = p.data.float()
     for b in G.buffers():
@@ -250,12 +253,18 @@ def compute_feature_stats_for_generator(opts, detector_url, detector_kwargs, rel
     #     img = (img * 127.5 + 128).clamp(0, 255).to(torch.uint8)
     #     return img
 
+    # def run_generator(z, c):
+    #     with torch.no_grad():
+    #         #img = G(z=z, c=c, **opts.G_kwargs)
+    #         img = G(z=z, c=c, noise_mode='const', **opts.G_kwargs)
+
+    #         # forçar FP32
+    #         img = img.float()
+    #     return img
+
     def run_generator(z, c):
         with torch.no_grad():
-            #img = G(z=z, c=c, **opts.G_kwargs)
-            img = G(z=z, c=c, noise_mode='const', **opts.G_kwargs)
-
-            # forçar FP32
+            img = G(z=z, c=c, noise_mode='const')
             img = img.float()
         return img
 
