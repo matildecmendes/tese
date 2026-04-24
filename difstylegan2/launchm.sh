@@ -7,12 +7,13 @@
 #SBATCH --error=slurm_%x.%j.err    # File containing STDERR output. If ommited, use STDOUT.
 
 # Commands / scripts to run (e.g., python3 train.py)
-python metrics_difstylegan2.py \
+python metrics2.py \
   --fake_dir /nas-ctm01/homes/mcmendes/samples/diffusion-stylegan2 \
   --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png \
   --compute_fid \
   --compute_cmmd \
   --compute_msssim \
+  --compute_frd \
   --cmmd_path /nas-ctm01/homes/mcmendes/tese/cmmd-pytorch
 
 
