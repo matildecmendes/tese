@@ -9,6 +9,8 @@ model:
     first_stage_config:
       target: taming.models.vqgan.VQModel
       params:
+        ckpt_path: /nas-ctm01/homes/mcmendes/outputs/VQGAN/3/2026-04-19T15-50-17_lung_ct/checkpoints/last.ckpt
+        
         embed_dim: 256
         n_embed: 1024
 
