@@ -32,7 +32,7 @@ def load_model(config_path, ckpt_path, device):
 @torch.no_grad()
 def sample_tokens(model, batch_size, device, steps=256, temperature=1.0, top_k=100):
 
-    z = torch.zeros(batch_size, 0, dtype=torch.long).to(device)
+    z = torch.zeros(batch_size, 1, dtype=torch.long).to(device)
 
     for step in range(steps):
 
@@ -60,6 +60,7 @@ def sample_tokens(model, batch_size, device, steps=256, temperature=1.0, top_k=1
 @torch.no_grad()
 def decode_tokens(model, z_indices):
 
+    z_indices = z_indices[:, 1:]
     b = z_indices.shape[0]
 
     z_indices = z_indices.view(b, 16, 16)
