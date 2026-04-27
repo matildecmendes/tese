@@ -11,7 +11,13 @@ python analysis2.py \
   --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png \
   --fake_dir /nas-ctm01/homes/mcmendes/samples/diffusion-stylegan2 \
   --out_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/difstylegan2 \
-  --heatmaps \
   --histograms \
   --kl \
   --emd
+
+  python analysis.py \
+  --fake_dir /nas-ctm01/homes/mcmendes/samples/diffusion-stylegan2 \
+  --out_dir /nas-ctm01/homes/mcmendes/outputs/eval \
+  --real_hist_path /nas-ctm01/homes/mcmendes/real_stats/real_hist.npy \
+  --real_mean_path /nas-ctm01/homes/mcmendes/real_stats/real_mean.npy \
+  --heatmaps --histograms --kl --emd 
