@@ -7,17 +7,9 @@
 #SBATCH --error=slurm_%x.%j.err    # File containing STDERR output. If ommited, use STDOUT.
 
 # Commands / scripts to run (e.g., python3 train.py)
-python analysis2.py \
-  --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png \
-  --fake_dir /nas-ctm01/homes/mcmendes/samples/diffusion-stylegan2 \
-  --out_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/difstylegan2 \
-  --histograms \
-  --kl \
-  --emd
-
-  python analysis.py \
+python analysis3.py \
   --fake_dir /nas-ctm01/homes/mcmendes/samples/diffusion-stylegan2 \
   --out_dir /nas-ctm01/homes/mcmendes/outputs/eval \
   --real_hist_path /nas-ctm01/homes/mcmendes/real_stats/real_hist.npy \
   --real_mean_path /nas-ctm01/homes/mcmendes/real_stats/real_mean.npy \
-  --heatmaps --histograms --kl --emd 
+  --histograms --kl --emd 
