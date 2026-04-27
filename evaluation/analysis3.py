@@ -14,7 +14,7 @@ def get_all_image_paths(folder):
     paths = []
     for root, _, files in os.walk(folder):
         for f in files:
-            if f.lower().endswith((".png", ".jpg", ".jpeg", ".bmp")):
+            if f.lower().endswith((".png", ".jpg", ".jpeg")):
                 paths.append(os.path.join(root, f))
     return sorted(paths)
 
@@ -41,10 +41,9 @@ def compute_mean_image(paths, max_images=None):
             print(f"Erro a ler {p}: {e}")
 
     if count == 0:
-        raise ValueError("Nenhuma imagem válida encontrada para mean!")
+        raise ValueError("Nenhuma imagem válida!")
 
-    mean /= count
-    return mean
+    return mean / count
 
 
 def compute_histogram_streaming(paths, bins=256, max_images=None):
@@ -67,7 +66,7 @@ def compute_histogram_streaming(paths, bins=256, max_images=None):
             print(f"Erro a ler {p}: {e}")
 
     if total_pixels == 0:
-        raise ValueError("Nenhum pixel válido encontrado! Verifica o dataset.")
+        raise ValueError("Nenhum pixel válido encontrado!")
 
     hist /= total_pixels
     return hist
@@ -80,29 +79,29 @@ def compute_kl(p, q):
     return np.sum(p * np.log(p / q))
 
 
-def compute_emd_from_hist(hist_real, hist_fake):
+def compute_emd(hist_real, hist_fake):
     bins = np.arange(len(hist_real))
     return wasserstein_distance(bins, bins, hist_real, hist_fake)
 
 
-def save_heatmap(img, out_path, title):
+def save_heatmap(img, path, title):
     plt.figure(figsize=(6,5))
-    plt.title(title)
     plt.imshow(img, cmap="hot")
+    plt.title(title)
     plt.colorbar()
     plt.tight_layout()
-    plt.savefig(out_path)
+    plt.savefig(path)
     plt.close()
 
 
-def save_histogram_plot(hist_real, hist_fake, out_path):
+def save_hist_plot(hist_real, hist_fake, path):
     plt.figure(figsize=(6,5))
     plt.plot(hist_real, label="Real")
     plt.plot(hist_fake, label="Fake")
     plt.legend()
     plt.title("Histogram Comparison")
     plt.tight_layout()
-    plt.savefig(out_path)
+    plt.savefig(path)
     plt.close()
 
 
@@ -111,104 +110,64 @@ def save_histogram_plot(hist_real, hist_fake, out_path):
 # =========================
 
 def main(args):
+
     os.makedirs(args.out_dir, exist_ok=True)
 
-    # =====================================
-    # MODO 1: COMPUTAR REAL (UMA VEZ)
-    # =====================================
-    if args.compute_real:
-        if args.real_dir is None:
-            raise ValueError("Precisas de --real_dir")
-
-        print("Loading real dataset...")
-        real_paths = get_all_image_paths(args.real_dir)
-
-        print(f"Real images encontradas: {len(real_paths)}")
-        if len(real_paths) == 0:
-            raise ValueError("Não foram encontradas imagens no real_dir!")
-
-        mean_real = compute_mean_image(real_paths, args.max_images)
-        hist_real = compute_histogram_streaming(real_paths, args.max_images)
-
-        print("Hist real stats:", hist_real.shape, "sum:", np.sum(hist_real))
-
-        np.save(os.path.join(args.out_dir, "real_mean.npy"), mean_real)
-        np.save(os.path.join(args.out_dir, "real_hist.npy"), hist_real)
-
-        print("✔ Guardado real_mean.npy e real_hist.npy")
-        return
-
-    # =====================================
-    # MODO 2: ANALISAR FAKE
-    # =====================================
-    if args.fake_dir is None:
-        raise ValueError("Precisas de --fake_dir")
-
-    print("Loading fake dataset...")
+    # =========================
+    # LOAD PATHS
+    # =========================
+    real_paths = get_all_image_paths(args.real_dir)
     fake_paths = get_all_image_paths(args.fake_dir)
 
-    print(f"Fake images encontradas: {len(fake_paths)}")
-    if len(fake_paths) == 0:
-        raise ValueError("Não foram encontradas imagens no fake_dir!")
+    print("Real:", len(real_paths))
+    print("Fake:", len(fake_paths))
 
     # =========================
-    # HEATMAP
+    # HEATMAPS
     # =========================
     if args.heatmaps:
+        mean_real = compute_mean_image(real_paths, args.max_images)
         mean_fake = compute_mean_image(fake_paths, args.max_images)
+
+        save_heatmap(mean_real, os.path.join(args.out_dir, "mean_real.png"), "Mean Real")
         save_heatmap(mean_fake, os.path.join(args.out_dir, "mean_fake.png"), "Mean Fake")
 
-        if args.real_mean_path:
-            mean_real = np.load(args.real_mean_path)
-
-            if not isinstance(mean_real, np.ndarray):
-                raise ValueError("real_mean.npy inválido!")
-
-            diff = mean_real - mean_fake
-            save_heatmap(diff, os.path.join(args.out_dir, "diff.png"), "Difference")
+        diff = mean_real - mean_fake
+        save_heatmap(diff, os.path.join(args.out_dir, "diff.png"), "Difference")
 
     # =========================
-    # HIST + KL + EMD
+    # HISTOGRAMS
     # =========================
     if args.histograms or args.kl or args.emd:
-        hist_fake = compute_histogram_streaming(fake_paths, args.max_images)
+        print("Computing histograms...")
 
-        print("Hist fake stats:", hist_fake.shape, "sum:", np.sum(hist_fake))
+        hist_real = compute_histogram_streaming(real_paths, max_images=args.max_images)
+        hist_fake = compute_histogram_streaming(fake_paths, max_images=args.max_images)
 
-        if args.real_hist_path is None:
-            raise ValueError("Precisas de --real_hist_path")
-
-        hist_real = np.load(args.real_hist_path)
-
-        if not isinstance(hist_real, np.ndarray):
-            raise ValueError("real_hist.npy inválido!")
-
-        print("Hist real stats:", hist_real.shape, "sum:", np.sum(hist_real))
+        print("Hist sums:", np.sum(hist_real), np.sum(hist_fake))
 
     if args.histograms:
-        save_histogram_plot(hist_real, hist_fake,
-                            os.path.join(args.out_dir, "hist_comparison.png"))
+        save_hist_plot(hist_real, hist_fake,
+                       os.path.join(args.out_dir, "hist_comparison.png"))
 
+    # =========================
+    # KL
+    # =========================
     if args.kl:
         kl_rf = compute_kl(hist_real, hist_fake)
         kl_fr = compute_kl(hist_fake, hist_real)
 
-        print(f"KL(real || fake): {kl_rf}")
-        print(f"KL(fake || real): {kl_fr}")
+        print("KL(real||fake):", kl_rf)
+        print("KL(fake||real):", kl_fr)
 
-        with open(os.path.join(args.out_dir, "kl.txt"), "w") as f:
-            f.write(f"KL(real || fake): {kl_rf}\n")
-            f.write(f"KL(fake || real): {kl_fr}\n")
-
+    # =========================
+    # EMD
+    # =========================
     if args.emd:
-        emd_value = compute_emd_from_hist(hist_real, hist_fake)
+        emd = compute_emd(hist_real, hist_fake)
+        print("EMD:", emd)
 
-        print(f"EMD: {emd_value}")
-
-        with open(os.path.join(args.out_dir, "emd.txt"), "w") as f:
-            f.write(f"EMD: {emd_value}\n")
-
-    print("✔ Done!")
+    print("Done!")
 
 
 # =========================
@@ -218,14 +177,9 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--compute_real", action="store_true")
-
-    parser.add_argument("--real_dir", type=str, default=None)
-    parser.add_argument("--fake_dir", type=str, default=None)
+    parser.add_argument("--real_dir", type=str, required=True)
+    parser.add_argument("--fake_dir", type=str, required=True)
     parser.add_argument("--out_dir", type=str, required=True)
-
-    parser.add_argument("--real_hist_path", type=str, default=None)
-    parser.add_argument("--real_mean_path", type=str, default=None)
 
     parser.add_argument("--heatmaps", action="store_true")
     parser.add_argument("--histograms", action="store_true")
