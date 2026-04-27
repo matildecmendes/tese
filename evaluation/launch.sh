@@ -13,3 +13,5 @@ python analysis3.py \
   --real_hist_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/real_hist.npy \
   --real_mean_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/real_mean.npy \
   --histograms --kl --emd 
+
+

@@ -94,7 +94,16 @@ def save_heatmap(img, path, title):
     plt.close()
 
 
-def save_hist_plot(hist_real, hist_fake, path):
+def save_hist_single(hist, path, title):
+    plt.figure(figsize=(6,5))
+    plt.plot(hist)
+    plt.title(title)
+    plt.tight_layout()
+    plt.savefig(path)
+    plt.close()
+
+
+def save_hist_comparison(hist_real, hist_fake, path):
     plt.figure(figsize=(6,5))
     plt.plot(hist_real, label="Real")
     plt.plot(hist_fake, label="Fake")
@@ -116,56 +125,62 @@ def main(args):
     # =========================
     # LOAD PATHS
     # =========================
-    real_paths = get_all_image_paths(args.real_dir)
     fake_paths = get_all_image_paths(args.fake_dir)
-
-    print("Real:", len(real_paths))
     print("Fake:", len(fake_paths))
 
+    if len(fake_paths) == 0:
+        raise ValueError("Fake dataset vazio!")
+
     # =========================
-    # HEATMAPS
+    # HEATMAP (FAKE)
     # =========================
     if args.heatmaps:
-        mean_real = compute_mean_image(real_paths, args.max_images)
         mean_fake = compute_mean_image(fake_paths, args.max_images)
-
-        save_heatmap(mean_real, os.path.join(args.out_dir, "mean_real.png"), "Mean Real")
         save_heatmap(mean_fake, os.path.join(args.out_dir, "mean_fake.png"), "Mean Fake")
 
-        diff = mean_real - mean_fake
-        save_heatmap(diff, os.path.join(args.out_dir, "diff.png"), "Difference")
-
     # =========================
-    # HISTOGRAMS
+    # HISTOGRAMA FAKE
     # =========================
     if args.histograms or args.kl or args.emd:
-        print("Computing histograms...")
-
-        hist_real = compute_histogram_streaming(real_paths, max_images=args.max_images)
+        print("Computing fake histogram...")
         hist_fake = compute_histogram_streaming(fake_paths, max_images=args.max_images)
 
-        print("Hist sums:", np.sum(hist_real), np.sum(hist_fake))
+        print("Hist fake sum:", np.sum(hist_fake))
 
-    if args.histograms:
-        save_hist_plot(hist_real, hist_fake,
-                       os.path.join(args.out_dir, "hist_comparison.png"))
+        # guardar sempre (útil!)
+        np.save(os.path.join(args.out_dir, "hist_fake.npy"), hist_fake)
 
-    # =========================
-    # KL
-    # =========================
-    if args.kl:
-        kl_rf = compute_kl(hist_real, hist_fake)
-        kl_fr = compute_kl(hist_fake, hist_real)
-
-        print("KL(real||fake):", kl_rf)
-        print("KL(fake||real):", kl_fr)
+        if args.histograms:
+            save_hist_single(hist_fake,
+                             os.path.join(args.out_dir, "hist_fake.png"),
+                             "Fake Histogram")
 
     # =========================
-    # EMD
+    # COMPARAÇÃO (se houver real)
     # =========================
-    if args.emd:
-        emd = compute_emd(hist_real, hist_fake)
-        print("EMD:", emd)
+    if (args.kl or args.emd or args.compare_hist) and args.real_hist_path:
+
+        hist_real = np.load(args.real_hist_path)
+
+        print("Hist real sum:", np.sum(hist_real))
+
+        if args.compare_hist:
+            save_hist_comparison(hist_real, hist_fake,
+                                 os.path.join(args.out_dir, "hist_comparison.png"))
+
+        if args.kl:
+            kl_rf = compute_kl(hist_real, hist_fake)
+            kl_fr = compute_kl(hist_fake, hist_real)
+
+            print("KL(real||fake):", kl_rf)
+            print("KL(fake||real):", kl_fr)
+
+        if args.emd:
+            emd = compute_emd(hist_real, hist_fake)
+            print("EMD:", emd)
+
+    elif args.kl or args.emd:
+        raise ValueError("Para KL/EMD precisas de --real_hist_path")
 
     print("Done!")
 
@@ -177,12 +192,14 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--real_dir", type=str, required=True)
     parser.add_argument("--fake_dir", type=str, required=True)
     parser.add_argument("--out_dir", type=str, required=True)
 
+    parser.add_argument("--real_hist_path", type=str, default=None)
+
     parser.add_argument("--heatmaps", action="store_true")
     parser.add_argument("--histograms", action="store_true")
+    parser.add_argument("--compare_hist", action="store_true")
     parser.add_argument("--kl", action="store_true")
     parser.add_argument("--emd", action="store_true")
 
