@@ -6,3 +6,9 @@ python analysis3.py \
   --real_mean_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/real_mean.npy \
   --heatmaps --histograms --kl --emd 
 
+correr parar gerar .npy do dataset real
+python analysis3.py \
+  --compute_real \
+  --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png \
+  --out_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats
+

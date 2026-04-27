@@ -12,4 +12,4 @@ python analysis3.py \
   --out_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/ddgan3 \
   --real_hist_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/real_hist.npy \
   --real_mean_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/real_mean.npy \
-  --histograms 
+  --save_real_hist

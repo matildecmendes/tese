@@ -103,26 +103,10 @@ def save_heatmap(img, path, title):
     plt.close()
 
 
-# def save_hist_single(hist, path, title):
-#     plt.figure(figsize=(6,5))
-#     x = np.arange(len(hist))
-#     plt.bar(x, hist)
-#     plt.title(title)
-#     plt.tight_layout()
-#     plt.savefig(path)
-#     plt.close()
-
 def save_hist_single(hist, path, title):
     plt.figure(figsize=(6,5))
-
     x = np.arange(len(hist))
-
-    plt.bar(x, hist, alpha=0.6)
-
-    # curva suavizada (opcional mas MUITO melhor)
-    smooth = np.convolve(hist, np.ones(5)/5, mode='same')
-    plt.plot(x, smooth, color='red', linewidth=2)
-
+    plt.bar(x, hist)
     plt.title(title)
     plt.tight_layout()
     plt.savefig(path)
@@ -148,6 +132,24 @@ def save_hist_comparison(hist_real, hist_fake, path):
 def main(args):
 
     os.makedirs(args.out_dir, exist_ok=True)
+
+    # =========================
+    # GUARDAR HISTOGRAMA REAL (modo rápido)
+    # =========================
+    if args.save_real_hist:
+        if args.real_hist_path is None:
+            raise ValueError("Precisas de --real_hist_path")
+
+        hist_real = np.load(args.real_hist_path)
+
+        save_hist_single(
+            hist_real,
+            os.path.join(args.out_dir, "hist_real.png"),
+            "Real Histogram"
+        )
+
+        print("✔ hist_real.png guardado")
+        return
 
     # =====================================
     # MODO 1: GERAR REAL (.npy)
@@ -253,6 +255,7 @@ if __name__ == "__main__":
 
     # modos
     parser.add_argument("--compute_real", action="store_true")
+    parser.add_argument("--save_real_hist", action="store_true")
 
     # dirs
     parser.add_argument("--real_dir", type=str, default=None)
