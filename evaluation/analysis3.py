@@ -14,7 +14,7 @@ def get_all_image_paths(folder):
     paths = []
     for root, _, files in os.walk(folder):
         for f in files:
-            if f.lower().endswith((".png", ".jpg", ".jpeg")):
+            if f.lower().endswith((".png", ".jpg", ".jpeg", ".bmp")):
                 paths.append(os.path.join(root, f))
     return sorted(paths)
 
@@ -69,6 +69,10 @@ def compute_histogram_streaming(paths, bins=256, max_images=None):
         raise ValueError("Nenhum pixel válido encontrado!")
 
     hist /= total_pixels
+
+    # garantir normalização correta
+    hist = hist / np.sum(hist)
+
     return hist
 
 
@@ -76,6 +80,11 @@ def compute_kl(p, q):
     eps = 1e-8
     p = p + eps
     q = q + eps
+
+    # normalizar (evita NaN)
+    p = p / np.sum(p)
+    q = q / np.sum(q)
+
     return np.sum(p * np.log(p / q))
 
 
@@ -96,7 +105,8 @@ def save_heatmap(img, path, title):
 
 def save_hist_single(hist, path, title):
     plt.figure(figsize=(6,5))
-    plt.plot(hist)
+    x = np.arange(len(hist))
+    plt.bar(x, hist)
     plt.title(title)
     plt.tight_layout()
     plt.savefig(path)
@@ -105,8 +115,9 @@ def save_hist_single(hist, path, title):
 
 def save_hist_comparison(hist_real, hist_fake, path):
     plt.figure(figsize=(6,5))
-    plt.plot(hist_real, label="Real")
-    plt.plot(hist_fake, label="Fake")
+    x = np.arange(len(hist_real))
+    plt.bar(x, hist_real, alpha=0.5, label="Real")
+    plt.bar(x, hist_fake, alpha=0.5, label="Fake")
     plt.legend()
     plt.title("Histogram Comparison")
     plt.tight_layout()
@@ -122,47 +133,64 @@ def main(args):
 
     os.makedirs(args.out_dir, exist_ok=True)
 
-    # =========================
-    # LOAD PATHS
-    # =========================
+    # =====================================
+    # MODO 1: GERAR REAL (.npy)
+    # =====================================
+    if args.compute_real:
+
+        if args.real_dir is None:
+            raise ValueError("Precisas de --real_dir")
+
+        real_paths = get_all_image_paths(args.real_dir)
+        print("Real images:", len(real_paths))
+
+        mean_real = compute_mean_image(real_paths, args.max_images)
+        hist_real = compute_histogram_streaming(real_paths, max_images=args.max_images)
+
+        print("Hist real sum:", np.sum(hist_real))  # deve ser ~1.0
+
+        np.save(os.path.join(args.out_dir, "real_mean.npy"), mean_real)
+        np.save(os.path.join(args.out_dir, "real_hist.npy"), hist_real)
+
+        print("✔ real_mean.npy e real_hist.npy guardados")
+        return
+
+    # =====================================
+    # MODO 2: ANALISAR FAKE
+    # =====================================
+
     fake_paths = get_all_image_paths(args.fake_dir)
-    print("Fake:", len(fake_paths))
+    print("Fake images:", len(fake_paths))
 
     if len(fake_paths) == 0:
         raise ValueError("Fake dataset vazio!")
 
     # =========================
-    # HEATMAP (FAKE + opcional DIFF)
+    # HEATMAP
     # =========================
     if args.heatmaps:
-        print("Computing fake mean...")
         mean_fake = compute_mean_image(fake_paths, args.max_images)
 
         save_heatmap(mean_fake,
-                    os.path.join(args.out_dir, "mean_fake.png"),
-                    "Mean Fake")
+                     os.path.join(args.out_dir, "mean_fake.png"),
+                     "Mean Fake")
 
-        # só faz diff se tiver real
-        if args.real_mean_path is not None:
-            print("Computing diff heatmap...")
+        if args.real_mean_path:
             mean_real = np.load(args.real_mean_path)
-
             diff = mean_real - mean_fake
 
             save_heatmap(diff,
-                        os.path.join(args.out_dir, "diff.png"),
-                        "Difference (Real - Fake)")
+                         os.path.join(args.out_dir, "diff.png"),
+                         "Difference")
 
     # =========================
     # HISTOGRAMA FAKE
     # =========================
     if args.histograms or args.kl or args.emd:
-        print("Computing fake histogram...")
         hist_fake = compute_histogram_streaming(fake_paths, max_images=args.max_images)
 
         print("Hist fake sum:", np.sum(hist_fake))
 
-        # guardar sempre (útil!)
         np.save(os.path.join(args.out_dir, "hist_fake.npy"), hist_fake)
 
         if args.histograms:
@@ -171,9 +199,9 @@ def main(args):
                              "Fake Histogram")
 
     # =========================
-    # COMPARAÇÃO (se houver real)
+    # COMPARAÇÃO
     # =========================
-    if (args.kl or args.emd or args.compare_hist) and args.real_hist_path:
+    if args.real_hist_path and (args.kl or args.emd or args.compare_hist):
 
         hist_real = np.load(args.real_hist_path)
 
@@ -195,9 +223,9 @@ def main(args):
             print("EMD:", emd)
 
     elif args.kl or args.emd:
-        raise ValueError("Para KL/EMD precisas de --real_hist_path")
+        raise ValueError("Precisas de --real_hist_path para KL/EMD")
 
-    print("Done!")
+    print("✔ Done!")
 
 
 # =========================
@@ -207,12 +235,19 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--fake_dir", type=str, required=True)
+    # modos
+    parser.add_argument("--compute_real", action="store_true")
+
+    # dirs
+    parser.add_argument("--real_dir", type=str, default=None)
+    parser.add_argument("--fake_dir", type=str, default=None)
     parser.add_argument("--out_dir", type=str, required=True)
 
+    # ficheiros
     parser.add_argument("--real_hist_path", type=str, default=None)
     parser.add_argument("--real_mean_path", type=str, default=None)
 
+    # flags
     parser.add_argument("--heatmaps", action="store_true")
     parser.add_argument("--histograms", action="store_true")
     parser.add_argument("--compare_hist", action="store_true")

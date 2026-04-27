@@ -12,5 +12,3 @@ python analysis3.py \
   --out_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/difstylegan2 \
   --real_hist_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/real_hist.npy \
   --histograms --kl --emd 
-
-
