@@ -103,10 +103,26 @@ def save_heatmap(img, path, title):
     plt.close()
 
 
+# def save_hist_single(hist, path, title):
+#     plt.figure(figsize=(6,5))
+#     x = np.arange(len(hist))
+#     plt.bar(x, hist)
+#     plt.title(title)
+#     plt.tight_layout()
+#     plt.savefig(path)
+#     plt.close()
+
 def save_hist_single(hist, path, title):
     plt.figure(figsize=(6,5))
+
     x = np.arange(len(hist))
-    plt.bar(x, hist)
+
+    plt.bar(x, hist, alpha=0.6)
+
+    # curva suavizada (opcional mas MUITO melhor)
+    smooth = np.convolve(hist, np.ones(5)/5, mode='same')
+    plt.plot(x, smooth, color='red', linewidth=2)
+
     plt.title(title)
     plt.tight_layout()
     plt.savefig(path)
