@@ -10,4 +10,4 @@
 python analysis3.py \
   --compute_real \
   --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png \
-  --out_dir /nas-ctm01/homes/mcmendes/real_stats
+  --out_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats
