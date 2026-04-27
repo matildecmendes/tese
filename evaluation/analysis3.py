@@ -132,11 +132,26 @@ def main(args):
         raise ValueError("Fake dataset vazio!")
 
     # =========================
-    # HEATMAP (FAKE)
+    # HEATMAP (FAKE + opcional DIFF)
     # =========================
     if args.heatmaps:
+        print("Computing fake mean...")
         mean_fake = compute_mean_image(fake_paths, args.max_images)
-        save_heatmap(mean_fake, os.path.join(args.out_dir, "mean_fake.png"), "Mean Fake")
+
+        save_heatmap(mean_fake,
+                    os.path.join(args.out_dir, "mean_fake.png"),
+                    "Mean Fake")
+
+        # só faz diff se tiver real
+        if args.real_mean_path is not None:
+            print("Computing diff heatmap...")
+            mean_real = np.load(args.real_mean_path)
+
+            diff = mean_real - mean_fake
+
+            save_heatmap(diff,
+                        os.path.join(args.out_dir, "diff.png"),
+                        "Difference (Real - Fake)")
 
     # =========================
     # HISTOGRAMA FAKE
@@ -196,6 +211,7 @@ if __name__ == "__main__":
     parser.add_argument("--out_dir", type=str, required=True)
 
     parser.add_argument("--real_hist_path", type=str, default=None)
+    parser.add_argument("--real_mean_path", type=str, default=None)
 
     parser.add_argument("--heatmaps", action="store_true")
     parser.add_argument("--histograms", action="store_true")
