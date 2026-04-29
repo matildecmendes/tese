@@ -199,7 +199,7 @@ def main(args):
             diff = np.abs(mean_real - mean_fake)
 
             save_heatmap(diff,
-                         os.path.join(args.out_dir, "diff.png"),
+                         os.path.join(args.out_dir, "diff_abs.png"),
                          "Difference")
 
     # =========================
