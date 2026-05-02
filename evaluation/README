@@ -1,13 +1,13 @@
 completo
-python analysis3.py \
+python analysis.py \
   --fake_dir /nas-ctm01/homes/mcmendes/samples/diffusion-stylegan2 \
   --out_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/difstylegan2 \
   --real_hist_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/real_hist.npy \
   --real_mean_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/real_mean.npy \
-  --heatmaps --histograms --kl --emd 
+  --heatmaps --histograms --kl --emd --compare_hist
 
-correr parar gerar .npy do dataset real
-python analysis3.py \
+correr uma vez apenas para gerar .npy do dataset real para depois comparar
+python analysis.py \
   --compute_real \
   --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png \
   --out_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats
