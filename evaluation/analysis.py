@@ -107,6 +107,7 @@ def save_hist_single(hist, path, title):
     plt.figure(figsize=(6,5))
     x = np.arange(len(hist))
     plt.bar(x, hist)
+    plt.yscale("log")
     plt.title(title)
     plt.tight_layout()
     plt.savefig(path)
