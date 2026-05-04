@@ -7,7 +7,7 @@
 #SBATCH --error=slurm_%x.%j.err    # File containing STDERR output. If ommited, use STDOUT.
 
 # Commands / scripts to run (e.g., python3 train.py)
-python analysis3.py \
+python analysis.py \
   --out_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats1 \
   --real_hist_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/real_hist.npy \
   --save_real_hist
