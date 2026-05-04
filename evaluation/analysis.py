@@ -119,6 +119,7 @@ def save_hist_comparison(hist_real, hist_fake, path):
     x = np.arange(len(hist_real))
     plt.bar(x, hist_real, alpha=0.5, label="Real")
     plt.bar(x, hist_fake, alpha=0.5, label="Fake")
+    plt.yscale("log")
     plt.legend()
     plt.title("Histogram Comparison")
     plt.tight_layout()
