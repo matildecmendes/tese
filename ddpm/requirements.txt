@@ -71,7 +71,7 @@ psutil==5.7.0
 ptyprocess==0.6.0
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
-pycurl==7.43.0
+#pycurl==7.43.0
 Pygments==2.5.2
 pygobject==3.22.0
 pyparsing==2.4.6
