@@ -9,6 +9,9 @@ import numpy as np
 import tensorflow as tf
 import tensorflow_datasets as tfds
 
+import os
+import glob
+
 
 def pack(image, label):
   label = tf.cast(label, tf.int32)
@@ -127,11 +130,118 @@ class LsunDataset:
     data.set_shape(self.image_shape)
     return pack(image=data, label=tf.constant(0, dtype=tf.int32))
 
+#aqui
+class LungCTDataset:
+
+  def __init__(
+      self,
+      data_dir,
+      resolution=256,
+      max_images=None,
+  ):
+
+    self.data_dir = data_dir
+
+    self.resolution = resolution
+
+    self.image_shape = [resolution, resolution, 1]
+
+    self.num_classes = 1
+
+    self.files = sorted(
+      glob.glob(os.path.join(data_dir, "*.npy"))
+    )
+
+    if max_images is not None:
+      self.files = self.files[:max_images]
+
+    self.num_train_examples = len(self.files)
+
+    self.num_eval_examples = 0
+
+    print(f"[LungCTDataset] Found {len(self.files)} npy files")
+
+  def _load_npy(self, path):
+
+    path = path.decode("utf-8")
+
+    img = np.load(path).astype(np.float32)
+
+    # shape HWC
+    if img.ndim == 2:
+      img = np.expand_dims(img, axis=-1)
+
+    # [0,255] -> [-1,1]
+
+    img = ((img + 1.0) * 127.5)
+
+    img = np.clip(img, 0, 255)
+
+    img = img.astype(np.int32)
+
+    return img
+
+  def _tf_load_npy(self, path):
+
+    img = tf.numpy_function(
+      self._load_npy,
+      [path],
+      tf.int32
+    )
+
+    img.set_shape(self.image_shape)
+
+    return pack(
+      image=img,
+      label=tf.constant(0, dtype=tf.int32)
+    )
+
+  def _build_dataset(self, batch_size, repeat=True, shuffle=True):
+
+    ds = tf.data.Dataset.from_tensor_slices(self.files)
+
+    if shuffle:
+      ds = ds.shuffle(len(self.files))
+
+    if repeat:
+      ds = ds.repeat()
+
+    ds = ds.map(
+      self._tf_load_npy,
+      num_parallel_calls=tf.data.experimental.AUTOTUNE
+    )
+
+    ds = ds.batch(batch_size, drop_remainder=True)
+
+    ds = ds.prefetch(tf.data.experimental.AUTOTUNE)
+
+    return ds
+
+  def train_input_fn(self, params):
+
+    return self._build_dataset(
+      batch_size=params['batch_size'],
+      repeat=True,
+      shuffle=True
+    )
+
+  def train_one_pass_input_fn(self, params):
+
+    return self._build_dataset(
+      batch_size=params['batch_size'],
+      repeat=False,
+      shuffle=False
+    )
+
+  def eval_input_fn(self, params):
+
+    return None
 
 DATASETS = {
   "cifar10": functools.partial(SimpleDataset, name="cifar10"),
   "celebahq256": functools.partial(SimpleDataset, name="celebahq256"),
   "lsun": LsunDataset,
+  "lungct": LungCTDataset,
 }
 
 
@@ -142,13 +252,15 @@ def get_dataset(name, *, tfds_data_dir=None, tfr_file=None, seed=547):
   kwargs = {}
 
   if name == 'lsun':
-    # LsunDataset takes the path to the tf record, not a directory
     assert tfr_file is not None
     kwargs['tfr_file'] = tfr_file
+  elif name == 'lungct':
+    assert tfds_data_dir is not None
+    kwargs['data_dir'] = tfds_data_dir
   else:
     kwargs['tfds_data_dir'] = tfds_data_dir
 
-  if name not in ['lsun', *SimpleDataset.DATASET_NAMES]:
-    kwargs['seed'] = seed
+  if name not in ['lsun', 'lungct', *SimpleDataset.DATASET_NAMES]:
+      kwargs['seed'] = seed
 
   return DATASETS[name](**kwargs)

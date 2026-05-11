@@ -101,7 +101,7 @@ def load_train_kwargs(model_dir):
 def run_training(
     *, model_constructor, train_input_fn, total_bs,
     optimizer, lr, warmup, grad_clip, ema_decay=0.9999,
-    tpu=None, zone=None, project=None,
+    use_tpu=False, tpu=None, zone=None, project=None, 
     log_dir, exp_name, dump_kwargs=None,
     date_str=None, iterations_per_loop=1000, keep_checkpoint_max=2, max_steps=int(1e10),
     warm_start_from=None
@@ -129,8 +129,9 @@ def run_training(
   # model_fn for TPUEstimator
   def model_fn(features, params, mode):
     local_bs = params['batch_size']
-    print('Global batch size: {}, local batch size: {}'.format(total_bs, local_bs))
-    assert total_bs == num_tpu_replicas() * local_bs
+    #print('Global batch size: {}, local batch size: {}'.format(total_bs, local_bs))
+    print('Batch size:', local_bs)
+    #assert total_bs == num_tpu_replicas() * local_bs
 
     assert mode == tf.estimator.ModeKeys.TRAIN, 'only TRAIN mode supported'
     assert features['image'].shape[0] == local_bs
@@ -161,8 +162,9 @@ def run_training(
       global_step=global_step,
       lr=warmed_up_lr,
       optimizer=optimizer,
-      grad_clip=grad_clip / float(num_tpu_replicas()),
-      tpu=True
+      #grad_clip=grad_clip / float(num_tpu_replicas()),
+      grad_clip=grad_clip,
+      tpu=use_tpu
     )
 
     # ema
@@ -176,29 +178,28 @@ def run_training(
     tpu_summary.scalar('train/gnorm', gnorm)
     tpu_summary.scalar('train/pnorm', utils.rms(trainable_variables))
     tpu_summary.scalar('train/lr', warmed_up_lr)
-    return tf.estimator.tpu.TPUEstimatorSpec(
-      mode=mode, host_call=tpu_summary.get_host_call(), loss=loss, train_op=train_op)
+    # return tf.estimator.tpu.TPUEstimatorSpec(
+    #   mode=mode, host_call=tpu_summary.get_host_call(), loss=loss, train_op=train_op)
+    tf.summary.scalar('loss', loss)
+
+    return tf.estimator.EstimatorSpec(
+        mode=mode,
+        loss=loss,
+        train_op=train_op
+    )
 
   # Set up Estimator and train
   print("warm_start_from:", warm_start_from)
-  estimator = tf.estimator.tpu.TPUEstimator(
-    model_fn=model_fn,
-    use_tpu=True,
-    train_batch_size=total_bs,
-    eval_batch_size=total_bs,
-    config=tf.estimator.tpu.RunConfig(
-      cluster=tf.distribute.cluster_resolver.TPUClusterResolver(tpu=tpu, zone=zone, project=project),
-      model_dir=model_dir,
-      session_config=tf.ConfigProto(allow_soft_placement=True, log_device_placement=True),
-      tpu_config=tf.estimator.tpu.TPUConfig(
-        iterations_per_loop=iterations_per_loop,
-        num_shards=None,
-        per_host_input_for_training=tf.estimator.tpu.InputPipelineConfig.PER_HOST_V2
-      ),
-      save_checkpoints_secs=1600,  # 30 minutes
-      keep_checkpoint_max=keep_checkpoint_max
-    ),
-    warm_start_from=warm_start_from
+  run_config = tf.estimator.RunConfig(
+    model_dir=model_dir,
+    save_checkpoints_secs=1600,
+    keep_checkpoint_max=keep_checkpoint_max
+)
+
+  estimator = tf.estimator.Estimator(
+      model_fn=model_fn,
+      config=run_config,
+      warm_start_from=warm_start_from
   )
   estimator.train(input_fn=train_input_fn, max_steps=max_steps)
 
