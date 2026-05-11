@@ -208,6 +208,12 @@ def run_training(
     save_checkpoints_secs=None,
     keep_checkpoint_max=keep_checkpoint_max
 )
+  
+  print("\n========== DEVICE CHECK ==========")
+  print("TF version:", tf.__version__)
+  print("GPU available:", tf.test.is_gpu_available())
+  print("Visible GPUs:", tf.config.experimental.list_physical_devices('GPU'))
+  print("==================================\n")
 
   estimator = tf.estimator.Estimator(
       model_fn=model_fn,
@@ -227,14 +233,14 @@ def run_training(
 
           print(f"\n[SAMPLING] Step {global_step_value}")
 
-          tf.reset_default_graph()
+          #tf.reset_default_graph()
 
           sample_model = model_constructor()
 
           noise = tf.random_normal([8, 256, 256, 1])
 
           samples = sample_model.samples_fn(
-              dummy_noise=noise,
+              dummy_x=noise,
               y=tf.zeros([8], dtype=tf.int32)
           )['samples']
 
