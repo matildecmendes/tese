@@ -131,7 +131,8 @@ def run_training(
 
   # model_fn for TPUEstimator
   def model_fn(features, params, mode):
-    local_bs = params['batch_size']
+    #local_bs = params['batch_size']
+    local_bs = total_bs
     #print('Global batch size: {}, local batch size: {}'.format(total_bs, local_bs))
     print('Batch size:', local_bs)
     #assert total_bs == num_tpu_replicas() * local_bs
@@ -141,7 +142,7 @@ def run_training(
     assert features['label'].shape == [local_bs] and features['label'].dtype == tf.int32
     # assert labels.dtype == features['label'].dtype and labels.shape == features['label'].shape
 
-    del params
+    #del params
 
     ##########
 
