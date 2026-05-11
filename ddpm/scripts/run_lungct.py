@@ -151,9 +151,9 @@ def train(
 ):
 
   kwargs = dict(locals())
-  ds = datasets.get_dataset(
-      'lungct',
-      tfds_data_dir=data_dir
+  ds = datasets.LungCTDataset(
+      data_dir=data_dir,
+      batch_size=total_bs
   )
 
   tpu_utils.run_training(

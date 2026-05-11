@@ -138,6 +138,7 @@ class LungCTDataset:
       data_dir,
       resolution=256,
       max_images=None,
+      batch_size=1,
   ):
 
     self.data_dir = data_dir
@@ -145,6 +146,8 @@ class LungCTDataset:
     self.resolution = resolution
 
     self.image_shape = [resolution, resolution, 1]
+
+    self.batch_size = batch_size
 
     self.num_classes = 1
 
@@ -220,7 +223,7 @@ class LungCTDataset:
   def train_input_fn(self, params):
 
     return self._build_dataset(
-      batch_size=params['batch_size'],
+      batch_size=self.batch_size,
       repeat=True,
       shuffle=True
     )
@@ -228,7 +231,7 @@ class LungCTDataset:
   def train_one_pass_input_fn(self, params):
 
     return self._build_dataset(
-      batch_size=params['batch_size'],
+      batch_size=self.batch_size,
       repeat=False,
       shuffle=False
     )
