@@ -1,3 +1,5 @@
+from diffusion_tf import utils
+
 import json
 import os
 import pickle
@@ -116,6 +118,12 @@ def run_training(
   )
   print('model dir:', model_dir)
 
+  # sample debug directory
+  samples_dir = os.path.join(model_dir, 'samples')
+
+  if not tf.io.gfile.exists(samples_dir):
+      tf.io.gfile.makedirs(samples_dir)
+
   already_exists = tf.io.gfile.exists(model_dir)
 
   if not already_exists:
@@ -196,7 +204,8 @@ def run_training(
   print("warm_start_from:", warm_start_from)
   run_config = tf.estimator.RunConfig(
     model_dir=model_dir,
-    save_checkpoints_secs=1600,
+    save_checkpoints_steps=500,
+    save_checkpoints_secs=None,
     keep_checkpoint_max=keep_checkpoint_max
 )
 
@@ -205,7 +214,65 @@ def run_training(
       config=run_config,
       warm_start_from=warm_start_from
   )
-  estimator.train(input_fn=train_input_fn, max_steps=max_steps)
+  print("\n========== TRAINING START ==========")
+  print("max_steps:", max_steps)
+  print("batch_size:", total_bs)
+  print("lr:", lr)
+  print("====================================\n")
+
+  #sampling debug de x em x steps
+  class SampleSaverListener(tf.train.CheckpointSaverListener):
+
+      def after_save(self, session, global_step_value):
+
+          print(f"\n[SAMPLING] Step {global_step_value}")
+
+          tf.reset_default_graph()
+
+          sample_model = model_constructor()
+
+          noise = tf.random_normal([8, 256, 256, 1])
+
+          samples = sample_model.samples_fn(
+              dummy_noise=noise,
+              y=tf.zeros([8], dtype=tf.int32)
+          )['samples']
+
+          saver = tf.train.Saver()
+
+          with tf.Session() as sess:
+
+              latest_ckpt = tf.train.latest_checkpoint(model_dir)
+
+              saver.restore(sess, latest_ckpt)
+
+              imgs = sess.run(samples)
+
+          imgs = ((imgs + 1.0) * 127.5)
+
+          imgs = np.clip(imgs, 0, 255).astype(np.uint8)
+
+          out_path = os.path.join(
+              samples_dir,
+              f"sample_{global_step_value:06d}.png"
+          )
+
+          utils.save_tiled_imgs(
+              out_path,
+              imgs,
+              num_col=4
+          )
+
+          print(f"[SAVED] {out_path}\n")
+
+  listener = SampleSaverListener()
+
+  estimator.train(
+      input_fn=train_input_fn,
+      max_steps=max_steps,
+      saving_listeners=[listener]
+  )
+
 
 
 # ========== Evaluation / sampling ==========
@@ -456,6 +523,12 @@ class EvalWorker:
         and exits after evaluating one checkpoint.
     """
     tf.logging.set_verbosity(tf.logging.INFO)
+
+    print("\n========== DEVICE CHECK ==========")
+    print("TF version:", tf.__version__)
+    print("GPU available:", tf.test.is_gpu_available())
+    print("Visible GPUs:", tf.config.experimental.list_physical_devices('GPU'))
+    print("==================================\n")
 
     # Are we evaluating a single checkpoint or looping on the latest?
     if load_ckpt is not None:

@@ -143,7 +143,7 @@ def _load_model(kwargs, ds):
 
 def train(
     exp_name, data_dir, save_dir, tpu_name=None, model_name='unet2d16b2', dataset='lungct',
-    optimizer='adam', total_bs=128, grad_clip=1., lr=2e-4, warmup=5000,
+    optimizer='adam', total_bs=128, grad_clip=1., lr=2e-4, warmup=5000, max_steps=200000,
     num_diffusion_timesteps=1000, beta_start=0.0001, beta_end=0.02, beta_schedule='linear',
     model_mean_type='eps', model_var_type='fixedlarge', loss_type='mse',
     dropout=0.1, randflip=1,
@@ -171,7 +171,8 @@ def train(
       loss_type=loss_type,
       num_classes=ds.num_classes,
       dropout=dropout,
-      randflip=randflip
+      randflip=randflip,
+      max_steps=max_steps
     ),
     optimizer=optimizer, total_bs=total_bs, lr=lr, warmup=warmup, grad_clip=grad_clip,
     train_input_fn=ds.train_input_fn,
