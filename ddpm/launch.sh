@@ -6,6 +6,10 @@
 #SBATCH --output=slurm_%x.%j.out   # File containing STDOUT output
 #SBATCH --error=slurm_%x.%j.err    # File containing STDERR output. If ommited, use STDOUT.
 
+cd /nas-ctm01/homes/mcmendes/tese/ddpm
+
+export PYTHONPATH=$PWD:$PYTHONPATH
+
 # Commands / scripts to run (e.g., python3 train.py)
 python scripts/run_lungct.py train \
     --exp_name lungct_diffusion \
