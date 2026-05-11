@@ -142,7 +142,7 @@ def _load_model(kwargs, ds):
 
 
 def train(
-    exp_name, data_dir, save_dir, tpu_name=None, model_name='unet2d16b2', dataset='cifar10',
+    exp_name, data_dir, save_dir, tpu_name=None, model_name='unet2d16b2', dataset='lungct',
     optimizer='adam', total_bs=128, grad_clip=1., lr=2e-4, warmup=5000,
     num_diffusion_timesteps=1000, beta_start=0.0001, beta_end=0.02, beta_schedule='linear',
     model_mean_type='eps', model_var_type='fixedlarge', loss_type='mse',
@@ -157,7 +157,8 @@ def train(
   )
 
   tpu_utils.run_training(
-    date_str='9999-99-99',
+    #date_str='9999-99-99',
+    date_str=None,
     exp_name='{exp_name}_{dataset}_{model_name}_{optimizer}_bs{total_bs}_lr{lr}w{warmup}_beta{beta_start}-{beta_end}-{beta_schedule}_t{num_diffusion_timesteps}_{model_mean_type}-{model_var_type}-{loss_type}_dropout{dropout}_randflip{randflip}'.format(
       **kwargs),
     model_constructor=lambda: Model(

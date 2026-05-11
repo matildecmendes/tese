@@ -115,11 +115,14 @@ def run_training(
     exp_name
   )
   print('model dir:', model_dir)
-  if tf.io.gfile.exists(model_dir):
-    print('model dir already exists: {}'.format(model_dir))
-    if input('continue training? [y/n] ') != 'y':
-      print('aborting')
-      return
+
+  already_exists = tf.io.gfile.exists(model_dir)
+
+  if not already_exists:
+      tf.io.gfile.makedirs(model_dir)
+
+  if already_exists:
+      print('model dir already exists: {}'.format(model_dir))
 
   # Save kwargs in json format
   if dump_kwargs is not None:
