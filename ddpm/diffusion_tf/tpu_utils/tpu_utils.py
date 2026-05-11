@@ -233,8 +233,6 @@ def run_training(
 
           print(f"\n[SAMPLING] Step {global_step_value}")
 
-          #tf.reset_default_graph()
-
           sample_model = model_constructor()
 
           noise = tf.random_normal([8, 256, 256, 1])
