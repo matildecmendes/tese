@@ -13,10 +13,10 @@ import fire
 import numpy as np
 import tensorflow.compat.v1 as tf
 
-from diffusion_tf import utils
-from diffusion_tf.diffusion_utils_2 import get_beta_schedule, GaussianDiffusion2
-from diffusion_tf.models import unet
-from diffusion_tf.tpu_utils import tpu_utils, simple_eval_worker, datasets
+from ddpm.diffusion_tf import utils
+from ddpm.diffusion_tf.diffusion_utils_2 import get_beta_schedule, GaussianDiffusion2
+from ddpm.diffusion_tf.models import unet
+from ddpm.diffusion_tf.tpu_utils import tpu_utils, simple_eval_worker, datasets
 #from diffusion_tf.tpu_utils.lungct_dataset import LungCTDataset
 
 
