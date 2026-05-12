@@ -1,83 +1,97 @@
 import os
-import time
-
-import numpy as np
+import argparse
 import tensorflow.compat.v1 as tf
 
-from diffusion_tf import utils
-from diffusion_tf.tpu_utils.tpu_utils import unnormalize_data
+from diffusion_tf.tpu_utils.tpu_utils import EvalWorker
+from diffusion_tf.tpu_utils import datasets
 
 from scripts.run_lungct import Model
-
-tf.disable_v2_behavior()
-
-
-CHECKPOINT_DIR = "/CAMINHO/PARA/O/MODEL_DIR"
-
-OUTPUT_DIR = os.path.join(CHECKPOINT_DIR, "samples_debug")
-
-os.makedirs(OUTPUT_DIR, exist_ok=True)
+from diffusion_tf.diffusion_utils_2 import get_beta_schedule
 
 
-def main():
+def main(args):
 
-    model = Model()
+    print("\n========== SAMPLING ==========")
+    print("checkpoint:", args.ckpt)
+    print("num_samples:", args.num_samples)
+    print("output_dir:", args.output_dir)
+    print("================================\n")
 
-    noise = tf.random_normal([8, 256, 256, 1])
+    # =========================
+    # Dataset
+    # =========================
 
-    samples = model.samples_fn(
-        noise,
-        tf.zeros([8], dtype=tf.int32)
-    )['samples']
+    dataset = datasets.get_dataset(
+        'lungct',
+        tfds_data_dir=args.data_dir
+    )
 
-    saver = tf.train.Saver()
+    # =========================
+    # Diffusion schedule
+    # =========================
 
-    last_ckpt = None
+    betas = get_beta_schedule(
+        beta_schedule='linear',
+        beta_start=0.0001,
+        beta_end=0.02,
+        num_diffusion_timesteps=1000
+    )
 
-    with tf.Session() as sess:
+    # =========================
+    # Model constructor
+    # =========================
 
-        while True:
+    model_constructor = lambda: Model(
+        model_name='unet2d16b2',
+        betas=betas,
+        model_mean_type='eps',
+        model_var_type='fixedlarge',
+        loss_type='mse',
+        num_classes=1,
+        dropout=0.0,
+        randflip=0
+    )
 
-            ckpt = tf.train.latest_checkpoint(CHECKPOINT_DIR)
+    # =========================
+    # Eval worker
+    # =========================
 
-            if ckpt is None:
-                print("No checkpoint found...")
-                time.sleep(30)
-                continue
+    worker = EvalWorker(
+        tpu_name=None,
+        model_constructor=model_constructor,
+        total_bs=args.batch_size,
+        dataset=dataset,
+        inception_bs=args.batch_size,
+        num_inception_samples=args.num_samples
+    )
 
-            if ckpt != last_ckpt:
+    # =========================
+    # Sampling
+    # =========================
 
-                print(f"\n[NEW CHECKPOINT] {ckpt}")
-
-                saver.restore(sess, ckpt)
-
-                imgs = sess.run(samples)
-
-                imgs = np.clip(
-                    unnormalize_data(imgs),
-                    0,
-                    255
-                ).astype(np.uint8)
-
-                step = ckpt.split("-")[-1]
-
-                out_path = os.path.join(
-                    OUTPUT_DIR,
-                    f"sample_{step}.png"
-                )
-
-                utils.save_tiled_imgs(
-                    out_path,
-                    imgs,
-                    num_col=4
-                )
-
-                print(f"[SAVED] {out_path}")
-
-                last_ckpt = ckpt
-
-            time.sleep(30)
+    worker.run(
+        logdir=args.model_dir,
+        once=True,
+        dump_samples_only=True,
+        load_ckpt=args.ckpt,
+        samples_dir=args.output_dir
+    )
 
 
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('--model_dir', type=str, required=True)
+    parser.add_argument('--ckpt', type=str, required=True)
+
+    parser.add_argument('--output_dir', type=str, required=True)
+
+    parser.add_argument('--data_dir', type=str, required=True)
+
+    parser.add_argument('--num_samples', type=int, default=1000)
+    parser.add_argument('--batch_size', type=int, default=8)
+
+    args = parser.parse_args()
+
+    main(args)
