@@ -171,8 +171,7 @@ def train(
       loss_type=loss_type,
       num_classes=ds.num_classes,
       dropout=dropout,
-      randflip=randflip,
-      max_steps=max_steps
+      randflip=randflip
     ),
     optimizer=optimizer, total_bs=total_bs, lr=lr, warmup=warmup, grad_clip=grad_clip,
     train_input_fn=ds.train_input_fn,
