@@ -227,47 +227,41 @@ def run_training(
   print("====================================\n")
 
   #sampling debug de x em x steps
+  
+
+  print("\n[BUILDING SAMPLING GRAPH]\n")
+  with tf.variable_scope(tf.get_variable_scope(), reuse=True):
+    sample_model = model_constructor()
+    sample_noise = tf.random_normal([8, 256, 256, 1])
+    sample_images = sample_model.samples_fn(
+        dummy_x=sample_noise,
+        y=tf.zeros([8], dtype=tf.int32)
+    )['samples']
+
   class SampleSaverListener(tf.train.CheckpointSaverListener):
 
-      def after_save(self, session, global_step_value):
+    def after_save(self, session, global_step_value):
 
-          print(f"\n[SAMPLING] Step {global_step_value}")
+        print(f"\n[SAMPLING] Step {global_step_value}")
 
-          sample_model = model_constructor()
+        imgs = session.run(sample_images)
 
-          noise = tf.random_normal([8, 256, 256, 1])
+        imgs = ((imgs + 1.0) * 127.5)
 
-          samples = sample_model.samples_fn(
-              dummy_x=noise,
-              y=tf.zeros([8], dtype=tf.int32)
-          )['samples']
+        imgs = np.clip(imgs, 0, 255).astype(np.uint8)
 
-          saver = tf.train.Saver()
+        out_path = os.path.join(
+            samples_dir,
+            f"sample_{global_step_value:06d}.png"
+        )
 
-          with tf.Session() as sess:
+        utils.save_tiled_imgs(
+            out_path,
+            imgs,
+            num_col=4
+        )
 
-              latest_ckpt = tf.train.latest_checkpoint(model_dir)
-
-              saver.restore(sess, latest_ckpt)
-
-              imgs = sess.run(samples)
-
-          imgs = ((imgs + 1.0) * 127.5)
-
-          imgs = np.clip(imgs, 0, 255).astype(np.uint8)
-
-          out_path = os.path.join(
-              samples_dir,
-              f"sample_{global_step_value:06d}.png"
-          )
-
-          utils.save_tiled_imgs(
-              out_path,
-              imgs,
-              num_col=4
-          )
-
-          print(f"[SAVED] {out_path}\n")
+        print(f"[SAVED] {out_path}\n")
 
   listener = SampleSaverListener()
 
