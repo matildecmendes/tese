@@ -113,6 +113,8 @@ def main(args):
 
 if __name__ == '__main__':
 
+    print("Started watcher...")
+
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--ckpt_path', type=str, required=True)

@@ -2,21 +2,13 @@
 #
 #SBATCH --partition=gpu_min24gb_ext     # Reserved partition
 #SBATCH --qos=gpu_min24gb_ext        # QoS level. Must match the partition name. External users must add the suffix "_ext".
-#SBATCH --job-name=debug_ddpm    # Job name
+#SBATCH --job-name=w_ddpm    # Job name
 #SBATCH --output=slurm_%x.%j.out   # File containing STDOUT output
 #SBATCH --error=slurm_%x.%j.err    # File containing STDERR output. If ommited, use STDOUT.
 
-echo "========== GPU CHECK =========="
-nvidia-smi
-echo "CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES"
-echo "================================"
+cd /nas-ctm01/homes/mcmendes/tese/ddpm
 
-source ~/.bashrc
-
-conda activate ddpm_env
-
-module load cuda/10.0
-module load cudnn/7
+export PYTHONPATH=$PWD
 
 # Commands / scripts to run (e.g., python3 train.py)
 python scripts/watch_sampling.py \
