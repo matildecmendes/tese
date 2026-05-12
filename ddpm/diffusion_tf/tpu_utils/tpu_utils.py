@@ -234,8 +234,8 @@ def run_training(
     sample_model = model_constructor()
     sample_noise = tf.random_normal([8, 256, 256, 1])
     sample_images = sample_model.samples_fn(
-        dummy_x=sample_noise,
-        y=tf.zeros([8], dtype=tf.int32)
+        sample_noise,
+        tf.zeros([8], dtype=tf.int32)
     )['samples']
 
   class SampleSaverListener(tf.train.CheckpointSaverListener):
