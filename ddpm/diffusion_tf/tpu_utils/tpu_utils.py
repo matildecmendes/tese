@@ -105,7 +105,7 @@ def run_training(
     optimizer, lr, warmup, grad_clip, ema_decay=0.9999,
     use_tpu=False, tpu=None, zone=None, project=None, 
     log_dir, exp_name, dump_kwargs=None,
-    date_str=None, iterations_per_loop=1000, keep_checkpoint_max=2, max_steps=200000,
+    date_str=None, iterations_per_loop=1000, keep_checkpoint_max=2, max_steps=int(1e10),
     warm_start_from=None
 ):
   tf.logging.set_verbosity(tf.logging.INFO)
@@ -208,7 +208,7 @@ def run_training(
     save_checkpoints_secs=None,
     keep_checkpoint_max=keep_checkpoint_max
 )
-  
+
   print("\n========== DEVICE CHECK ==========")
   print("TF version:", tf.__version__)
   print("GPU available:", tf.test.is_gpu_available())
@@ -227,41 +227,49 @@ def run_training(
   print("====================================\n")
 
   #sampling debug de x em x steps
-  
-
-  print("\n[BUILDING SAMPLING GRAPH]\n")
-  with tf.variable_scope(tf.get_variable_scope(), reuse=True):
-    sample_model = model_constructor()
-    sample_noise = tf.random_normal([8, 256, 256, 1])
-    sample_images = sample_model.samples_fn(
-        sample_noise,
-        tf.zeros([8], dtype=tf.int32)
-    )['samples']
-
   class SampleSaverListener(tf.train.CheckpointSaverListener):
 
-    def after_save(self, session, global_step_value):
+      def after_save(self, session, global_step_value):
 
-        print(f"\n[SAMPLING] Step {global_step_value}")
+          print(f"\n[SAMPLING] Step {global_step_value}")
 
-        imgs = session.run(sample_images)
+          tf.reset_default_graph()
 
-        imgs = ((imgs + 1.0) * 127.5)
+          sample_model = model_constructor()
 
-        imgs = np.clip(imgs, 0, 255).astype(np.uint8)
+          noise = tf.random_normal([8, 256, 256, 1])
 
-        out_path = os.path.join(
-            samples_dir,
-            f"sample_{global_step_value:06d}.png"
-        )
+          samples = sample_model.samples_fn(
+              dummy_noise=noise,
+              y=tf.zeros([8], dtype=tf.int32)
+          )['samples']
 
-        utils.save_tiled_imgs(
-            out_path,
-            imgs,
-            num_col=4
-        )
+          saver = tf.train.Saver()
 
-        print(f"[SAVED] {out_path}\n")
+          with tf.Session() as sess:
+
+              latest_ckpt = tf.train.latest_checkpoint(model_dir)
+
+              saver.restore(sess, latest_ckpt)
+
+              imgs = sess.run(samples)
+
+          imgs = ((imgs + 1.0) * 127.5)
+
+          imgs = np.clip(imgs, 0, 255).astype(np.uint8)
+
+          out_path = os.path.join(
+              samples_dir,
+              f"sample_{global_step_value:06d}.png"
+          )
+
+          utils.save_tiled_imgs(
+              out_path,
+              imgs,
+              num_col=4
+          )
+
+          print(f"[SAVED] {out_path}\n")
 
   listener = SampleSaverListener()
 

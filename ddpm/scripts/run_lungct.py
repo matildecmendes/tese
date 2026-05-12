@@ -171,11 +171,12 @@ def train(
       loss_type=loss_type,
       num_classes=ds.num_classes,
       dropout=dropout,
-      randflip=randflip
+      randflip=randflip,
+      max_steps=max_steps
     ),
     optimizer=optimizer, total_bs=total_bs, lr=lr, warmup=warmup, grad_clip=grad_clip,
     train_input_fn=ds.train_input_fn,
-    tpu=tpu_name, log_dir=save_dir, dump_kwargs=kwargs, iterations_per_loop=2000, keep_checkpoint_max=keep_checkpoint_max, max_steps=max_steps
+    tpu=tpu_name, log_dir=save_dir, dump_kwargs=kwargs, iterations_per_loop=2000, keep_checkpoint_max=keep_checkpoint_max
   )
 
 
