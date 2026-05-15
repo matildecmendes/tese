@@ -13,5 +13,6 @@ export PYTHONPATH=$PWD
 # Commands / scripts to run (e.g., python3 train.py)
 python scripts/watch_sampling.py \
     --checkpoint_dir /nas-ctm01/homes/mcmendes/outputs/ddpm/2/2026-05-12/lungct_diffusion_lungct_unet2d16b2_adam_bs2_lr2e-05w5000_beta0.0001-0.02-linear_t1000_eps-fixedlarge-mse_dropout0.0_randflip0 \
-    --output_dir /nas-ctm01/homes/mcmendes/outputs/ddpm/2/2026-05-12/lungct_diffusion_lungct_unet2d16b2_adam_bs2_lr2e-05w5000_beta0.0001-0.02-linear_t1000_eps-fixedlarge-mse_dropout0.0_randflip0/samples
+    --output_dir /nas-ctm01/homes/mcmendes/outputs/ddpm/3/samples \
+    --min_step 11000
 

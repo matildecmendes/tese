@@ -70,6 +70,12 @@ def main(args):
                 ckpt
             ).replace(".index", "")
 
+            step = int(ckpt_name.split("-")[-1])
+
+            if step < args.min_step:
+                print(f"[SKIPPING] {ckpt_name} (< min_step)")
+                continue
+
             if ckpt_name in already_done:
                 continue
 
@@ -153,6 +159,12 @@ if __name__ == "__main__":
         "--poll_every",
         type=int,
         default=60
+    )
+
+    parser.add_argument(
+        "--min_step",
+        type=int,
+        default=0
     )
 
     args = parser.parse_args()

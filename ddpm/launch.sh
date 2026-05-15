@@ -20,5 +20,6 @@ python scripts/run_lungct.py train \
     --num_diffusion_timesteps 1000 \
     --beta_schedule linear \
     --dropout 0.0 \
-    --randflip 0
+    --randflip 0 \
+    --date_str 2026-05-12
 
