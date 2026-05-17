@@ -1,3 +1,4 @@
+####### ANALYSIS ########
 completo
 python analysis.py \
   --fake_dir /nas-ctm01/homes/mcmendes/samples/diffusion-stylegan2 \
@@ -12,3 +13,61 @@ python analysis.py \
   --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png \
   --out_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats
 
+####### METRICS ########
+
+# DDGAN
+python metrics.py \
+  --fake_dir /nas-ctm01/homes/mcmendes/samples/denoising_dgan/2 \
+  --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png \
+  --output_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/metrics/ddgan/metrics \
+  --compute_fid \
+  --compute_cmmd \
+  --compute_msssim \
+  --compute_frd \
+  --compute_mae_mse \
+  --compute_pr \
+  --cmmd_path /nas-ctm01/homes/mcmendes/tese/cmmd-pytorch
+
+# DIF-STYLEGAN2
+python metrics.py \
+  --fake_dir /nas-ctm01/homes/mcmendes/samples/diffusion-stylegan2 \
+  --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png \
+  --output_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/metrics/difstylegan2/metrics \
+  --compute_fid \
+  --compute_cmmd \
+  --compute_msssim \
+  --compute_frd \
+  --compute_mae_mse \
+  --compute_pr \
+  --cmmd_path /nas-ctm01/homes/mcmendes/tese/cmmd-pytorch
+
+
+# VQGAN
+python metrics.py \
+  --fake_dir /nas-ctm01/homes/mcmendes/samples/vqgan \
+  --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png \
+  --output_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/metrics/vqgan/metrics \
+  --compute_fid \
+  --compute_cmmd \
+  --compute_msssim \
+  --compute_frd \
+  --compute_mae_mse \
+  --compute_pr \
+  --cmmd_path /nas-ctm01/homes/mcmendes/tese/cmmd-pytorch
+
+# DDPM
+python metrics.py \
+  --fake_dir /nas-ctm01/homes/mcmendes/samples/ddpm \
+  --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png \
+  --output_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/metrics/ddpm/metrics \
+  --compute_fid \
+  --compute_cmmd \
+  --compute_msssim \
+  --compute_frd \
+  --compute_mae_mse \
+  --compute_pr \
+  --cmmd_path /nas-ctm01/homes/mcmendes/tese/cmmd-pytorch
+
+
+#### requirements ###
+pip install torch-fidelity
