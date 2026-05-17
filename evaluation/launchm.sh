@@ -11,12 +11,7 @@ python metrics.py \
   --fake_dir /nas-ctm01/homes/mcmendes/samples/vqgan \
   --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png \
   --output_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/metrics/vqgan/metrics \
-  --compute_fid \
-  --compute_cmmd \
-  --compute_msssim \
-  --compute_frd \
   --compute_mae_mse \
-  --compute_pr \
-  --cmmd_path /nas-ctm01/homes/mcmendes/tese/cmmd-pytorch
+  --compute_pr 
 
 
