@@ -24,10 +24,25 @@ def main(args):
     os.makedirs(args.output_dir, exist_ok=True)
 
     print("\n========== SAMPLING ==========")
-    print("checkpoint:", args.ckpt_path)
+    print("checkpoint_dir:", args.checkpoint_dir)
     print("num_samples:", args.num_samples)
     print("output_dir:", args.output_dir)
     print("================================\n")
+
+    latest_ckpt = tf.train.latest_checkpoint(
+        args.checkpoint_dir
+    )
+
+    if latest_ckpt is None:
+
+        raise ValueError(
+            f"No checkpoint found in "
+            f"{args.checkpoint_dir}"
+        )
+
+    print("\nLatest checkpoint found:")
+    print(latest_ckpt)
+    print()
 
     # =========================
     # diffusion schedule
@@ -82,7 +97,7 @@ def main(args):
 
         print("\nRestoring checkpoint...\n")
 
-        saver.restore(sess, args.ckpt_path)
+        saver.restore(sess, latest_ckpt)
 
         print("Checkpoint restored!\n")
 
@@ -113,11 +128,12 @@ def main(args):
 
 if __name__ == '__main__':
 
-    print("Started watcher...")
+
+    print("Started sampling...")
 
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--ckpt_path', type=str, required=True)
+    parser.add_argument('--checkpoint_dir', type=str, required=True)
 
     parser.add_argument('--output_dir', type=str, required=True)
 
