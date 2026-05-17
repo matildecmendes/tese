@@ -1,6 +1,8 @@
 import argparse
 import os
 import random
+import shutil
+import tempfile
 import subprocess
 from glob import glob
 
@@ -27,6 +29,15 @@ def log_to_file(output_dir, filename, text):
 
     with open(filepath, "a") as f:
         f.write(text + "\n")
+
+def create_temp_subset(paths):
+
+    tmp_dir = tempfile.mkdtemp()
+
+    for i, p in enumerate(paths):
+        shutil.copy(p, os.path.join(tmp_dir, f"{i}.png"))
+
+    return tmp_dir
 
 # =========================================================
 # MS-SSIM
@@ -242,11 +253,15 @@ def main(args):
     # Precision & Recall
     # =====================================================
     if args.compute_pr:
+
         print("\n===== COMPUTING PRECISION & RECALL =====")
 
+        real_tmp = create_temp_subset(real_selected)
+        fake_tmp = create_temp_subset(fake_paths)
+
         precision, recall = compute_precision_recall(
-            args.fake_dir,
-            args.real_dir
+            fake_tmp,
+            real_tmp
         )
 
         result_p = f"Precision: {precision}"
@@ -258,6 +273,8 @@ def main(args):
         log_to_file(args.output_dir, "precision_recall.txt", result_p)
         log_to_file(args.output_dir, "precision_recall.txt", result_r)
 
+        shutil.rmtree(real_tmp)
+        shutil.rmtree(fake_tmp)
 
 # =========================================================
 # ARGUMENTS

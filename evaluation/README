@@ -19,7 +19,7 @@ python analysis.py \
 python metrics.py \
   --fake_dir /nas-ctm01/homes/mcmendes/samples/denoising_dgan/2 \
   --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png \
-  --output_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/metrics/ddgan/metrics \
+  --output_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/ddgan/metrics \
   --compute_fid \
   --compute_cmmd \
   --compute_msssim \
@@ -32,7 +32,7 @@ python metrics.py \
 python metrics.py \
   --fake_dir /nas-ctm01/homes/mcmendes/samples/diffusion-stylegan2 \
   --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png \
-  --output_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/metrics/difstylegan2/metrics \
+  --output_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/difstylegan2/metrics \
   --compute_fid \
   --compute_cmmd \
   --compute_msssim \
@@ -46,7 +46,7 @@ python metrics.py \
 python metrics.py \
   --fake_dir /nas-ctm01/homes/mcmendes/samples/vqgan \
   --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png \
-  --output_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/metrics/vqgan/metrics \
+  --output_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/vqgan/metrics \
   --compute_fid \
   --compute_cmmd \
   --compute_msssim \
@@ -59,7 +59,7 @@ python metrics.py \
 python metrics.py \
   --fake_dir /nas-ctm01/homes/mcmendes/samples/ddpm \
   --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png \
-  --output_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/metrics/ddpm/metrics \
+  --output_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/ddpm/metrics \
   --compute_fid \
   --compute_cmmd \
   --compute_msssim \
