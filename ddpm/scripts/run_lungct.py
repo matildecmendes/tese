@@ -159,7 +159,7 @@ def train(
   tpu_utils.run_training(
     #date_str='9999-99-99',
     date_str="2026-05-12",
-    exp_name='{exp_name}_{dataset}_{model_name}_{optimizer}_lr{lr}w{warmup}_beta{beta_start}-{beta_end}-{beta_schedule}_t{num_diffusion_timesteps}_{model_mean_type}-{model_var_type}-{loss_type}_dropout{dropout}_randflip{randflip}'.format(
+    exp_name='{exp_name}_{dataset}_{model_name}_{optimizer}_bs2_lr{lr}w{warmup}_beta{beta_start}-{beta_end}-{beta_schedule}_t{num_diffusion_timesteps}_{model_mean_type}-{model_var_type}-{loss_type}_dropout{dropout}_randflip{randflip}'.format(
       **kwargs),
     model_constructor=lambda: Model(
       model_name=model_name,
