@@ -1,8 +1,14 @@
+import numpy as np
+
+from PIL import Image
+
+from scripts.run_lungct import Model
+from diffusion_tf.diffusion_utils_2 import get_beta_schedule
+
 import os
 import time
 import glob
 import argparse
-import subprocess
 
 import tensorflow.compat.v1 as tf
 from tensorflow.python.client import device_lib
@@ -32,6 +38,15 @@ def print_device_info():
         print("Sampling will run VERY slowly on CPU.")
         print("Check CUDA / cuDNN / TensorFlow versions.\n")
 
+def save_image(img, path):
+
+    img = np.squeeze(img)
+
+    img = ((img + 1.0) * 127.5)
+
+    img = np.clip(img, 0, 255).astype(np.uint8)
+
+    Image.fromarray(img).save(path)
 
 def main(args):
 
@@ -98,41 +113,69 @@ def main(args):
 
             os.makedirs(outdir, exist_ok=True)
 
-            cmd = [
-                "python",
-                "scripts/sample_lungct.py",
+            print("[BUILDING MODEL]")
 
-                "--ckpt_path",
-                full_ckpt,
+            betas = get_beta_schedule(
+                beta_schedule='linear',
+                beta_start=0.0001,
+                beta_end=0.02,
+                num_diffusion_timesteps=1000
+            )
 
-                "--output_dir",
-                outdir,
+            tf.reset_default_graph()
 
-                "--num_samples",
-                "1",
+            model = Model(
+                model_name='unet2d16b2',
+                betas=betas,
+                model_mean_type='eps',
+                model_var_type='fixedlarge',
+                loss_type='mse',
+                num_classes=1,
+                dropout=0.0,
+                randflip=0
+            )
 
-                "--batch_size",
-                "1"
-            ]
+            dummy_x = tf.zeros(
+                [1, 256, 256, 1],
+                dtype=tf.float32
+            )
 
-            print("[RUNNING SAMPLING]")
-            print(" ".join(cmd))
-            print()
+            dummy_y = tf.zeros(
+                [1],
+                dtype=tf.int32
+            )
+
+            samples = model.samples_fn(
+                dummy_x,
+                dummy_y
+            )['samples']
+
+            saver = tf.train.Saver()
+
+            print("[STARTING SESSION]")
 
             start = time.time()
 
-            result = subprocess.run(cmd)
+            with tf.Session() as sess:
+
+                print("[RESTORING CHECKPOINT]")
+                saver.restore(sess, full_ckpt)
+
+                print("[GENERATING SAMPLE]")
+                imgs = sess.run(samples)
+
+                out_path = os.path.join(
+                    outdir,
+                    "sample.png"
+                )
+
+                save_image(imgs[0], out_path)
 
             elapsed = time.time() - start
 
-            if result.returncode == 0:
-
-                print(f"\n[SUCCESS] Sampling finished in "
-                      f"{elapsed:.2f} sec")
-
-            else:
-
-                print("\n[ERROR] Sampling crashed!")
+            print(f"\n[SUCCESS] Saved sample:")
+            print(out_path)
+            print(f"Time: {elapsed:.2f} sec\n")
 
         print(f"\n[SLEEPING {args.poll_every} sec]\n")
 
