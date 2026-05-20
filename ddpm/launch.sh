@@ -8,6 +8,8 @@
 
 source ~/.bashrc
 
+conda init
+
 conda activate ddpm_env
 
 cd /nas-ctm01/homes/mcmendes/tese/ddpm
