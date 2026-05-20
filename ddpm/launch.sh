@@ -6,9 +6,8 @@
 #SBATCH --output=slurm_%x.%j.out   # File containing STDOUT output
 #SBATCH --error=slurm_%x.%j.err    # File containing STDERR output. If ommited, use STDOUT.
 
-source ~/.bashrc
 
-conda init
+source /usr/local/miniconda3/etc/profile.d/conda.sh
 
 conda activate ddpm_env
 
