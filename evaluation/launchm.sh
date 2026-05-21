@@ -8,9 +8,9 @@
 
 # Commands / scripts to run (e.g., python3 train.py)
 python metrics.py \
-  --fake_dir /nas-ctm01/homes/mcmendes/samples/ddpm \
+  --fake_dir /nas-ctm01/homes/mcmendes/samples/ddpm3 \
   --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png \
-  --output_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/ddpm/metrics \
+  --output_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/ddpm/metrics_431000 \
   --compute_fid \
   --compute_cmmd \
   --compute_msssim \
