@@ -15,6 +15,14 @@ python analysis.py \
   --real_mean_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/real_mean.npy \
   --heatmaps --histograms --kl --emd --compare_hist
 
+# VQGAN
+python analysis.py \
+  --fake_dir /nas-ctm01/homes/mcmendes/samples/vqgan \
+  --out_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/vqgan/hists2 \
+  --real_hist_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/real_hist.npy \
+  --real_mean_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/real_mean.npy \
+  --heatmaps --histograms --kl --emd --compare_hist
+
 correr uma vez apenas para gerar .npy do dataset real para depois comparar
 python analysis.py \
   --compute_real \

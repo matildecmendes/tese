@@ -8,8 +8,8 @@
 
 # Commands / scripts to run (e.g., python3 train.py)
 python analysis.py \
-  --fake_dir /nas-ctm01/homes/mcmendes/samples/diffusion-stylegan2 \
-  --out_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/difstylegan2/hists \
+  --fake_dir /nas-ctm01/homes/mcmendes/samples/vqgan \
+  --out_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/vqgan/hists2 \
   --real_hist_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/real_hist.npy \
   --real_mean_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/real_mean.npy \
   --histograms --compare_hist
