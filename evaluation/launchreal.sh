@@ -8,6 +8,6 @@
 
 # Commands / scripts to run (e.g., python3 train.py)
 python analysis.py \
-  --out_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats3 \
+  --out_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats4 \
   --real_hist_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/real_hist.npy \
   --save_real_hist
