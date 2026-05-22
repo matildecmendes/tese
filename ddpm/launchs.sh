@@ -21,6 +21,6 @@ python -c "import tensorflow as tf; print('TF version:', tf.__version__); print(
 
 python scripts/sample_lungct.py \
     --checkpoint_dir /nas-ctm01/homes/mcmendes/outputs/ddpm/2/2026-05-12/lungct_diffusion_lungct_unet2d16b2_adam_bs2_lr2e-05w5000_beta0.0001-0.02-linear_t1000_eps-fixedlarge-mse_dropout0.0_randflip0 \
-    --output_dir /nas-ctm01/homes/mcmendes/samples/ddpm3 \
+    --output_dir /nas-ctm01/homes/mcmendes/samples/ddpm4 \
     --num_samples 5000 \
 
