@@ -200,7 +200,7 @@ def train(rank, gpu, args):
     #MINHA ALTERAÇÃO: dataset_npy.py
     from dataset_npy import NPYDataset
     dataset = NPYDataset(args.data_path)
-    #dataset = torch.utils.data.Subset(dataset, range(10000))
+    dataset = torch.utils.data.Subset(dataset, range(6000))
     print(f"Dataset loaded from {args.data_path}")
     print(f"Number of samples: {len(dataset)}")
       
@@ -314,6 +314,9 @@ def train(rank, gpu, args):
         train_sampler.set_epoch(epoch)
        
         for iteration, x in enumerate(data_loader): #alterei
+            if iteration % 10 == 0 and rank == 0:
+                print(f"Epoch {epoch} | Iteration {iteration}")
+                
             if iteration == 0 and rank == 0:
                 print("First batch loaded")
                 
