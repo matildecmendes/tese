@@ -100,7 +100,7 @@ for trial in range(NUM_TRIALS):
 
         "--exp", exp_name,
 
-        "--batch_size", "8",
+        "--batch_size", "4",
 
         "--num_epoch", "5",
 
