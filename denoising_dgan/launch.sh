@@ -12,9 +12,9 @@ python train_ddgan.py \
   --output_dir /nas-ctm01/homes/mcmendes/outputs/denoising_dgan/3 \
   --exp test_run \
   --batch_size 8 \
-  --num_epoch 100 \
+  --num_epoch 500 \
   --num_channels 1 \
   --image_size 256 \
   --ch_mult 1 2 2 4 \
   --dataset custom \
-  --save_ckpt_every 5
+  --save_ckpt_every 25
