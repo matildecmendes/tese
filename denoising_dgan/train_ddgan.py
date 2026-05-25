@@ -197,7 +197,7 @@ def train(rank, gpu, args):
     #MINHA ALTERAÇÃO: dataset_npy.py
     from dataset_npy import NPYDataset
     dataset = NPYDataset(args.data_path)
-    #dataset = torch.utils.data.Subset(dataset, range(10000))
+    dataset = torch.utils.data.Subset(dataset, range(20000))
     print(f"Dataset loaded from {args.data_path}")
     print(f"Number of samples: {len(dataset)}")
       
