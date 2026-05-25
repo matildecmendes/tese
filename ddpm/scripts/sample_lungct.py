@@ -109,7 +109,7 @@ def main(args):
 
             for i in range(imgs.shape[0]):
 
-                if total >= args.num_samples:
+                if total >= (3768 + args.num_samples):
                     break
 
                 out_path = os.path.join(
