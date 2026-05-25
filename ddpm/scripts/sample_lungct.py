@@ -101,9 +101,9 @@ def main(args):
 
         print("Checkpoint restored!\n")
 
-        total = 0
+        total = 3768 # AQUI MUDAR PARA total = 0
 
-        while total < args.num_samples:
+        while total < (3768 + args.num_samples): # AQUI MUDAR PARA while total < args.num_samples
 
             imgs = sess.run(samples)
 
