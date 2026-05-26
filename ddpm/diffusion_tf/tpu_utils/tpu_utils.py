@@ -105,7 +105,7 @@ def run_training(
     optimizer, lr, warmup, grad_clip, ema_decay=0.9999,
     use_tpu=False, tpu=None, zone=None, project=None, 
     log_dir, exp_name, dump_kwargs=None,
-    date_str=None, iterations_per_loop=1000, keep_checkpoint_max=2, max_steps=500000,
+    date_str=None, iterations_per_loop=1000, keep_checkpoint_max=2, max_steps=480000,
     warm_start_from=None
 ):
   tf.logging.set_verbosity(tf.logging.INFO)
