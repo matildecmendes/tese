@@ -7,7 +7,7 @@ import subprocess
 # CONFIGURAÇÕES GERAIS
 # ==========================================
 
-NUM_TRIALS = 1
+NUM_TRIALS = 10
 
 BASE_OUTPUT_DIR = "/nas-ctm01/homes/mcmendes/outputs/random_search"
 
@@ -16,6 +16,7 @@ TRAIN_SCRIPT = "ddgan_randoms.py"
 REAL_IMG_DIR = "/nas-ctm01/datasets/public/lidc-mcmendes/slices_png"
 
 DATA_PATH = "/nas-ctm01/datasets/public/lidc-mcmendes/slices"
+
 
 # ==========================================
 # SEARCH SPACE
@@ -27,7 +28,7 @@ LR_D_VALUES = [5e-5, 1e-4, 1.5e-4]
 
 R1_VALUES = [0.01, 0.05, 0.1]
 
-TIMESTEP_VALUES = [2, 4, 8]
+TIMESTEP_VALUES = [2, 4]
 
 # ==========================================
 # CSV RESULTS
@@ -59,6 +60,8 @@ if not os.path.exists(csv_path):
 for trial in range(NUM_TRIALS):
 
     print(f"\n===== STARTING TRIAL {trial} =====")
+
+    seed = random.randint(0, 999999)
 
     # --------------------------------------
     # Random parameters
@@ -98,11 +101,13 @@ for trial in range(NUM_TRIALS):
 
         "--output_dir", BASE_OUTPUT_DIR,
 
+        "--seed", str(seed),
+
         "--exp", exp_name,
 
         "--batch_size", "4",
 
-        "--num_epoch", "5",
+        "--num_epoch", "25",
 
         "--num_channels", "1",
 
@@ -114,7 +119,7 @@ for trial in range(NUM_TRIALS):
 
         "--save_ckpt_every", "5",
 
-        "--num_fid_samples", "100",
+        "--num_fid_samples", "500",
 
         "--lr_g", str(lr_g),
 
