@@ -101,15 +101,15 @@ def main(args):
 
         print("Checkpoint restored!\n")
 
-        total = 3768 # AQUI MUDAR PARA total = 0
+        total = 0 
 
-        while total < (3768 + args.num_samples): # AQUI MUDAR PARA while total < args.num_samples
+        while total < args.num_samples: 
 
             imgs = sess.run(samples)
 
             for i in range(imgs.shape[0]):
 
-                if total >= (3768 + args.num_samples):
+                if total >= args.num_samples:
                     break
 
                 out_path = os.path.join(
