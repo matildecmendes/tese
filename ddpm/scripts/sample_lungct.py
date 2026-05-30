@@ -101,15 +101,18 @@ def main(args):
 
         print("Checkpoint restored!\n")
 
-        total = 0 
+        start_idx = 1184 #AQUI MUDAR PARA 0
+        total = start_idx
 
-        while total < args.num_samples: 
+        generated = 0
+
+        while generated < args.num_samples: 
 
             imgs = sess.run(samples)
 
             for i in range(imgs.shape[0]):
 
-                if total >= args.num_samples:
+                if generated >= args.num_samples:
                     break
 
                 out_path = os.path.join(
@@ -119,9 +122,10 @@ def main(args):
 
                 save_image(imgs[i], out_path)
 
+                generated += 1
                 total += 1
 
-            print(f"Generated {total}/{args.num_samples}")
+            print(f"Generated {generated}/{args.num_samples}")
 
     print("\nSampling finished!\n")
 

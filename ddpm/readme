@@ -4,6 +4,9 @@ environment: ddpm_env
 cd /nas-ctm01/homes/mcmendes/outputs/ddpm/2/2026-05-12/lungct_diffusion_lungct_unet2d16b2_adam_bs2_lr2e-05w5000_beta0.0001-0.02-linear_t1000_eps-fixedlarge-mse_dropout0.0_randflip0
 cat checkpoint
 
+#verificar de o ckpt x não ficou corrompido
+ls -lh model.ckpt-x*
+
 #mudar assim se for preciso
 model_checkpoint_path: "model.ckpt-x"
 all_model_checkpoint_paths: "model.ckpt-x"
