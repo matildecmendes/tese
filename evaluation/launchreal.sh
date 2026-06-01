@@ -11,4 +11,4 @@ python analysis.py \
   --out_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/real_hist \
   --real_hist_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/real_hist.npy \
   --real_mean_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/real_mean.npy \
-  --save_real_mean
+  --save_real_heatmap
