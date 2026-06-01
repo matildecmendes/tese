@@ -248,11 +248,11 @@ def main(args):
 
         if args.real_mean_path:
             mean_real = np.load(args.real_mean_path)
-            #diff = mean_real - mean_fake
-            diff = np.abs(mean_real - mean_fake)
+            diff = mean_real - mean_fake
+            #diff = np.abs(mean_real - mean_fake)
 
             save_heatmap(diff,
-                         os.path.join(args.out_dir, "diff_abs.png"),
+                         os.path.join(args.out_dir, "diff.png"),
                          "Datasets Difference (Mean)")
 
     # =========================
