@@ -11,6 +11,6 @@
 python test_png_segmentation.py \
     --input_dir /nas-ctm01/homes/mcmendes/samples/denoising_dgan/2 \
     --output_dir /nas-ctm01/homes/mcmendes/outputs/segmentation \
-    --weights r"/nas-ctm01/homes/pfsousa/seg_piu/bestmodel.epoch05.hdf5" \
+    --weights /nas-ctm01/homes/pfsousa/fedseg/seg_piu/bestmodel.epoch05.hdf5 \
     --num_images 10
 
