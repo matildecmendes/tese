@@ -167,7 +167,7 @@ def main(args):
     os.makedirs(args.out_dir, exist_ok=True)
 
     # =========================
-    # GUARDAR HISTOGRAMA REAL (modo rápido)
+    # GUARDAR HISTOGRAMA REAL 
     # =========================
     if args.save_real_hist:
         if args.real_hist_path is None:
@@ -182,6 +182,26 @@ def main(args):
         )
 
         print("✔ hist_real.png guardado")
+        return
+
+    # =========================
+    # GUARDAR HEATMAP REAL 
+    # =========================
+
+    if args.save_real_heatmap:
+
+        if args.real_mean_path is None:
+            raise ValueError("Precisas de --real_mean_path")
+
+        mean_real = np.load(args.real_mean_path)
+
+        save_heatmap(
+            mean_real,
+            os.path.join(args.out_dir, "mean_real.png"),
+            "Real Dataset Mean Heatmap"
+        )
+
+        print("✔ mean_real.png guardado")
         return
 
     # =====================================
@@ -299,6 +319,7 @@ if __name__ == "__main__":
     # modos
     parser.add_argument("--compute_real", action="store_true")
     parser.add_argument("--save_real_hist", action="store_true")
+    parser.add_argument("--save_real_heatmap", action="store_true")
 
     # dirs
     parser.add_argument("--real_dir", type=str, default=None)
