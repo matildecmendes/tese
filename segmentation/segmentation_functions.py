@@ -32,7 +32,17 @@ def lung_segmentation_scan(model, scan_data, final_img_size = (128, 128), fill_h
         img = scan[idx]
         
         # Resize image to the input dimension of the network
-        img_resized = np.array([cv2.resize(normalize(img), (128,128))])
+        #img_resized = np.array([cv2.resize(normalize(img), (128,128))])
+
+        # substitui por isto
+        img_resized = cv2.resize(img, (128,128))
+
+        img_resized = img_resized.astype(np.float32) / 255.0
+
+        img_resized = np.expand_dims(img_resized, axis=0)
+        img_resized = np.expand_dims(img_resized, axis=-1)
+
+        # até aqui
         
         # Get predicted lung mask
         predicted = model(img_resized)
