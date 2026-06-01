@@ -36,6 +36,13 @@ def lung_segmentation_scan(model, scan_data, final_img_size = (128, 128), fill_h
         
         # Get predicted lung mask
         predicted = model(img_resized)
+
+        print(
+            "Prediction:",
+            np.min(predicted),
+            np.max(predicted),
+            np.mean(predicted)
+        )
         
         predicted_mask = np.array(predicted[0])
         p1 = np.array(predicted[0])
