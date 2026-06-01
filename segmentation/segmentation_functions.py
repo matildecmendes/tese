@@ -59,7 +59,7 @@ def lung_segmentation_scan(model, scan_data, final_img_size = (128, 128), fill_h
         predicted_mask = cv2.resize(p1, final_img_size)
         for r in range(predicted_mask.shape[0]):
             for c in range(predicted_mask.shape[1]):
-                if predicted_mask[r][c] >= 0.5:
+                if predicted_mask[r][c] >= 0.7: #era 0.5
                     predicted_mask[r][c] = 1
                 else:
                     predicted_mask[r][c] = 0
