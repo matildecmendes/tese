@@ -20,3 +20,6 @@ python metrics_ddgan.py \
   --compute_cmmd \
   --compute_msssim \
   --cmmd_path /nas-ctm01/homes/mcmendes/tese/cmmd-pytorch
+
+RANDOM SEARCH
+correr sbatch random_search.py x (sendo x o número do trial que quero fazer)

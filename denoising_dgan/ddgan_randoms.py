@@ -718,6 +718,8 @@ if __name__ == '__main__':
         trial_configs = json.load(f)
 
     cfg = trial_configs[str(args.trial_id)]
+    print(f"Running trial {args.trial_id}")
+    print(cfg)
 
     args.seed = cfg["seed"]
     args.lr_g = cfg["lr_g"]
