@@ -46,7 +46,7 @@ cmd = [
 
     "--dataset", "custom",
 
-    "--save_ckpt_every", "5",
+    "--save_ckpt_every", "24",
 
     "--num_fid_samples", "500"
 ]
