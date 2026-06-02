@@ -103,12 +103,6 @@ for fname in files:
         print(f"Could not read {fname}")
         continue
 
-    print(
-        f"Shape={img.shape} "
-        f"Min={img.min()} "
-        f"Max={img.max()}"
-    )
-
     H, W = img.shape
 
     img = img.astype(np.float32)
