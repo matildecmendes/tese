@@ -705,8 +705,32 @@ if __name__ == '__main__':
     parser.add_argument('--save_fid_samples', action='store_true', default=True, help='generate samples for FID at end of training')
    
     parser.add_argument('--real_img_dir', type=str, required=True, help='directory with real images for FID')
-   
+    
+    parser.add_argument('--trial_id', type=int, required=True)
+
+    parser.add_argument('--trial_config', type=str, required=True)
+
     args = parser.parse_args()
+
+    import json
+
+    with open(args.trial_config, "r") as f:
+        trial_configs = json.load(f)
+
+    cfg = trial_configs[str(args.trial_id)]
+
+    args.seed = cfg["seed"]
+    args.lr_g = cfg["lr_g"]
+    args.lr_d = cfg["lr_d"]
+    args.r1_gamma = cfg["r1_gamma"]
+    args.num_timesteps = cfg["num_timesteps"]
+
+    args.exp = f"trial_{args.trial_id:03d}"
+
+    print("\n===== TRIAL CONFIG =====")
+    print(cfg)
+    print("========================\n")
+
     args.world_size = args.num_proc_node * args.num_process_per_node
     size = args.num_process_per_node
 
