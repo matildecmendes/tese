@@ -10,6 +10,8 @@ from segmentation_functions import *
 
 from keras.optimizers import Adam
 
+import csv
+
 
 # =====================================================
 # ARGUMENTS
@@ -52,6 +54,18 @@ OUTPUT_DIR = args.output_dir
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
+# =====================================================
+# CSV TO STORE LUNG RATIOS
+# =====================================================
+csv_path = os.path.join(OUTPUT_DIR, "lung_ratios.csv")
+
+csv_file = open(csv_path, "w", newline="")
+csv_writer = csv.writer(csv_file)
+
+csv_writer.writerow([
+    "image",
+    "lung_ratio"
+])
 
 # =====================================================
 # LOAD MODEL
@@ -90,9 +104,7 @@ print(f"Found {len(files)} images.")
 # PROCESS
 # =====================================================
 
-for fname in files:
-
-    print(f"\nProcessing {fname}")
+for idx, fname in enumerate(files):
 
     img = cv2.imread(
         os.path.join(INPUT_DIR, fname),
@@ -115,6 +127,20 @@ for fname in files:
         scan,
         final_img_size=(W, H)
     )[0]
+
+    # LUNG RATIO CALCULATION + SAVE TO CSV
+    lung_ratio = np.sum(mask > 0) / mask.size
+
+    csv_writer.writerow([
+        fname,
+        lung_ratio
+    ])
+
+    if idx % 100 == 0:
+        print(
+            f"{idx}/{len(files)} | "
+            f"lung_ratio={lung_ratio:.4f}"
+        )
 
     # =================================================
     # SAVE MASK
@@ -148,5 +174,13 @@ for fname in files:
         ),
         overlay
     )
+
+    if idx % 100 == 0:
+        print(
+            f"Processed {idx}/{len(files)} "
+            f"| current lung_ratio={lung_ratio:.4f}"
+        )
+
+csv_file.close()
 
 print("\nDone.")
