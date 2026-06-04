@@ -48,7 +48,9 @@ cmd = [
 
     "--save_ckpt_every", "24",
 
-    "--num_fid_samples", "500"
+    "--num_fid_samples", "500" ,
+
+    "--save_content", "True"
 ]
 
 subprocess.run(cmd)
