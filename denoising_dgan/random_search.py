@@ -50,7 +50,7 @@ cmd = [
 
     "--num_fid_samples", "500" ,
 
-    "--save_content", "True"
+    "--save_content"
 ]
 
 subprocess.run(cmd)
