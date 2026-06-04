@@ -254,8 +254,8 @@ def train(rank, gpu, args):
     exp = args.exp
     exp_path = os.path.join(args.output_dir, args.exp)
     #adicionei para random search
-    if rank == 0:
-        os.makedirs(exp_path, exist_ok=True)
+    # if rank == 0:
+    #     os.makedirs(exp_path, exist_ok=True)
 
     sample_dir = os.path.join(exp_path, "samples")
     os.makedirs(sample_dir, exist_ok=True)
@@ -263,36 +263,90 @@ def train(rank, gpu, args):
     fid_sample_dir = os.path.join(exp_path, "fid_samples")
     os.makedirs(fid_sample_dir, exist_ok=True)
 
+    # if rank == 0:
+    #     if not os.path.exists(exp_path):
+    #         os.makedirs(exp_path)
+    #         copy_source(__file__, exp_path)
+    #         shutil.copytree('score_sde/models', os.path.join(exp_path, 'score_sde/models'))
     if rank == 0:
-        if not os.path.exists(exp_path):
-            os.makedirs(exp_path)
+        first_creation = not os.path.exists(exp_path)
+        os.makedirs(exp_path, exist_ok=True)
+        if first_creation:
             copy_source(__file__, exp_path)
-            shutil.copytree('score_sde/models', os.path.join(exp_path, 'score_sde/models'))
+            shutil.copytree(
+                "score_sde/models",
+                os.path.join(exp_path, "score_sde/models")
+            )
     
     
     coeff = Diffusion_Coefficients(args, device)
     pos_coeff = Posterior_Coefficients(args, device)
     T = get_time_schedule(args, device)
     
-    if args.resume:
-        checkpoint_file = os.path.join(exp_path, 'content.pth')
-        checkpoint = torch.load(checkpoint_file, map_location=device)
-        init_epoch = checkpoint['epoch']
-        epoch = init_epoch
-        netG.load_state_dict(checkpoint['netG_dict'])
-        # load G
+    # if args.resume:
+    #     checkpoint_file = os.path.join(exp_path, 'content.pth')
+    #     checkpoint = torch.load(checkpoint_file, map_location=device)
+    #     init_epoch = checkpoint['epoch']
+    #     epoch = init_epoch
+    #     netG.load_state_dict(checkpoint['netG_dict'])
+    #     # load G
         
-        optimizerG.load_state_dict(checkpoint['optimizerG'])
-        schedulerG.load_state_dict(checkpoint['schedulerG'])
-        # load D
-        netD.load_state_dict(checkpoint['netD_dict'])
-        optimizerD.load_state_dict(checkpoint['optimizerD'])
-        schedulerD.load_state_dict(checkpoint['schedulerD'])
-        global_step = checkpoint['global_step']
-        print("=> loaded checkpoint (epoch {})"
-                  .format(checkpoint['epoch']))
+    #     optimizerG.load_state_dict(checkpoint['optimizerG'])
+    #     schedulerG.load_state_dict(checkpoint['schedulerG'])
+    #     # load D
+    #     netD.load_state_dict(checkpoint['netD_dict'])
+    #     optimizerD.load_state_dict(checkpoint['optimizerD'])
+    #     schedulerD.load_state_dict(checkpoint['schedulerD'])
+    #     global_step = checkpoint['global_step']
+    #     print("=> loaded checkpoint (epoch {})"
+    #               .format(checkpoint['epoch']))
+    # else:
+    #     global_step, epoch, init_epoch = 0, 0, 0
+
+
+    # retomar treino
+    if args.resume_checkpoint is not None:
+
+        print(
+            f"Loading checkpoint {args.resume_checkpoint}"
+        )
+
+        checkpoint = torch.load(
+            args.resume_checkpoint,
+            map_location=device
+        )
+
+        netG.load_state_dict(checkpoint["netG"])
+        netD.load_state_dict(checkpoint["netD"])
+
+        optimizerG.load_state_dict(
+            checkpoint["optimizerG"]
+        )
+
+        optimizerD.load_state_dict(
+            checkpoint["optimizerD"]
+        )
+
+        schedulerG.load_state_dict(
+            checkpoint["schedulerG"]
+        )
+
+        schedulerD.load_state_dict(
+            checkpoint["schedulerD"]
+        )
+
+        init_epoch = checkpoint["epoch"] + 1
+
+        global_step = checkpoint["global_step"]
+
+        print(
+            f"Resuming from epoch {init_epoch}"
+        )
+
     else:
-        global_step, epoch, init_epoch = 0, 0, 0
+
+        global_step = 0
+        init_epoch = 0
     
     import time
 
@@ -476,13 +530,37 @@ def train(rank, gpu, args):
             #aqui
                
             if epoch % args.save_ckpt_every == 0:
+                checkpoint = {
+                    "epoch": epoch,
+                    "global_step": global_step,
+
+                    "netG": netG.state_dict(),
+                    "netD": netD.state_dict(),
+
+                    "optimizerG": optimizerG.state_dict(),
+                    "optimizerD": optimizerD.state_dict(),
+
+                    "schedulerG": schedulerG.state_dict(),
+                    "schedulerD": schedulerD.state_dict(),
+
+                    "trial_config": cfg
+                }
+
+                torch.save(
+                    checkpoint,
+                    os.path.join(
+                        exp_path,
+                        f"checkpoint_epoch_{epoch}.pth"
+                    )
+                )
+
                 if args.use_ema:
                     optimizerG.swap_parameters_with_ema(store_params_in_ema=True)
 
-                torch.save(
-                    netG.state_dict(),
-                    os.path.join(exp_path, 'netG_{}.pth'.format(epoch))
-                )
+                # torch.save(
+                #     netG.state_dict(),
+                #     os.path.join(exp_path, 'netG_{}.pth'.format(epoch))
+                # )
 
                 if args.use_ema:
                     optimizerG.swap_parameters_with_ema(store_params_in_ema=True)
@@ -680,6 +758,7 @@ if __name__ == '__main__':
     parser.add_argument('--save_content', action='store_true',default=False)
     parser.add_argument('--save_content_every', type=int, default=50, help='save content for resuming every x epochs')
     parser.add_argument('--save_ckpt_every', type=int, default=25, help='save ckpt every x epochs')
+    parser.add_argument("--resume_checkpoint",type=str,default=None, help="path to checkpoint to resume training from")
    
     ###ddp
     parser.add_argument('--num_proc_node', type=int, default=1,
