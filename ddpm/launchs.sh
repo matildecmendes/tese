@@ -20,6 +20,6 @@ echo "========== TF GPU CHECK =========="
 python -c "import tensorflow as tf; print('TF version:', tf.__version__); print('Built with CUDA:', tf.test.is_built_with_cuda()); print('GPU device:', tf.test.gpu_device_name())"
 
 python scripts/sample_lungct.py \
-    --checkpoint_dir /nas-ctm01/homes/mcmendes/outputs/ddpm/565000 \
+    --checkpoint_dir /nas-ctm01/homes/mcmendes/outputs/ddpm/2/2026-05-12/lungct_diffusion_lungct_unet2d16b2_adam_bs2_lr2e-05w5000_beta0.0001-0.02-linear_t1000_eps-fixedlarge-mse_dropout0.0_randflip0 \
     --output_dir /nas-ctm01/homes/mcmendes/samples/ddpm \
     --num_samples 2633
