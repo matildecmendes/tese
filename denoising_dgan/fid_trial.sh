@@ -7,4 +7,4 @@
 #SBATCH --error=slurm_%x.%j.err    # File containing STDERR output. If ommited, use STDOUT.
 
 # Commands / scripts to run (e.g., python3 train.py)
-python python finish_fid_trial.py
+python finish_fid_trial.py
