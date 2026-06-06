@@ -8,9 +8,9 @@
 
 # Commands / scripts to run (e.g., python3 train.py)
 python sampling_ddgan.py \
-  --model_path /nas-ctm01/homes/mcmendes/outputs/random_search/trial_002/checkpoint_epoch_24.pth \
-  --output_dir /nas-ctm01/homes/mcmendes/outputs/random_search/trial_002/fid_samples \
+  --model_path /nas-ctm01/homes/mcmendes/outputs/denoising_dgan/3/test_run/netG_5.pth \
+  --output_dir /nas-ctm01/homes/mcmendes/samples/denoising_dgan/3 \
   --real_img_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png \
-  --num_samples 500 \
+  --num_samples 1000 \
   --batch_size 8 
 
