@@ -12,6 +12,6 @@ python finish_trial.py \
     --output_dir /nas-ctm01/homes/mcmendes/outputs/random_search/trial_002/fid_samples \
     --real_img_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png \
     --num_samples 500 \
-    --batch_size 16 \
+    --batch_size 8 \
     --num_timesteps 2 \
     --compute_fid
