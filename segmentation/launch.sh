@@ -37,7 +37,7 @@ echo "STARTING SEGMENTATION"
 # Commands / scripts to run (e.g., python3 train.py)
 python test_png_segmentation.py \
     --input_dir /nas-ctm01/homes/mcmendes/samples/diffusion-stylegan2 \
-    --output_dir /nas-ctm01/homes/mcmendes/outputs/segmentation/vqgan \
+    --output_dir /nas-ctm01/homes/mcmendes/outputs/segmentation/difban \
     --weights /nas-ctm01/homes/pfsousa/fedseg/seg_piu/bestmodel.epoch05.hdf5 \
-    --num_images 5000
+    --num_images 10
 
