@@ -10,7 +10,7 @@
 python metrics.py \
   --fake_dir /nas-ctm01/homes/mcmendes/samples/ddpm \
   --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png \
-  --output_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/ddpm/metrics2 \
+  --output_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/ddpm/metrics_final \
   --compute_fid \
   --compute_cmmd \
   --compute_msssim \
