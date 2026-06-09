@@ -34,7 +34,7 @@ cmd = [
 
     "--output_dir", BASE_OUTPUT_DIR,
 
-    "--batch_size", "8",
+    "--batch_size", "4",
 
     "--num_epoch", "25",
 
