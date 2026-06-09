@@ -68,5 +68,12 @@
         "lr_d": 5e-05,
         "r1_gamma": 0.05,
         "num_timesteps": 4
+    },
+    "10": {
+        "seed": 1024,
+        "lr_g": 1.5e-04,
+        "lr_d": 1e-04,
+        "r1_gamma": 0.05,
+        "num_timesteps": 4
     }
 }
