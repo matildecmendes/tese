@@ -22,5 +22,5 @@ python -c "import tensorflow as tf; print('TF version:', tf.__version__); print(
 python scripts/sample_lungct.py \
     --checkpoint_dir /nas-ctm01/homes/mcmendes/outputs/ddpm/480000 \
     --output_dir /nas-ctm01/homes/mcmendes/samples/ddpm \
-    --num_samples 2309 \
+    --num_samples 1465 \
     --batch_size 16

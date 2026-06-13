@@ -101,7 +101,7 @@ def main(args):
 
         print("Checkpoint restored!\n")
 
-        start_idx = 2692 #AQUI MUDAR PARA 0
+        start_idx = 3860 #AQUI MUDAR PARA 0
         total = start_idx
 
         generated = 0
