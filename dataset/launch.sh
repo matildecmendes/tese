@@ -7,7 +7,7 @@
 #SBATCH --error=slurm_%x.%j.err    # File containing STDERR output. If ommited, use STDOUT.
 
 # Commands / scripts to run (e.g., python3 train.py)
-python nlst_preprocess.py \
+python pre_processing_nlst.py \
     --input_folder /nas-ctm01/datasets/public/medical_datasets/lung_ct_datasets/nlst/raw_data/manifest-1741808882472/NLST \
     --output_folder /nas-ctm01/datasets/public/lidc-mcmendes/slices_nlst
 
