@@ -9,7 +9,7 @@
 # Commands / scripts to run (e.g., python3 train.py)
 python analysis.py \
   --fake_dir /nas-ctm01/homes/mcmendes/samples/ddpm \
-  --out_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/ddpm/analysis3 \
+  --out_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/ddpm/analysis2 \
   --real_hist_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/real_hist.npy \
   --real_mean_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/real_mean.npy \
   --heatmaps --histograms --compare_hist
