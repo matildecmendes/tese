@@ -8,7 +8,6 @@
 
 # Commands / scripts to run (e.g., python3 train.py)
 python analysis.py \
-  --out_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/real_hist \
-  --real_hist_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/real_hist.npy \
-  --real_mean_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/real_mean.npy \
-  --save_real_heatmap
+  --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_nlst \
+  --out_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/NLST \
+  --compute_real
