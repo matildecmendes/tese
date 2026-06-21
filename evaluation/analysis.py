@@ -167,6 +167,31 @@ def main(args):
     os.makedirs(args.out_dir, exist_ok=True)
 
     # =========================
+    # GERAR HEATMAP REAL DIRETAMENTE
+    # =========================
+    if args.real_heatmap:
+
+        if args.real_dir is None:
+            raise ValueError("Precisas de --real_dir")
+
+        real_paths = get_all_image_paths(args.real_dir)
+        print("Real images:", len(real_paths))
+
+        mean_real = compute_mean_image(
+            real_paths,
+            max_images=args.max_images
+        )
+
+        save_heatmap(
+            mean_real,
+            os.path.join(args.out_dir, "mean_real.png"),
+            "Real Dataset Mean Heatmap"
+        )
+
+        print("✔ mean_real.png guardado")
+        return
+
+    # =========================
     # GUARDAR HISTOGRAMA REAL 
     # =========================
     if args.save_real_hist:
@@ -336,8 +361,11 @@ if __name__ == "__main__":
     parser.add_argument("--compare_hist", action="store_true")
     parser.add_argument("--kl", action="store_true")
     parser.add_argument("--emd", action="store_true")
+    parser.add_argument("--real_heatmap", action="store_true")
 
     parser.add_argument("--max_images", type=int, default=None)
+
+    
 
     args = parser.parse_args()
     main(args)
