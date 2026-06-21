@@ -9,6 +9,7 @@
 # Commands / scripts to run (e.g., python3 train.py)
 python analysis.py \
   --fake_dir /nas-ctm01/homes/mcmendes/samples/denoising_dgan/NLST \
+  --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png_nlst \
   --out_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/NLST/analysis \
   --real_mean_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/NLST/real_mean.npy \
   --real_hist_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/NLST/real_hist.npy \
