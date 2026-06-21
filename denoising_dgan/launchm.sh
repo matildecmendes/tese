@@ -8,8 +8,8 @@
 
 # Commands / scripts to run (e.g., python3 train.py)
 python metrics.py \
-  --fake_dir /nas-ctm01/homes/mcmendes/samples/denoising_dgan/2 \
-  --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png \
+  --fake_dir /nas-ctm01/homes/mcmendes/samples/denoising_dgan/NLST \
+  --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png_nlst \
   --compute_fid \
   --compute_cmmd \
   --compute_msssim \
