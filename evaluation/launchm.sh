@@ -11,7 +11,14 @@ python metrics.py \
   --fid_dir /nas-ctm01/homes/mcmendes/samples/denoising_dgan/NLST \
   --fake_dir /nas-ctm01/homes/mcmendes/samples/denoising_dgan/NLST \
   --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png_nlst \
-  --output_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/FID \
-  --compute_same_fid
+  --output_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/NLST/metrics2 \
+  --compute_cmmd \
+  --compute_msssim \
+  --compute_frd \
+  --compute_mae_mse \
+  --compute_pr \
+  --compute_fid \
+  --cmmd_path /nas-ctm01/homes/mcmendes/tese/cmmd-pytorch
+
 
 
