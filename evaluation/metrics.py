@@ -200,7 +200,7 @@ def main(args):
 
         log_to_file(
             args.output_dir,
-            "fid_a_vs_b_ddpm.txt",
+            "fid_a_vs_b_dif-gan.txt",
             result
         )
 
