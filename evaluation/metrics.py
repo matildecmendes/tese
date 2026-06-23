@@ -150,6 +150,66 @@ def main(args):
     real_selected = random.sample(real_paths, n)
 
     # =====================================================
+    # REAL-vs-REAL FID BASELINE
+    # =====================================================
+    if args.compute_same_fid:
+
+        if args.fid_dir is None:
+            raise ValueError("Need --fid_dir")
+
+        print("\n===== COMPUTING same A-vs-B FID =====")
+
+        fid_paths = get_image_paths(args.fid_dir)
+
+        print(f"[INFO] Total images: {len(fid_paths)}")
+
+        if len(fid_paths) < 2:
+            raise ValueError("Need at least 2 images")
+
+        random.seed(42)
+
+        shuffled_paths = fid_paths.copy()
+        random.shuffle(shuffled_paths)
+
+        half = len(shuffled_paths) // 2
+
+        subset_A = shuffled_paths[:half]
+        subset_B = shuffled_paths[half:half * 2]
+
+        print(f"[INFO] Subset A: {len(subset_A)} images")
+        print(f"[INFO] Subset B: {len(subset_B)} images")
+
+        tmp_A = create_temp_subset(subset_A)
+        tmp_B = create_temp_subset(subset_B)
+
+        fid = calculate_fid_given_paths(
+            [tmp_A, tmp_B],
+            batch_size=args.batch_size,
+            device='cuda:0',
+            dims=2048
+        )
+
+        result = (
+            f"FID (Subset A vs Subset B): {fid}\n"
+            f"Subset A images: {len(subset_A)}\n"
+            f"Subset B images: {len(subset_B)}\n"
+            f"Random seed: 42"
+        )
+
+        print(result)
+
+        log_to_file(
+            args.output_dir,
+            "fid_a_vs_b.txt",
+            result
+        )
+
+        shutil.rmtree(tmp_A)
+        shutil.rmtree(tmp_B)
+
+        return
+
+    # =====================================================
     # FID
     # =====================================================
     if args.compute_fid:
@@ -286,6 +346,7 @@ if __name__ == "__main__":
     parser.add_argument('--fake_dir', type=str, required=True)
     parser.add_argument('--real_dir', type=str, required=True)
     parser.add_argument('--output_dir', type=str, default='results')
+    parser.add_argument('--fid_dir', type=str, default=None) # calculo fid a vs b
 
     parser.add_argument('--batch_size', type=int, default=16)
 
@@ -295,6 +356,7 @@ if __name__ == "__main__":
     parser.add_argument('--compute_frd', action='store_true')
     parser.add_argument('--compute_mae_mse', action='store_true')
     parser.add_argument('--compute_pr', action='store_true')
+    parser.add_argument('--compute_same_fid', action='store_true') # calculo fid a vs b
 
     parser.add_argument('--cmmd_path', type=str, default='cmmd-pytorch')
 
