@@ -116,7 +116,7 @@ def save_heatmap(img, path, title):
 #     plt.close()
 
 def save_hist_single(hist, path, title):
-    plt.figure(figsize=(12,11))
+    plt.figure(figsize=(6,5))
     x = np.arange(len(hist))
 
     plt.bar(x, hist, color="tab:blue", edgecolor="tab:blue")
@@ -336,7 +336,7 @@ def main(args):
         if args.histograms:
             save_hist_single(hist_fake,
                              os.path.join(args.out_dir, "hist_fake.png"),
-                             "VQGAN Generated Dataset Histogram") #MUDAR AQUI O TITULO
+                             "DDPM Generated Dataset Histogram") #MUDAR AQUI O TITULO
 
     # =========================
     # COMPARAÇÃO
