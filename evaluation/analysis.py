@@ -312,7 +312,7 @@ def main(args):
 
         save_heatmap(mean_fake,
                      os.path.join(args.out_dir, "mean_fake.png"),
-                     "DDGAN Generated Dataset Mean Heatmap") #MUDAR AQUI O TITULO
+                     "DDGAN (NLST) Generated Dataset Mean Heatmap") #MUDAR AQUI O TITULO
 
         if args.real_mean_path:
             mean_real = np.load(args.real_mean_path)
@@ -335,8 +335,8 @@ def main(args):
 
         if args.histograms:
             save_hist_single(hist_fake,
-                             os.path.join(args.out_dir, "hist_fake.png"),
-                             "DDGAN Generated Dataset Histogram") #MUDAR AQUI O TITULO
+                             os.path.join(args.out_dir, "hist_fake_nlst.png"),
+                             "DDGAN (NLST) Generated Dataset Histogram") #MUDAR AQUI O TITULO
 
     # =========================
     # COMPARAÇÃO

@@ -13,4 +13,4 @@ python analysis.py \
   --out_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/new \
   --real_mean_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/NLST/real_mean.npy \
   --real_hist_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/NLST/real_hist.npy \
-  --compare_hist
+  --histograms --compare_hist
