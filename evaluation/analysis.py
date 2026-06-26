@@ -103,10 +103,24 @@ def save_heatmap(img, path, title):
     plt.close()
 
 
+# def save_hist_single(hist, path, title):
+#     plt.figure(figsize=(6,5))
+#     x = np.arange(len(hist))
+#     plt.bar(x, hist)
+#     #plt.yscale("log")
+#     plt.ylim(0, 0.02)
+#     plt.xlim(1, 250)
+#     plt.title(title)
+#     plt.tight_layout()
+#     plt.savefig(path)
+#     plt.close()
+
 def save_hist_single(hist, path, title):
     plt.figure(figsize=(6,5))
     x = np.arange(len(hist))
-    plt.bar(x, hist)
+
+    plt.bar(x, hist, color="tab:blue", edgecolor="tab:blue")
+
     #plt.yscale("log")
     plt.ylim(0, 0.02)
     plt.xlim(1, 250)
