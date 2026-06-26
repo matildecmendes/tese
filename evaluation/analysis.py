@@ -151,6 +151,14 @@ def save_hist_comparison(hist_real, hist_fake, path):
     x = np.arange(len(hist_real))
 
     plt.bar(
+        x, hist_fake,
+        color="tab:orange",
+        edgecolor="tab:orange",
+        alpha=0.8,
+        label="Fake"
+    )
+    
+    plt.bar(
         x, hist_real,
         color="tab:blue",
         edgecolor="tab:blue",
@@ -158,13 +166,7 @@ def save_hist_comparison(hist_real, hist_fake, path):
         label="Real"
     )
 
-    plt.bar(
-        x, hist_fake,
-        color="tab:orange",
-        edgecolor="tab:orange",
-        alpha=0.5,
-        label="Fake"
-    )
+    
 
     # plt.yscale("log")
     plt.ylim(0, 0.02)
@@ -340,7 +342,7 @@ def main(args):
         if args.histograms:
             save_hist_single(hist_fake,
                              os.path.join(args.out_dir, "hist_fake.png"),
-                             "VQGAN Generated Dataset Histogram") #MUDAR AQUI O TITULO
+                             "DDPM Generated Dataset Histogram") #MUDAR AQUI O TITULO
 
     # =========================
     # COMPARAÇÃO
