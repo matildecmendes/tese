@@ -130,15 +130,22 @@ def save_heatmap(img, path, title):
 #     plt.close()
 
 def save_hist_single(hist, path, title):
-    plt.figure(figsize=(6,5), dpi=300)
+    plt.figure(figsize=(8,5), dpi=300)
 
     x = np.arange(len(hist))
 
-    plt.plot(x, hist, color="tab:blue", linewidth=2)
-    plt.fill_between(x, hist, color="tab:blue", alpha=0.3)
+    plt.bar(
+        x,
+        hist,
+        width=1.0,
+        color="#1f77b4",
+        edgecolor="none",
+        linewidth=0
+    )
 
     plt.xlim(0, 255)
     plt.ylim(0, 0.02)
+
 
     plt.title(title)
 
