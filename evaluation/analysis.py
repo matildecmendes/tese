@@ -157,7 +157,7 @@ def save_hist_comparison(hist_real, hist_fake, path):
         alpha=0.8,
         label="Fake"
     )
-    
+
     plt.bar(
         x, hist_real,
         color="tab:blue",
@@ -251,8 +251,8 @@ def main(args):
 
         save_hist_single(
             hist_real,
-            os.path.join(args.out_dir, "hist_real.png"),
-            "Real Dataset Histogram"
+            os.path.join(args.out_dir, "hist_real_nlst.png"),
+            "Real (NLST) Dataset Histogram"
         )
 
         print("✔ hist_real.png guardado")
