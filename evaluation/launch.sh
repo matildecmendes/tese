@@ -13,4 +13,4 @@ python analysis.py \
   --out_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/NLST/analysis \
   --real_mean_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/NLST/real_mean.npy \
   --real_hist_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/NLST/real_hist.npy \
-  --real_heatmap
+  --histograms

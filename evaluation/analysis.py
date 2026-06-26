@@ -130,12 +130,41 @@ def save_hist_single(hist, path, title):
     plt.close()
 
 
+# def save_hist_comparison(hist_real, hist_fake, path):
+#     plt.figure(figsize=(6,5))
+#     x = np.arange(len(hist_real))
+#     plt.bar(x, hist_real, alpha=0.5, label="Real")
+#     plt.bar(x, hist_fake, alpha=0.5, label="Fake")
+#     #plt.yscale("log")
+#     plt.ylim(0, 0.02)
+#     plt.xlim(1, 250)
+#     plt.legend()
+#     plt.title("Histogram Comparison")
+#     plt.tight_layout()
+#     plt.savefig(path)
+#     plt.close()
+
 def save_hist_comparison(hist_real, hist_fake, path):
     plt.figure(figsize=(6,5))
     x = np.arange(len(hist_real))
-    plt.bar(x, hist_real, alpha=0.5, label="Real")
-    plt.bar(x, hist_fake, alpha=0.5, label="Fake")
-    #plt.yscale("log")
+
+    plt.bar(
+        x, hist_real,
+        color="tab:blue",
+        edgecolor="tab:blue",
+        alpha=0.5,
+        label="Real"
+    )
+
+    plt.bar(
+        x, hist_fake,
+        color="tab:orange",
+        edgecolor="tab:orange",
+        alpha=0.5,
+        label="Fake"
+    )
+
+    # plt.yscale("log")
     plt.ylim(0, 0.02)
     plt.xlim(1, 250)
     plt.legend()
