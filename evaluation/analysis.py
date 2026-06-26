@@ -168,7 +168,7 @@ def save_hist_comparison(hist_real, hist_fake, path):
     plt.ylim(0, 0.02)
     plt.xlim(1, 250)
     plt.legend()
-    plt.title("Histogram Comparison")
+    plt.title("Histograms Comparison")
     plt.tight_layout()
     plt.savefig(path)
     plt.close()
@@ -335,8 +335,8 @@ def main(args):
 
         if args.histograms:
             save_hist_single(hist_fake,
-                             os.path.join(args.out_dir, "hist_fake_nlst.png"),
-                             "DDGAN (NLST) Generated Dataset Histogram") #MUDAR AQUI O TITULO
+                             os.path.join(args.out_dir, "hist_fake.png"),
+                             "VQGAN Generated Dataset Histogram") #MUDAR AQUI O TITULO
 
     # =========================
     # COMPARAÇÃO
