@@ -115,18 +115,42 @@ def save_heatmap(img, path, title):
 #     plt.savefig(path)
 #     plt.close()
 
+# def save_hist_single(hist, path, title):
+#     plt.figure(figsize=(6,5))
+#     x = np.arange(len(hist))
+
+#     plt.bar(x, hist, color="tab:blue", edgecolor="tab:blue")
+
+#     #plt.yscale("log")
+#     plt.ylim(0, 0.02)
+#     plt.xlim(1, 250)
+#     plt.title(title)
+#     plt.tight_layout()
+#     plt.savefig(path)
+#     plt.close()
+
 def save_hist_single(hist, path, title):
-    plt.figure(figsize=(6,5))
+    plt.figure(figsize=(8,5), dpi=300)
+
     x = np.arange(len(hist))
 
-    plt.bar(x, hist, color="tab:blue", edgecolor="tab:blue")
+    plt.bar(
+        x,
+        hist,
+        width=1.0,
+        color="#1f77b4",
+        edgecolor="none",
+        linewidth=0,
+        antialiased=False
+    )
 
-    #plt.yscale("log")
+    plt.xlim(0, 255)
     plt.ylim(0, 0.02)
-    plt.xlim(1, 250)
+
     plt.title(title)
+
     plt.tight_layout()
-    plt.savefig(path)
+    plt.savefig(path, dpi=300, bbox_inches="tight")
     plt.close()
 
 
@@ -144,33 +168,72 @@ def save_hist_single(hist, path, title):
 #     plt.savefig(path)
 #     plt.close()
 
+# def save_hist_comparison(hist_real, hist_fake, path):
+#     plt.figure(figsize=(6,5))
+#     x = np.arange(len(hist_real))
+
+#     plt.bar(
+#         x, hist_real,
+#         color="tab:blue",
+#         edgecolor="tab:blue",
+#         alpha=0.5,
+#         label="Real"
+#     )
+
+#     plt.bar(
+#         x, hist_fake,
+#         color="tab:orange",
+#         edgecolor="tab:orange",
+#         alpha=0.5,
+#         label="Fake"
+#     )
+
+#     # plt.yscale("log")
+#     plt.ylim(0, 0.02)
+#     plt.xlim(1, 250)
+#     plt.legend()
+#     plt.title("Histograms Comparison")
+#     plt.tight_layout()
+#     plt.savefig(path)
+#     plt.close()
+
 def save_hist_comparison(hist_real, hist_fake, path):
-    plt.figure(figsize=(6,5))
+    plt.figure(figsize=(8,5), dpi=300)
+
     x = np.arange(len(hist_real))
 
     plt.bar(
-        x, hist_real,
-        color="tab:blue",
-        edgecolor="tab:blue",
-        alpha=0.5,
+        x,
+        hist_real,
+        width=1.0,
+        color="#1f77b4",
+        edgecolor="none",
+        linewidth=0,
+        antialiased=False,
+        alpha=0.6,
         label="Real"
     )
 
     plt.bar(
-        x, hist_fake,
-        color="tab:orange",
-        edgecolor="tab:orange",
-        alpha=0.5,
+        x,
+        hist_fake,
+        width=1.0,
+        color="#ff7f0e",
+        edgecolor="none",
+        linewidth=0,
+        antialiased=False,
+        alpha=0.6,
         label="Fake"
     )
 
-    # plt.yscale("log")
+    plt.xlim(0, 255)
     plt.ylim(0, 0.02)
-    plt.xlim(1, 250)
+
+    plt.title("Histogram Comparison")
     plt.legend()
-    plt.title("Histograms Comparison")
+
     plt.tight_layout()
-    plt.savefig(path)
+    plt.savefig(path, dpi=300, bbox_inches="tight")
     plt.close()
 
 def save_hist_overlay(hist_real, hist_fake, path):
