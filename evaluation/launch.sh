@@ -10,7 +10,7 @@
 
 python analysis.py \
   --fake_dir /nas-ctm01/homes/mcmendes/samples/vqgan \
-  --out_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/vqgan/hists2 \
+  --out_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/new/vqgan \
   --real_hist_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/lidc/real_hist.npy \
   --real_mean_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/lidc/real_mean.npy \
   --histograms --compare_hist
