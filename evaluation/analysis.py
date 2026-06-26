@@ -116,7 +116,7 @@ def save_heatmap(img, path, title):
 #     plt.close()
 
 def save_hist_single(hist, path, title):
-    plt.figure(figsize=(12,5))
+    plt.figure(figsize=(12,11))
     x = np.arange(len(hist))
 
     plt.bar(x, hist, color="tab:blue", edgecolor="tab:blue")
