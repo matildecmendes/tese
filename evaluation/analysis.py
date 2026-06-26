@@ -340,7 +340,7 @@ def main(args):
         if args.histograms:
             save_hist_single(hist_fake,
                              os.path.join(args.out_dir, "hist_fake.png"),
-                             "Diffusion-StyleGAN2 Generated Dataset Histogram") #MUDAR AQUI O TITULO
+                             "VQGAN Generated Dataset Histogram") #MUDAR AQUI O TITULO
 
     # =========================
     # COMPARAÇÃO
