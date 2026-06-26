@@ -134,15 +134,8 @@ def save_hist_single(hist, path, title):
 
     x = np.arange(len(hist))
 
-    plt.bar(
-        x,
-        hist,
-        width=1.0,
-        color="#1f77b4",
-        edgecolor="none",
-        linewidth=0,
-        antialiased=False
-    )
+    plt.plot(x, hist, color="tab:blue", linewidth=2)
+    plt.fill_between(x, hist, color="tab:blue", alpha=0.3)
 
     plt.xlim(0, 255)
     plt.ylim(0, 0.02)
@@ -150,7 +143,7 @@ def save_hist_single(hist, path, title):
     plt.title(title)
 
     plt.tight_layout()
-    plt.savefig(path, dpi=300, bbox_inches="tight")
+    plt.savefig(path, dpi=300)
     plt.close()
 
 
