@@ -130,7 +130,7 @@ def save_heatmap(img, path, title):
 #     plt.close()
 
 def save_hist_single(hist, path, title):
-    plt.figure(figsize=(8,5), dpi=300)
+    plt.figure(figsize=(6,5), dpi=300)
 
     x = np.arange(len(hist))
 
@@ -198,7 +198,7 @@ def save_hist_single(hist, path, title):
 #     plt.close()
 
 def save_hist_comparison(hist_real, hist_fake, path):
-    plt.figure(figsize=(8,5), dpi=300)
+    plt.figure(figsize=(6,5), dpi=300)
 
     x = np.arange(len(hist_real))
 
