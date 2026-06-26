@@ -130,17 +130,17 @@ def save_heatmap(img, path, title):
 #     plt.close()
 
 def save_hist_single(hist, path, title):
-    plt.figure(figsize=(8,5), dpi=300)
+    plt.figure(figsize=(6,5), dpi=300)
 
     x = np.arange(len(hist))
 
     plt.bar(
         x,
         hist,
-        width=1.0,
         color="#1f77b4",
-        edgecolor="none",
-        linewidth=0
+        edgecolor="#1f77b4",
+        linewidth=0,
+        antialiased=False
     )
 
     plt.xlim(0, 255)
@@ -150,7 +150,7 @@ def save_hist_single(hist, path, title):
     plt.title(title)
 
     plt.tight_layout()
-    plt.savefig(path, dpi=300)
+    plt.savefig(path, dpi=600)
     plt.close()
 
 
