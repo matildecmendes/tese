@@ -115,43 +115,21 @@ def save_heatmap(img, path, title):
 #     plt.savefig(path)
 #     plt.close()
 
-# def save_hist_single(hist, path, title):
-#     plt.figure(figsize=(6,5))
-#     x = np.arange(len(hist))
-
-#     plt.bar(x, hist, color="tab:blue", edgecolor="tab:blue")
-
-#     #plt.yscale("log")
-#     plt.ylim(0, 0.02)
-#     plt.xlim(1, 250)
-#     plt.title(title)
-#     plt.tight_layout()
-#     plt.savefig(path)
-#     plt.close()
-
 def save_hist_single(hist, path, title):
-    plt.figure(figsize=(6,5), dpi=300)
-
+    plt.figure(figsize=(6,5))
     x = np.arange(len(hist))
 
-    plt.bar(
-        x,
-        hist,
-        color="#1f77b4",
-        edgecolor="#1f77b4",
-        linewidth=0,
-        antialiased=False
-    )
+    plt.bar(x, hist, color="tab:blue", edgecolor="tab:blue")
 
-    plt.xlim(0, 255)
+    #plt.yscale("log")
     plt.ylim(0, 0.02)
-
-
+    plt.xlim(1, 250)
     plt.title(title)
-
     plt.tight_layout()
-    plt.savefig(path, dpi=600)
+    plt.savefig(path)
     plt.close()
+
+
 
 
 # def save_hist_comparison(hist_real, hist_fake, path):
