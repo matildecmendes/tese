@@ -150,6 +150,15 @@ def save_hist_comparison(hist_real, hist_fake, path):
     plt.figure(figsize=(6,5))
     x = np.arange(len(hist_real))
 
+
+    plt.bar(
+        x, hist_real,
+        color="tab:blue",
+        edgecolor="tab:blue",
+        alpha=0.7,
+        label="Real"
+    )
+
     plt.bar(
         x, hist_fake,
         color="tab:orange",
@@ -158,15 +167,6 @@ def save_hist_comparison(hist_real, hist_fake, path):
         label="Fake"
     )
 
-    plt.bar(
-        x, hist_real,
-        color="tab:blue",
-        edgecolor="tab:blue",
-        alpha=0.5,
-        label="Real"
-    )
-
-    
 
     # plt.yscale("log")
     plt.ylim(0, 0.02)
