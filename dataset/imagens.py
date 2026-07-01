@@ -50,6 +50,17 @@ def generate_preprocessing_examples(ct_path,
     # Downsampling
     resized = normalized[::2, ::2]
 
+    print("\n" + "=" * 60)
+    print("PREPROCESSING INFORMATION")
+    print("=" * 60)
+
+    print_stats("01. Original CT", original)
+    print_stats("02. Lung Mask", lung_mask)
+    print_stats("03. Selected Slice (Masked)", masked)
+    print_stats("04. HU Clipping", clipped)
+    print_stats("05. Normalized", normalized)
+    print_stats("06. Downsampled", resized)
+
     # -------------------------
     # Guardar imagens
     # -------------------------
@@ -102,6 +113,14 @@ def generate_preprocessing_examples(ct_path,
 
     print(f"Images saved to: {output_folder}")
 
+def print_stats(name, img):
+    print(f"{name}")
+    print(f"  Shape : {img.shape}")
+    print(f"  Dtype : {img.dtype}")
+    print(f"  Min   : {np.min(img):.4f}")
+    print(f"  Max   : {np.max(img):.4f}")
+    print()
+
 
 if __name__ == "__main__":
 
@@ -119,4 +138,5 @@ if __name__ == "__main__":
         args.mask,
         args.output,
         args.slice
+
     )
