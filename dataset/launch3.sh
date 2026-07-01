@@ -10,5 +10,5 @@
 python imagens.py \
     --ct /nas-ctm01/datasets/public/lidc_npy/3d/ct/LIDC-IDRI-0001.npy \
     --mask /nas-ctm01/datasets/public/lidc_npy/3d/lungmask/LIDC-IDRI-0001.npy \
-    --output /nas-ctm01/homes/mcmendes/outputs/images \
-    --slice 72
+    --output /nas-ctm01/homes/mcmendes/outputs/images/1 \
+    --slice 1
