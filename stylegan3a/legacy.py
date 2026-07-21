@@ -14,7 +14,7 @@ import re
 import copy
 import numpy as np
 import torch
-import stylegan3a.dnnlib as dnnlib
+import dnnlib
 from stylegan3a.torch_utils import misc
 
 #----------------------------------------------------------------------------
