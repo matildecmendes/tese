@@ -17,7 +17,7 @@ import scipy.ndimage
 import matplotlib.pyplot as plt
 import click
 import tqdm
-import stylegan3a.dnnlib as dnnlib
+import dnnlib
 
 import legacy
 from training import dataset

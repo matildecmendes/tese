@@ -16,7 +16,7 @@ import copy
 import uuid
 import numpy as np
 import torch
-import stylegan3a.dnnlib as dnnlib
+import dnnlib
 
 #----------------------------------------------------------------------------
 

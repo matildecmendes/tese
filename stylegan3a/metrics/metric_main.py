@@ -12,7 +12,7 @@ import os
 import time
 import json
 import torch
-import stylegan3a.dnnlib as dnnlib
+import dnnlib
 
 from . import metric_utils
 from . import frechet_inception_distance

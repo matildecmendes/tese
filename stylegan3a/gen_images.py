@@ -13,7 +13,7 @@ import re
 from typing import List, Optional, Tuple, Union
 
 import click
-import stylegan3a.dnnlib as dnnlib
+import dnnlib
 import numpy as np
 import PIL.Image
 import torch

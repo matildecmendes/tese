@@ -14,9 +14,9 @@ import torch
 import torch.fft
 import torch.nn
 import matplotlib.cm
-import stylegan3a.dnnlib as dnnlib
-from stylegan3a.torch_utils.ops import upfirdn2d
-import stylegan3a.legacy as legacy # pylint: disable=import-error
+import dnnlib
+from torch_utils.ops import upfirdn2d
+import legacy# pylint: disable=import-error
 
 #----------------------------------------------------------------------------
 

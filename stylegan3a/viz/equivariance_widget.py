@@ -8,7 +8,7 @@
 
 import numpy as np
 import imgui
-import stylegan3a.dnnlib as dnnlib
+import dnnlib
 from gui_utils import imgui_utils
 
 #----------------------------------------------------------------------------

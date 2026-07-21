@@ -10,7 +10,7 @@ import glob
 import os
 import re
 
-import stylegan3a.dnnlib as dnnlib
+import dnnlib
 import imgui
 import numpy as np
 from gui_utils import imgui_utils
