@@ -77,6 +77,8 @@ def make_transform(translate: Tuple[float,float], angle: float):
 @click.option('--translate', help='Translate XY-coordinate (e.g. \'0.3,1\')', type=parse_vec2, default='0,0', show_default=True, metavar='VEC2')
 @click.option('--rotate', help='Rotation angle in degrees', type=float, default=0, show_default=True, metavar='ANGLE')
 @click.option('--outdir', help='Where to save the output images', type=str, required=True, metavar='DIR')
+
+
 def generate_images(
     network_pkl: str,
     seeds: List[int],
@@ -120,22 +122,53 @@ def generate_images(
             print ('warn: --class=lbl ignored when running on an unconditional network')
 
     # Generate images.
-    for seed_idx, seed in enumerate(seeds):
-        print('Generating image for seed %d (%d/%d) ...' % (seed, seed_idx, len(seeds)))
-        z = torch.from_numpy(np.random.RandomState(seed).randn(1, G.z_dim)).to(device)
+    for sample_idx, seed in enumerate(seeds):
+        print(
+            'Generating image for seed %d (%d/%d) ...'
+            % (seed, sample_idx + 1, len(seeds))
+        )
 
-        # Construct an inverse rotation/translation matrix and pass to the generator.  The
-        # generator expects this matrix as an inverse to avoid potentially failing numerical
-        # operations in the network.
+        z = torch.from_numpy(
+            np.random.RandomState(seed).randn(1, G.z_dim)
+        ).to(device)
+
+        # Construct inverse rotation/translation matrix.
         if hasattr(G.synthesis, 'input'):
             m = make_transform(translate, rotate)
             m = np.linalg.inv(m)
-            G.synthesis.input.transform.copy_(torch.from_numpy(m))
+            G.synthesis.input.transform.copy_(
+                torch.from_numpy(m)
+            )
 
-        img = G(z, label, truncation_psi=truncation_psi, noise_mode=noise_mode)
-        img = (img.permute(0, 2, 3, 1) * 127.5 + 128).clamp(0, 255).to(torch.uint8)
-        PIL.Image.fromarray(img[0].cpu().numpy(), 'RGB').save(f'{outdir}/seed{seed:04d}.png')
+        with torch.no_grad():
+            img = G(
+                z,
+                label,
+                truncation_psi=truncation_psi,
+                noise_mode=noise_mode
+            )
 
+        # Generator output:
+        # [1, 1, 256, 256], float32, range approximately [-1, 1].
+        img = img[0, 0].clamp(-1, 1)
+
+        # Convert [-1, 1] to uint8 [0, 255].
+        img = (
+            (img + 1.0) * 127.5
+        ).round().clamp(0, 255).to(torch.uint8)
+
+        img = img.cpu().numpy()
+
+        # Save as a grayscale PNG.
+        output_path = os.path.join(
+            outdir,
+            f'sample_{sample_idx:05d}.png'
+        )
+
+        PIL.Image.fromarray(
+            img,
+            mode='L'
+        ).save(output_path)
 
 #----------------------------------------------------------------------------
 

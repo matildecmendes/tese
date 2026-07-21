@@ -88,7 +88,8 @@ class Dataset(torch.utils.data.Dataset):
         image = self._load_raw_image(self._raw_idx[idx])
         assert isinstance(image, np.ndarray)
         assert list(image.shape) == self.image_shape
-        assert image.dtype == np.uint8
+        #assert image.dtype == np.uint8
+        assert image.dtype in [np.uint8, np.float32]
         if self._xflip[idx]:
             assert image.ndim == 3 # CHW
             image = image[:, :, ::-1]
@@ -172,9 +173,16 @@ class ImageFolderDataset(Dataset):
             raise IOError('Path must point to a directory or zip')
 
         PIL.Image.init()
-        self._image_fnames = sorted(fname for fname in self._all_fnames if self._file_ext(fname) in PIL.Image.EXTENSION)
+        #self._image_fnames = sorted(fname for fname in self._all_fnames if self._file_ext(fname) in PIL.Image.EXTENSION)
+        #if len(self._image_fnames) == 0:
+        #    raise IOError('No image files found in the specified path')
+
+        self._image_fnames = sorted(
+            fname for fname in self._all_fnames
+            if self._file_ext(fname) in PIL.Image.EXTENSION or self._file_ext(fname) == '.npy'
+        )
         if len(self._image_fnames) == 0:
-            raise IOError('No image files found in the specified path')
+            raise IOError('No image or NPY files found in the specified path')
 
         name = os.path.splitext(os.path.basename(self._path))[0]
         raw_shape = [len(self._image_fnames)] + list(self._load_raw_image(0).shape)
@@ -209,16 +217,52 @@ class ImageFolderDataset(Dataset):
     def __getstate__(self):
         return dict(super().__getstate__(), _zipfile=None)
 
+    # def _load_raw_image(self, raw_idx):
+    #     fname = self._image_fnames[raw_idx]
+    #     with self._open_file(fname) as f:
+    #         if pyspng is not None and self._file_ext(fname) == '.png':
+    #             image = pyspng.load(f.read())
+    #         else:
+    #             image = np.array(PIL.Image.open(f))
+    #     if image.ndim == 2:
+    #         image = image[:, :, np.newaxis] # HW => HWC
+    #     image = image.transpose(2, 0, 1) # HWC => CHW
+    #     return image
+
     def _load_raw_image(self, raw_idx):
         fname = self._image_fnames[raw_idx]
+
+        # Lung CT slices stored directly as normalized NPY arrays.
+        if self._file_ext(fname) == '.npy':
+            with self._open_file(fname) as f:
+                image = np.load(f, allow_pickle=False)
+
+            image = np.asarray(image, dtype=np.float32)
+
+            if image.ndim == 2:
+                image = image[np.newaxis, :, :]  # HW => CHW
+            elif image.ndim == 3 and image.shape[0] == 1:
+                pass  # Already CHW.
+            elif image.ndim == 3 and image.shape[2] == 1:
+                image = image.transpose(2, 0, 1)  # HWC => CHW
+            else:
+                raise IOError(
+                    f'Unsupported NPY shape {image.shape} in {fname}'
+                )
+
+            return image
+
+        # Original PNG/JPEG loading path.
         with self._open_file(fname) as f:
             if pyspng is not None and self._file_ext(fname) == '.png':
                 image = pyspng.load(f.read())
             else:
                 image = np.array(PIL.Image.open(f))
+
         if image.ndim == 2:
-            image = image[:, :, np.newaxis] # HW => HWC
-        image = image.transpose(2, 0, 1) # HWC => CHW
+            image = image[:, :, np.newaxis]  # HW => HWC
+
+        image = image.transpose(2, 0, 1)  # HWC => CHW
         return image
 
     def _load_raw_labels(self):
