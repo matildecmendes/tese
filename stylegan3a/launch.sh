@@ -6,13 +6,6 @@
 #SBATCH --output=slurm_%x.%j.out   # File containing STDOUT output
 #SBATCH --error=slurm_%x.%j.err    # File containing STDERR output. If ommited, use STDOUT.
 
-set -euo pipefail
-
-if [ "$#" -lt 2 ]; then
-    echo "Usage: sbatch launch.sh DATA_DIR OUT_DIR [KIMG]"
-    exit 1
-fi
-
 
 module purge
 module load CUDA/11.1.1
