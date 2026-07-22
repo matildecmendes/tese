@@ -9,49 +9,33 @@
 source "$(conda info --base)/etc/profile.d/conda.sh"
 conda activate stylegan3
 
-# Force StyleGAN3 to use the CUDA toolkit installed inside Conda.
+# CUDA toolkit inside the Conda environment.
 export CUDA_HOME="$CONDA_PREFIX"
 export CUDA_PATH="$CONDA_PREFIX"
 export PATH="$CONDA_PREFIX/bin:$PATH"
 export LD_LIBRARY_PATH="$CONDA_PREFIX/lib:$CONDA_PREFIX/lib64:${LD_LIBRARY_PATH:-}"
 
-# Use a clean, model-specific extension cache.
-export TORCH_EXTENSIONS_DIR="$HOME/.cache/torch_extensions_stylegan3_cuda111"
+# Use GCC 9 and the Conda Linux sysroot.
+export CC="$CONDA_PREFIX/bin/x86_64-conda-linux-gnu-gcc"
+export CXX="$CONDA_PREFIX/bin/x86_64-conda-linux-gnu-g++"
+export CUDAHOSTCXX="$CXX"
+export NVCC_CCBIN="$CXX"
+export NVCC_PREPEND_FLAGS="-ccbin=$CXX"
 
-hash -r
+# Separate cache for this compiler configuration.
+export TORCH_EXTENSIONS_DIR="$HOME/.cache/torch_extensions_stylegan3_cuda111_gcc9"
 
-echo "========================================"
-echo "Environment verification"
-echo "========================================"
-echo "Conda environment: $CONDA_DEFAULT_ENV"
-echo "Conda prefix:      $CONDA_PREFIX"
-echo "Python:            $(which python)"
-echo "NVCC:              $(which nvcc)"
+echo "CUDA compiler:"
+which nvcc
 nvcc --version
 
-python - <<'PY'
-import torch
-from torch.utils.cpp_extension import CUDA_HOME
+echo "Host compiler:"
+"$CC" --version
+"$CXX" --version
 
-print("PyTorch:", torch.__version__)
-print("PyTorch CUDA:", torch.version.cuda)
-print("CUDA_HOME detected by PyTorch:", CUDA_HOME)
-print("GPU available:", torch.cuda.is_available())
-
-if torch.cuda.is_available():
-    print("GPU:", torch.cuda.get_device_name(0))
-PY
-
-# Stop immediately if the system CUDA is still being used.
-NVCC_PATH="$(which nvcc)"
-
-if [[ "$NVCC_PATH" != "$CONDA_PREFIX/bin/nvcc" ]]; then
-    echo "ERROR: Wrong NVCC selected: $NVCC_PATH"
-    echo "Expected: $CONDA_PREFIX/bin/nvcc"
-    exit 1
-fi
-
-echo "========================================"
+echo "CC=$CC"
+echo "CXX=$CXX"
+echo "NVCC_CCBIN=$NVCC_CCBIN"
 
 # Commands / scripts to run (e.g., python3 train.py)
 python train.py \
