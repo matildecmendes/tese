@@ -10,7 +10,7 @@
 "Alias-Free Generative Adversarial Networks"."""
 
 import os
-from LAND2.src.utils import opts
+#from LAND2.src.utils import opts
 import click
 import re
 import json
