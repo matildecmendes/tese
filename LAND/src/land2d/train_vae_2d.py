@@ -24,7 +24,7 @@ from LAND.src.land2d.dataset_npy_2d import (
     select_max_samples,
     split_file_list,
 )
-from LAND2.src.vae.utils.losses import KL_loss
+from LAND.src.vae.utils.losses import KL_loss
 
 
 def load_json(path: str | Path) -> dict[str, Any]:
