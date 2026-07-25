@@ -217,10 +217,14 @@ def main() -> None:
     optimizer_g = torch.optim.Adam(autoencoder.parameters(), lr=learning_rate, eps=1e-6 if amp_enabled else 1e-8)
     optimizer_d = torch.optim.Adam(discriminator.parameters(), lr=learning_rate, eps=1e-6 if amp_enabled else 1e-8)
 
+    # def warmup_rule(epoch: int) -> float:
+    #     if epoch < 10:
+    #         return 0.01
+    #     if epoch < 20:
+    #         return 0.1
+    #     return 1.0
     def warmup_rule(epoch: int) -> float:
-        if epoch < 10:
-            return 0.01
-        if epoch < 20:
+        if epoch < 1:
             return 0.1
         return 1.0
 
