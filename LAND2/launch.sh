@@ -6,15 +6,18 @@
 #SBATCH --output=slurm_%x.%j.out   # File containing STDOUT output
 #SBATCH --error=slurm_%x.%j.err    # File containing STDERR output. If ommited, use STDOUT.
 
-set -eu pipefail
+set -euo pipefail
 
 source "$(conda info --base)/etc/profile.d/conda.sh"
 conda activate land
 
+# Garante que o job corre a partir da raiz do repositório.
+cd "$SLURM_SUBMIT_DIR"
+
 # Commands / scripts to run (e.g., python3 train.py)
 srun bash scripts/train_vae_2d.sh \
-  --dataset_path /nas-ctm01/datasets/public/lidc-mcmendes/slices \
-  --run_name LAND2D_VAE_LIDC \
+  /nas-ctm01/datasets/public/lidc-mcmendes/slices \
+  LAND2D_VAE_LIDC \
   --model_dir /nas-ctm01/homes/mcmendes/outputs/land \
   --log_dir /nas-ctm01/homes/mcmendes/outputs/land/logs \
   --max_samples 20000 \
