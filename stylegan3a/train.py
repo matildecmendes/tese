@@ -10,6 +10,7 @@
 "Alias-Free Generative Adversarial Networks"."""
 
 import os
+from LAND2.src.utils import opts
 import click
 import re
 import json
@@ -136,6 +137,7 @@ def parse_comma_separated_list(s):
 @click.option('--mirror',       help='Enable dataset x-flips', metavar='BOOL',                  type=bool, default=False, show_default=True)
 @click.option('--aug',          help='Augmentation mode',                                       type=click.Choice(['noaug', 'ada', 'fixed']), default='ada', show_default=True)
 @click.option('--resume',       help='Resume from given network pickle', metavar='[PATH|URL]',  type=str)
+@click.option('--resume-kimg',  help='KIMG corresponding to the resume checkpoint', metavar='INT', type=click.IntRange(min=0), default=0, show_default=True)
 @click.option('--freezed',      help='Freeze first layers of D', metavar='INT',                 type=click.IntRange(min=0), default=0, show_default=True)
 
 # Misc hyperparameters.
@@ -259,11 +261,18 @@ def main(**kwargs):
             c.augment_p = opts.p
 
     # Resume.
+    # if opts.resume is not None:
+    #     c.resume_pkl = opts.resume
+    #     c.ada_kimg = 100 # Make ADA react faster at the beginning.
+    #     c.ema_rampup = None # Disable EMA rampup.
+    #     c.loss_kwargs.blur_init_sigma = 0 # Disable blur rampup.
+    # Resume.
     if opts.resume is not None:
         c.resume_pkl = opts.resume
-        c.ada_kimg = 100 # Make ADA react faster at the beginning.
-        c.ema_rampup = None # Disable EMA rampup.
-        c.loss_kwargs.blur_init_sigma = 0 # Disable blur rampup.
+        c.resume_kimg = opts.resume_kimg
+        c.ada_kimg = 100
+        c.ema_rampup = None
+        c.loss_kwargs.blur_init_sigma = 0
 
     # Performance-related toggles.
     if opts.fp32:

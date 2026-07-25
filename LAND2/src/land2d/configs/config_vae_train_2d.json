@@ -1,0 +1,17 @@
+{
+  "train_portion": 0.9,
+  "seed": 42,
+  "resolution": 256,
+  "batch_size": 8,
+  "val_batch_size": 8,
+  "num_workers": 4,
+  "horizontal_flip": false,
+  "learning_rate": 0.0001,
+  "perceptual_weight": 0.3,
+  "kl_weight": 1e-07,
+  "adversarial_weight": 0.1,
+  "reconstruction_loss": "l1",
+  "epochs": 100,
+  "validation_interval": 1,
+  "amp": true
+}

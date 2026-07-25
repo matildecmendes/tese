@@ -53,4 +53,7 @@ python train.py \
   --snap=25 \
   --workers=4 \
   --seed=0 \
-  --desc=lidc-npy-256 
+  --desc=lidc-npy-256 \
+  --resume=/nas-ctm01/homes/mcmendes/outputs/stylegan3/00000-stylegan3-t-slices-gpus1-batch8-gamma2-lidc-npy-256/network-snapshot-001000.pkl \
+  --resume-kimg=1000 \
+  --kimg=2000
