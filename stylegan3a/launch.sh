@@ -6,7 +6,7 @@
 #SBATCH --output=slurm_%x.%j.out   # File containing STDOUT output
 #SBATCH --error=slurm_%x.%j.err    # File containing STDERR output. If ommited, use STDOUT.
 
-set -euo pipefail
+set -eo pipefail
 
 source "$(conda info --base)/etc/profile.d/conda.sh"
 conda activate stylegan3
