@@ -1,4 +1,4 @@
-monitorização pelo tensorboard
+monitorização pelo tensorboard VAE
 
 1º powershell com o conda environment ativo:
     tensorboard \
@@ -12,3 +12,17 @@ monitorização pelo tensorboard
 navegador: 
     http://localhost:6006
 
+
+monitorização pelo tensorboard LDM
+
+1º powershell com o conda environment ativo:
+    tensorboard \
+    --logdir /nas-ctm01/homes/mcmendes/outputs/land/ldm/logs \
+    --host 127.0.0.1 \
+    --port 6007
+
+2º powershell:
+    ssh -L 6007:localhost:6007 mcmendes@ctm-login.inesctec.pt
+
+navegador: 
+    http://localhost:6007
