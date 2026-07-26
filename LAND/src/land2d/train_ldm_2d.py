@@ -258,11 +258,22 @@ def main() -> None:
             start_epoch = int(metadata["epoch"]) + 1
             global_step = int(metadata["global_step"])
 
+    tracker_config = {}
+
+    for key, value in vars(args).items():
+        if value is None:
+            tracker_config[key] = "None"
+        elif isinstance(value, (int, float, str, bool, torch.Tensor)):
+            tracker_config[key] = value
+        elif isinstance(value, (list, tuple)):
+            tracker_config[key] = ",".join(str(item) for item in value)
+        else:
+            tracker_config[key] = str(value)
+
     accelerator.init_trackers(
         "LAND_2D_LDM",
-        config={**vars(args), "channel_mult": list(args.channel_mult)},
+        config=tracker_config,
     )
-
     accelerator.print("\n========== LAND-2D LDM TRAINING ==========")
     accelerator.print(f"Dataset: {Path(args.dataset_path).resolve()}")
     accelerator.print(f"Images: {len(dataset)}")
