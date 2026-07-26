@@ -1,0 +1,14 @@
+monitorização pelo tensorboard
+
+1º powershell com o conda environment ativo:
+    tensorboard \
+    --logdir /nas-ctm01/homes/mcmendes/outputs/land \
+    --host 127.0.0.1 \
+    --port 6006
+
+2º powershell:
+    ssh -L 6006:localhost:6006 mcmendes@ctm-login.inesctec.pt
+
+navegador: 
+    http://localhost:6006
+
