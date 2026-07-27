@@ -12,14 +12,10 @@ srun --export=ALL python metrics.py \
   --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png \
   --output_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/land/metrics \
   --batch_size 16 \
-  --compute_cmmd \
   --compute_msssim \
   --compute_frd \
   --compute_mae_mse \
-  --compute_pr \
-  --compute_fid \
-  --cmmd_path /nas-ctm01/homes/mcmendes/tese/cmmd-pytorch
-  
+  --compute_pr 
 
 
 
