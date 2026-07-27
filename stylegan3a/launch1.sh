@@ -11,20 +11,17 @@ set -eo pipefail
 source "$(conda info --base)/etc/profile.d/conda.sh"
 conda activate stylegan3
 
-# CUDA toolkit inside the Conda environment.
 export CUDA_HOME="$CONDA_PREFIX"
 export CUDA_PATH="$CONDA_PREFIX"
 export PATH="$CONDA_PREFIX/bin:$PATH"
 export LD_LIBRARY_PATH="$CONDA_PREFIX/lib:$CONDA_PREFIX/lib64:${LD_LIBRARY_PATH:-}"
 
-# Use GCC 9 and the Conda Linux sysroot.
 export CC="$CONDA_PREFIX/bin/x86_64-conda-linux-gnu-gcc"
 export CXX="$CONDA_PREFIX/bin/x86_64-conda-linux-gnu-g++"
 export CUDAHOSTCXX="$CXX"
 export NVCC_CCBIN="$CXX"
 export NVCC_PREPEND_FLAGS="-ccbin=$CXX"
 
-# Separate cache for this compiler configuration.
 export TORCH_EXTENSIONS_DIR="$HOME/.cache/torch_extensions_stylegan3_cuda111_gcc9"
 
 echo "CUDA compiler:"
