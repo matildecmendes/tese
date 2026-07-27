@@ -7,10 +7,11 @@
 #SBATCH --error=slurm_%x.%j.err    # File containing STDERR output. If ommited, use STDOUT.
 
 # Commands / scripts to run (e.g., python3 train.py)
-python metrics.py \
+srun --export=ALL python metrics.py \
   --fake_dir /nas-ctm01/homes/mcmendes/samples/land \
   --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png \
   --output_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/land/metrics \
+  --batch_size 16 \
   --compute_cmmd \
   --compute_msssim \
   --compute_frd \
