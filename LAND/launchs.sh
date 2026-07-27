@@ -13,6 +13,17 @@ conda activate land
 
 cd "$SLURM_SUBMIT_DIR"
 
+# Se quiseres passar argumentos ao sbatch:
+# sbatch launch_inference_ldm_2d.sh /caminho/output 5000 8 250 42 0
+#
+# Ordem:
+#   $1 = OUTPUT_DIR
+#   $2 = NUM_SAMPLES
+#   $3 = BATCH_SIZE
+#   $4 = STEPS
+#   $5 = SEED
+#   $6 = START_INDEX
+
 # -------------------- Modelo LDM -------------------- #
 LDM_RUN=$(cat /nas-ctm01/homes/mcmendes/outputs/land/ldm/LATEST_RUN.txt)
 
@@ -47,11 +58,12 @@ if [[ ! -d "$VAE_PATH" ]]; then
 fi
 
 # --------------------------------------------------------------- #
-OUTPUT_DIR="/nas-ctm01/homes/mcmendes/samples/land"
-NUM_SAMPLES=5000
-BATCH_SIZE=8
-STEPS=250
-SEED=42
+OUTPUT_DIR="${1:-/nas-ctm01/homes/mcmendes/samples/land}"
+NUM_SAMPLES="${2:-5000}"
+BATCH_SIZE="${3:-8}"
+STEPS="${4:-250}"
+SEED="${5:-42}"
+START_INDEX="${6:-0}"
 
 mkdir -p "$OUTPUT_DIR"
 
@@ -64,14 +76,22 @@ echo "Number of samples:    $NUM_SAMPLES"
 echo "Batch size:           $BATCH_SIZE"
 echo "Inference steps:      $STEPS"
 echo "Seed:                 $SEED"
+echo "Start index:          $START_INDEX"
 echo "============================================"
 
+# Necessário para imports do repositório
+export PYTHONPATH="$(dirname "$SLURM_SUBMIT_DIR"):${PYTHONPATH:-}"
+
 # Commands / scripts to run (e.g., python3 train.py)
-srun --export=ALL bash scripts/inference_ldm_2d.sh \
-  "$LDM_RUN" \
-  "$VAE_PATH" \
-  "$OUTPUT_DIR" \
-  "$NUM_SAMPLES" \
-  --batch_size "$BATCH_SIZE" \
+srun --export=ALL python -B src/land2d/inference_ldm_2d.py \
+  --vae_path "$VAE_PATH" \
+  --model_path "$LDM_RUN" \
+  --output_dir "$OUTPUT_DIR" \
+  --num_samples "$NUM_SAMPLES" \
   --steps "$STEPS" \
-  --seed "$SEED"
+  --batch_size "$BATCH_SIZE" \
+  --resolution 256 \
+  --seed "$SEED" \
+  --start_index "$START_INDEX" \
+  --save_png
+
