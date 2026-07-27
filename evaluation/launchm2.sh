@@ -8,7 +8,6 @@
 
 # Commands / scripts to run (e.g., python3 train.py)
 python metrics.py \
-  --fid_dir /nas-ctm01/homes/mcmendes/samples/land \
   --fake_dir /nas-ctm01/homes/mcmendes/samples/land \
   --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png \
   --output_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/land/metrics \
@@ -19,6 +18,7 @@ python metrics.py \
   --compute_pr \
   --compute_fid \
   --cmmd_path /nas-ctm01/homes/mcmendes/tese/cmmd-pytorch
+  
 
 
 
