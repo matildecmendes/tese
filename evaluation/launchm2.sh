@@ -10,7 +10,7 @@
 python metrics.py \
   --fid_dir /nas-ctm01/homes/mcmendes/samples/land \
   --fake_dir /nas-ctm01/homes/mcmendes/samples/land \
-  --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices \
+  --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png \
   --output_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/land/metrics \
   --compute_cmmd \
   --compute_msssim \
