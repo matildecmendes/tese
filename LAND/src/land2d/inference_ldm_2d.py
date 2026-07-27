@@ -120,7 +120,8 @@ def main() -> None:
             if not np.isfinite(image).all():
                 raise RuntimeError(f"NaN/Inf detected in generated sample {index}.")
             image = np.clip(image, -1.0, 1.0).astype(np.float32)
-            np.save(output_dir / f"image_{index:05d}.npy", image)
+            #se quiser guardar .npy também!
+            #np.save(output_dir / f"image_{index:05d}.npy", image)
             if args.save_png:
                 save_png(image, output_dir / f"image_{index:05d}.png")
 
