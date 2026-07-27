@@ -40,8 +40,8 @@ echo "CXX=$CXX"
 echo "NVCC_CCBIN=$NVCC_CCBIN"
 
 # Commands / scripts to run (e.g., python3 train.py)
-python train.py \python train.py \
-  --outdir=/nas-ctm01/homes/mcmendes/outputs/stylegan3_tests \
+python train.py \
+  --outdir=/nas-ctm01/homes/mcmendes/outputs/stylegan3 \
   --data=/nas-ctm01/datasets/public/lidc-mcmendes/slices \
   --cfg=stylegan3-t \
   --gpus=1 \
