@@ -50,7 +50,7 @@ fi
 OUTPUT_DIR="/nas-ctm01/homes/mcmendes/samples/land"
 NUM_SAMPLES=5000
 BATCH_SIZE=8
-NUM_INFERENCE_STEPS=250
+STEPS=250
 SEED=42
 
 mkdir -p "$OUTPUT_DIR"
@@ -62,7 +62,7 @@ echo "VAE checkpoint:       $VAE_PATH"
 echo "Output directory:     $OUTPUT_DIR"
 echo "Number of samples:    $NUM_SAMPLES"
 echo "Batch size:           $BATCH_SIZE"
-echo "Inference steps:      $NUM_INFERENCE_STEPS"
+echo "Inference steps:      $STEPS"
 echo "Seed:                 $SEED"
 echo "============================================"
 
@@ -73,5 +73,5 @@ srun --export=ALL bash scripts/inference_ldm_2d.sh \
   "$OUTPUT_DIR" \
   "$NUM_SAMPLES" \
   --batch_size "$BATCH_SIZE" \
-  --num_inference_steps "$NUM_INFERENCE_STEPS" \
+  --steps "$STEPS" \
   --seed "$SEED"
