@@ -8,6 +8,23 @@
 
 set -eo pipefail
 
+# Paths and training configuration
+
+
+CHECKPOINT="/nas-ctm01/homes/mcmendes/outputs/stylegan3/00003-stylegan3-t-slices-gpus1-batch32-gamma2-lidc-test-fp32-batch32/network-snapshot-000300.pkl"
+
+OUT_DIR="/nas-ctm01/homes/mcmendes/outputs/stylegan3"
+
+DATA_DIR="/nas-ctm01/datasets/public/lidc-mcmendes/slices"
+
+
+TOTAL_KIMG=2000
+
+RESUME_KIMG=300
+
+
+# Conda environment
+
 source "$(conda info --base)/etc/profile.d/conda.sh"
 conda activate stylegan3
 
@@ -36,10 +53,31 @@ echo "CC=$CC"
 echo "CXX=$CXX"
 echo "NVCC_CCBIN=$NVCC_CCBIN"
 
-# Commands / scripts to run (e.g., python3 train.py)
+# Validation
+
+
+if [ ! -f "$CHECKPOINT" ]; then
+    echo "ERROR: checkpoint not found:"
+    echo "$CHECKPOINT"
+    exit 1
+fi
+
+echo "========================================"
+echo "Resume checkpoint: $CHECKPOINT"
+echo "Resume kimg:        $RESUME_KIMG"
+echo "Final target:       $TOTAL_KIMG"
+echo "Additional kimg:    $((TOTAL_KIMG - RESUME_KIMG))"
+echo "Snapshots:          every 100 kimg"
+echo "========================================"
+
+cd /nas-ctm01/homes/mcmendes/tese/stylegan3a
+
+# Training
+
+
 python train.py \
-  --outdir=/nas-ctm01/homes/mcmendes/outputs/stylegan3 \
-  --data=/nas-ctm01/datasets/public/lidc-mcmendes/slices \
+  --outdir="$OUT_DIR" \
+  --data="$DATA_DIR" \
   --cfg=stylegan3-t \
   --gpus=1 \
   --batch=32 \
@@ -48,9 +86,11 @@ python train.py \
   --aug=noaug \
   --metrics=none \
   --fp32=1 \
-  --kimg=300 \
+  --kimg="$TOTAL_KIMG" \
   --tick=4 \
-  --snap=5 \
+  --snap=25 \
   --workers=4 \
   --seed=0 \
-  --desc=lidc-test-fp32-batch32
+  --desc=lidc-fp32-batch32-resume300 \
+  --resume="$CHECKPOINT" \
+  --resume-kimg="$RESUME_KIMG"
