@@ -4,7 +4,8 @@ import argparse
 from math import ceil
 from pathlib import Path
 
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
+from PIL import Image
 import numpy as np
 import torch
 from diffusers import DDPMScheduler
@@ -31,14 +32,21 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+# def save_png(image: np.ndarray, path: Path) -> None:
+#     figure = plt.figure(figsize=(4, 4))
+#     axis = figure.add_subplot(1, 1, 1)
+#     axis.imshow(image, cmap="gray", vmin=-1, vmax=1)
+#     axis.axis("off")
+#     figure.tight_layout(pad=0)
+#     figure.savefig(path, dpi=150, bbox_inches="tight", pad_inches=0)
+#     plt.close(figure)
+
 def save_png(image: np.ndarray, path: Path) -> None:
-    figure = plt.figure(figsize=(4, 4))
-    axis = figure.add_subplot(1, 1, 1)
-    axis.imshow(image, cmap="gray", vmin=-1, vmax=1)
-    axis.axis("off")
-    figure.tight_layout(pad=0)
-    figure.savefig(path, dpi=150, bbox_inches="tight", pad_inches=0)
-    plt.close(figure)
+    image_uint8 = np.rint(
+        (np.clip(image, -1.0, 1.0) + 1.0) * 127.5
+    ).astype(np.uint8)
+
+    Image.fromarray(image_uint8).save(path)
 
 
 def main() -> None:
@@ -80,8 +88,16 @@ def main() -> None:
 
     requested_indices = list(range(args.start_index, args.start_index + args.num_samples))
     indices_to_generate = []
+    # for index in requested_indices:
+    #     output_path = output_dir / f"image_{index:05d}.npy"
+    #     if args.overwrite or not output_path.exists():
+    #         indices_to_generate.append(index)
     for index in requested_indices:
-        output_path = output_dir / f"image_{index:05d}.npy"
+        if args.save_png:
+            output_path = output_dir / f"image_{index:05d}.png"
+        else:
+            output_path = output_dir / f"image_{index:05d}.npy"
+
         if args.overwrite or not output_path.exists():
             indices_to_generate.append(index)
 
