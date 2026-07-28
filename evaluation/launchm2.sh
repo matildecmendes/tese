@@ -25,10 +25,16 @@ echo "============================================"
 srun --export=ALL python metrics.py \
   --fake_dir /nas-ctm01/homes/mcmendes/samples/land \
   --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png \
-  --output_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/land/metrics \
+  --output_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/land/metrics2 \
   --batch_size 16 \
+  --compute_fid \
+  --compute_cmmd \
+  --compute_msssim \
+  --compute_frd \
+  --compute_fid \
+  --compute_cmmd \
   --compute_mae_mse \
-  --compute_pr 
-
+  --compute_pr \
+  --cmmd_path /nas-ctm01/homes/mcmendes/tese/cmmd-pytorch
 
 
