@@ -23,7 +23,7 @@ echo "============================================"
 
 # Commands / scripts to run (e.g., python3 train.py)
 srun --export=ALL python metrics.py \
-  --fake_dir /nas-ctm01/homes/mcmendes/samples/land \
+  --fake_dir /nas-ctm01/homes/mcmendes/samples/land_256 \
   --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png \
   --output_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/land/metrics2 \
   --batch_size 16 \
