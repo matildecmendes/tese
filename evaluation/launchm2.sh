@@ -22,18 +22,15 @@ echo "Start: $(date)"
 echo "============================================"
 
 # Commands / scripts to run (e.g., python3 train.py)
-srun --export=ALL python metrics.py \
-  --fake_dir /nas-ctm01/homes/mcmendes/samples/land_256 \
+python metrics.py \
+  --fake_dir /nas-ctm01/homes/mcmendes/samples/stylegan3 \
   --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png \
-  --output_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/land/metrics2 \
-  --batch_size 16 \
+  --output_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/stylegan3/metrics \
   --compute_fid \
   --compute_cmmd \
   --compute_msssim \
   --compute_frd \
-  --compute_cmmd \
   --compute_mae_mse \
   --compute_pr \
   --cmmd_path /nas-ctm01/homes/mcmendes/tese/cmmd-pytorch
-
 
