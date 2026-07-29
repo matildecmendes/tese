@@ -31,7 +31,6 @@ srun --export=ALL python metrics.py \
   --compute_cmmd \
   --compute_msssim \
   --compute_frd \
-  --compute_fid \
   --compute_cmmd \
   --compute_mae_mse \
   --compute_pr \
