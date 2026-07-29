@@ -17,7 +17,7 @@ CHECKPOINT="/nas-ctm01/homes/mcmendes/outputs/stylegan3/00001-stylegan3-t-slices
 
 OUT_DIR="/nas-ctm01/homes/mcmendes/samples/stylegan3"
 
-NUM_IMAGES=5
+NUM_IMAGES=5000
 
 # ============================================================
 
