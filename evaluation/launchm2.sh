@@ -25,12 +25,10 @@ echo "============================================"
 python metrics.py \
   --fake_dir /nas-ctm01/homes/mcmendes/samples/stylegan3 \
   --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png \
-  --output_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/stylegan3/metrics \
+  --output_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/stylegan3/metrics2 \
   --compute_fid \
   --compute_cmmd \
   --compute_msssim \
   --compute_frd \
-  --compute_mae_mse \
-  --compute_pr \
   --cmmd_path /nas-ctm01/homes/mcmendes/tese/cmmd-pytorch
 
