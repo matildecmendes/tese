@@ -1,0 +1,11 @@
+Como correr:
+
+1. Treino default:
+- launch.sh
+- mixed precision
+
+2. Treino com full precision:
+- launch1.sh
+
+3. Sampling:
+- launchs.sh

@@ -41,8 +41,8 @@ echo "NVCC_CCBIN=$NVCC_CCBIN"
 
 # Commands / scripts to run (e.g., python3 train.py)
 python train.py \
-  --outdir /nas-ctm01/homes/mcmendes/outputs/stylegan3 \
-  --data /nas-ctm01/datasets/public/lidc-mcmendes/slices \
+  --outdir=/nas-ctm01/homes/mcmendes/outputs/stylegan3 \
+  --data=/nas-ctm01/datasets/public/lidc-mcmendes/slices_nslt \
   --cfg=stylegan3-t \
   --gpus=1 \
   --batch=8 \
@@ -55,6 +55,4 @@ python train.py \
   --snap=25 \
   --workers=4 \
   --seed=0 \
-  --desc=lidc-npy-256 \
-  --resume=/nas-ctm01/homes/mcmendes/outputs/stylegan3/00000-stylegan3-t-slices-gpus1-batch8-gamma2-lidc-npy-256/network-snapshot-001000.pkl \
-  --resume-kimg=1000
+  --desc=nlst-npy-256-mixed-precision-from-scratch
