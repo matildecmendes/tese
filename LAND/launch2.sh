@@ -14,11 +14,11 @@ conda activate land
 cd "$SLURM_SUBMIT_DIR"
 
 # -------------------- Dados e VAE -------------------- #
-DATASET_PATH="/nas-ctm01/datasets/public/lidc-mcmendes/slices"
+DATASET_PATH="/nas-ctm01/datasets/public/lidc-mcmendes/slices_nlst"
 
 # Seleciona automaticamente o run mais recente do VAE.
 VAE_RUN_DIR=$(ls -td \
-  /nas-ctm01/homes/mcmendes/outputs/land/LAND2D_VAE_LIDC_* \
+  /nas-ctm01/homes/mcmendes/outputs/land/nlst/LAND2D_VAE_LIDC_* \
   2>/dev/null | head -n 1)
 
 if [[ -z "${VAE_RUN_DIR:-}" ]]; then
@@ -34,8 +34,8 @@ if [[ ! -d "$VAE_PATH" ]]; then
 fi
 
 # -------------------- Outputs -------------------- #
-OUTPUT_ROOT="/nas-ctm01/homes/mcmendes/outputs/land/ldm"
-RUN_NAME="LAND2D_LDM_LIDC"
+OUTPUT_ROOT="/nas-ctm01/homes/mcmendes/outputs/land/nlst/ldm"
+RUN_NAME="LAND2D_LDM_NLST"
 RUN_ID="${RUN_NAME}_$(date +%Y%m%d-%H%M%S)"
 
 OUTPUT_DIR="$OUTPUT_ROOT/$RUN_ID"
