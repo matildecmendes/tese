@@ -53,7 +53,7 @@ if [[ ! -d "$VAE_PATH" ]]; then
 fi
 
 # --------------------------------------------------------------- #
-OUTPUT_DIR="${1:-/nas-ctm01/homes/mcmendes/samples/land_256}"
+OUTPUT_DIR="${1:-/nas-ctm01/homes/mcmendes/samples/land_nlst}"
 NUM_SAMPLES="${2:-5000}"
 BATCH_SIZE="${3:-8}"
 STEPS="${4:-250}"
