@@ -25,7 +25,8 @@ cd "$SLURM_SUBMIT_DIR"
 #   $6 = START_INDEX
 
 # -------------------- Modelo LDM -------------------- #
-LDM_RUN=$(cat /nas-ctm01/homes/mcmendes/outputs/land/ldm/LATEST_RUN.txt)
+LDM_RUN="/nas-ctm01/homes/mcmendes/outputs/land/nlst/ldm/LAND2D_LDM_NLST_20260801-094257/epoch_ckpts/epoch-0100"
+LDM_CKPT_NAME="epoch-0100"
 
 if [[ -z "${LDM_RUN:-}" ]]; then
   echo "ERROR: Não foi encontrado o LDM_RUN."
@@ -43,13 +44,7 @@ if [[ ! -d "$LDM_RUN/scheduler" ]]; then
 fi
 
 # -------------------- VAE -------------------- #
-VAE_RUN_DIR=$(ls -td /nas-ctm01/homes/mcmendes/outputs/land/LAND2D_VAE_LIDC_* 2>/dev/null | head -n 1)
-
-if [[ -z "${VAE_RUN_DIR:-}" ]]; then
-  echo "ERROR: Não foi encontrado nenhum run do VAE."
-  exit 1
-fi
-
+VAE_RUN_DIR="/nas-ctm01/homes/mcmendes/outputs/land/nlst/LAND2D_VAE_LIDC_20260731-102332"
 VAE_PATH="$VAE_RUN_DIR/vae_best_epoch"
 
 if [[ ! -d "$VAE_PATH" ]]; then
@@ -70,6 +65,7 @@ mkdir -p "$OUTPUT_DIR"
 echo "============================================"
 echo "LAND-2D SAMPLE GENERATION"
 echo "LDM run:              $LDM_RUN"
+echo "LDM checkpoint:       $LDM_CKPT_NAME"
 echo "VAE checkpoint:       $VAE_PATH"
 echo "Output directory:     $OUTPUT_DIR"
 echo "Number of samples:    $NUM_SAMPLES"
