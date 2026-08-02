@@ -25,7 +25,7 @@ cd "$SLURM_SUBMIT_DIR"
 #   $6 = START_INDEX
 
 # -------------------- Modelo LDM -------------------- #
-LDM_RUN="/nas-ctm01/homes/mcmendes/outputs/land/nlst/ldm/LAND2D_LDM_NLST_20260801-094257/epoch_ckpts/epoch-0100"
+LDM_RUN="/nas-ctm01/homes/mcmendes/outputs/ldm/LAND2D_LDM_LIDC_20260726-191002/epoch_ckpts/epoch-0100"
 LDM_CKPT_NAME="epoch-0100"
 
 if [[ -z "${LDM_RUN:-}" ]]; then
@@ -44,7 +44,7 @@ if [[ ! -d "$LDM_RUN/scheduler" ]]; then
 fi
 
 # -------------------- VAE -------------------- #
-VAE_RUN_DIR="/nas-ctm01/homes/mcmendes/outputs/land/nlst/LAND2D_VAE_LIDC_20260731-102332"
+VAE_RUN_DIR="/nas-ctm01/homes/mcmendes/outputs/land/LAND2D_VAE_LIDC_20260725-205911"
 VAE_PATH="$VAE_RUN_DIR/vae_best_epoch"
 
 if [[ ! -d "$VAE_PATH" ]]; then
@@ -53,7 +53,7 @@ if [[ ! -d "$VAE_PATH" ]]; then
 fi
 
 # --------------------------------------------------------------- #
-OUTPUT_DIR="${1:-/nas-ctm01/homes/mcmendes/samples/land_nlst}"
+OUTPUT_DIR="${1:-/nas-ctm01/homes/mcmendes/samples/land}"
 NUM_SAMPLES="${2:-5000}"
 BATCH_SIZE="${3:-8}"
 STEPS="${4:-250}"
