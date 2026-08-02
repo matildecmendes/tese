@@ -25,7 +25,7 @@ cd "$SLURM_SUBMIT_DIR"
 #   $6 = START_INDEX
 
 # -------------------- Modelo LDM -------------------- #
-LDM_RUN="/nas-ctm01/homes/mcmendes/outputs/ldm/LAND2D_LDM_LIDC_20260726-191002/epoch_ckpts/epoch-0100"
+LDM_RUN="/nas-ctm01/homes/mcmendes/outputs/land/ldm/LAND2D_LDM_LIDC_20260726-191002/epoch_ckpts/epoch-0100"
 LDM_CKPT_NAME="epoch-0100"
 
 if [[ -z "${LDM_RUN:-}" ]]; then
