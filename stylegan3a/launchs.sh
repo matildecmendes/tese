@@ -13,7 +13,7 @@ set -eo pipefail
 # Alterar apenas estes três valores quando necessário.
 # ============================================================
 
-CHECKPOINT="/nas-ctm01/homes/mcmendes/outputs/stylegan3/00005-stylegan3-t-slices_nlst-gpus1-batch8-gamma2-nlst-npy-256-mixed-precision-from-scratch/network-snapshot-000700.pkl"
+CHECKPOINT="/nas-ctm01/homes/mcmendes/outputs/stylegan3/00005-stylegan3-t-slices_nlst-gpus1-batch8-gamma2-nlst-npy-256-mixed-precision-from-scratch/network-snapshot-00700.pkl"
 
 OUT_DIR="/nas-ctm01/homes/mcmendes/samples/stylegan3_nslt"
 
