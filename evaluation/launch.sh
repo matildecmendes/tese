@@ -10,7 +10,7 @@
 python analysis.py \
   --fake_dir /nas-ctm01/homes/mcmendes/samples/stylegan3 \
   --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png \
-  --out_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/stylegan3/analysis \
+  --out_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/stylegan3/analysis2 \
   --real_mean_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/lidc/real_mean.npy \
   --real_hist_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/lidc/real_hist.npy \
-  --heatmaps --histograms --compare_hist
+  --compare_hist
