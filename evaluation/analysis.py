@@ -163,7 +163,7 @@ def save_hist_comparison(hist_real, hist_fake, path):
         x, hist_fake,
         color="tab:orange",
         edgecolor="tab:orange",
-        alpha=0.4,
+        alpha=0.6,
         label="Fake"
     )
 
