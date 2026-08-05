@@ -195,10 +195,16 @@ def train(rank, gpu, args):
     nz = args.nz #latent dimension
     
     #MINHA ALTERAÇÃO: dataset_npy.py
+    # Dataset NPY
     from dataset_npy import NPYDataset
-    dataset = NPYDataset(args.data_path)
-    dataset = torch.utils.data.Subset(dataset, range(20000))
-    print(f"Dataset loaded from {args.data_path}")
+
+    dataset = NPYDataset(
+        folder=args.data_path,
+        max_samples=args.max_samples,
+        subset_seed=args.subset_seed
+    )
+
+    print(f"Dataset loaded from: {args.data_path}")
     print(f"Number of samples: {len(dataset)}")
       
     
@@ -592,6 +598,20 @@ if __name__ == '__main__':
     
     # dataset (eu que fiz)
     parser.add_argument('--data_path', type=str, required=True, help='path to npy dataset')
+
+    parser.add_argument(
+        '--max_samples',
+        type=int,
+        default=20000,
+        help='maximum number of images used for training; use 0 for all images'
+    )
+
+    parser.add_argument(
+        '--subset_seed',
+        type=int,
+        default=42,
+        help='seed used to select the training subset'
+    )
 
     # pasta para onde vão imagens
     parser.add_argument('--output_dir', type=str, default='./outputs', help='where to save results')
