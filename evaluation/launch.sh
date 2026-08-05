@@ -8,9 +8,9 @@
 
 # Commands / scripts to run (e.g., python3 train.py)
 python analysis.py \
-  --fake_dir /nas-ctm01/homes/mcmendes/samples/land \
-  --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png \
-  --out_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/land/analysis2 \
-  --real_mean_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/lidc/real_mean.npy \
-  --real_hist_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/lidc/real_hist.npy \
+  --fake_dir /nas-ctm01/homes/mcmendes/samples/land_nlst \
+  --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png_nlst \
+  --out_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/land/analysis_nlst \
+  --real_mean_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/NLST/real_mean.npy \
+  --real_hist_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/NLST/real_hist.npy \
   --histograms --compare_hist
