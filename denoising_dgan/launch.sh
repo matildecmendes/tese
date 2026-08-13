@@ -11,6 +11,7 @@ conda activate ddgan_env
 
 # Commands / scripts to run (e.g., python3 train.py)
 python train_ddgan.py \
+  --resume \
   --data_path /nas-ctm01/datasets/public/lidc-mcmendes/slices_nlst \
   --output_dir /nas-ctm01/homes/mcmendes/outputs/denoising_dgan/NLST \
   --exp nlst_random_20k \
@@ -23,4 +24,5 @@ python train_ddgan.py \
   --ch_mult 1 2 2 4 \
   --dataset custom \
   --save_ckpt_every 25 \
-  --save_content
+  --save_content \
+  --save_content_every 25
