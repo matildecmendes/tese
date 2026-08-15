@@ -14,6 +14,10 @@ from pytorch_msssim import ms_ssim
 from pytorch_fid.fid_score import calculate_fid_given_paths
 from torch_fidelity import calculate_metrics
 
+import numpy as np
+from scipy.stats import wasserstein_distance
+from scipy.spatial.distance import jensenshannon
+
 # =========================================================
 # UTIL FUNCTIONS
 # =========================================================
@@ -123,6 +127,39 @@ def compute_precision_recall(fake_dir, real_dir):
     recall = metrics["recall"]
 
     return precision, recall
+
+# =========================================================
+# WASSERSTEIN / JENSEN-SHANNON
+# =========================================================
+
+def compute_histogram_metrics(real_hist_path, fake_hist_path):
+
+    real_hist = np.load(real_hist_path).astype(np.float64)
+    fake_hist = np.load(fake_hist_path).astype(np.float64)
+
+    # Normalize to probability distributions
+    real_hist /= real_hist.sum()
+    fake_hist /= fake_hist.sum()
+
+    # Convert bins [0,255] to HU [-1000,400]
+    hu_values = np.linspace(-1000, 400, len(real_hist))
+
+    # Wasserstein Distance
+    wasserstein = wasserstein_distance(
+        hu_values,
+        hu_values,
+        u_weights=real_hist,
+        v_weights=fake_hist
+    )
+
+    # Jensen-Shannon Divergence
+    jsd = jensenshannon(
+        real_hist,
+        fake_hist,
+        base=2
+    ) ** 2
+
+    return wasserstein, jsd
 
 # =========================================================
 # MAIN
@@ -247,6 +284,39 @@ def main(args):
         print(result.stdout)
         log_to_file(args.output_dir, "cmmd.txt", result.stdout)
 
+        # =====================================================
+        # WASSERSTEIN / JENSEN-SHANNON
+        # =====================================================
+        if args.compute_hist_metrics:
+
+            print("\n===== COMPUTING HISTOGRAM METRICS =====")
+
+            if args.real_hist is None or args.fake_hist is None:
+                raise ValueError("Need --real_hist and --fake_hist")
+
+            wasserstein, jsd = compute_histogram_metrics(
+                args.real_hist,
+                args.fake_hist
+            )
+
+            result_w = f"Wasserstein Distance: {wasserstein} HU"
+            result_jsd = f"Jensen-Shannon Divergence: {jsd}"
+
+            print(f"[RESULT] {result_w}")
+            print(f"[RESULT] {result_jsd}\n")
+
+            log_to_file(
+                args.output_dir,
+                "histogram_metrics.txt",
+                result_w
+            )
+
+            log_to_file(
+                args.output_dir,
+                "histogram_metrics.txt",
+                result_jsd
+            )
+
     # =====================================================
     # MS-SSIM
     # =====================================================
@@ -359,6 +429,11 @@ if __name__ == "__main__":
     parser.add_argument('--compute_same_fid', action='store_true') # calculo fid a vs b
 
     parser.add_argument('--cmmd_path', type=str, default='cmmd-pytorch')
+
+    parser.add_argument('--real_hist', type=str, default=None)
+    parser.add_argument('--fake_hist', type=str, default=None)
+
+    parser.add_argument('--compute_hist_metrics', action='store_true')
 
     args = parser.parse_args()
 

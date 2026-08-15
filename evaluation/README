@@ -131,3 +131,19 @@ python metrics.py \
   --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png_nlst \
   --output_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/NLST/metrics \
   --compute_same_fid
+
+
+python metrics.py \
+  --fake_dir /nas-ctm01/homes/mcmendes/samples/stylegan3_nlst \
+  --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png_nlst \
+  --output_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/stylegan3/metrics_nlst \
+  --real_hist /path/real_hist.npy \
+  --fake_hist /path/fake_hist.npy \
+  --compute_fid \
+  --compute_cmmd \
+  --compute_msssim \
+  --compute_frd \
+  --compute_mae_mse \
+  --compute_pr \
+  --compute_hist_metrics \
+  --cmmd_path /nas-ctm01/homes/mcmendes/tese/cmmd-pytorch
