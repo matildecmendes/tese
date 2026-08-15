@@ -284,38 +284,38 @@ def main(args):
         print(result.stdout)
         log_to_file(args.output_dir, "cmmd.txt", result.stdout)
 
-        # =====================================================
-        # WASSERSTEIN / JENSEN-SHANNON
-        # =====================================================
-        if args.compute_hist_metrics:
-
-            print("\n===== COMPUTING HISTOGRAM METRICS =====")
-
-            if args.real_hist is None or args.fake_hist is None:
-                raise ValueError("Need --real_hist and --fake_hist")
-
-            wasserstein, jsd = compute_histogram_metrics(
-                args.real_hist,
-                args.fake_hist
-            )
-
-            result_w = f"Wasserstein Distance: {wasserstein} HU"
-            result_jsd = f"Jensen-Shannon Divergence: {jsd}"
-
-            print(f"[RESULT] {result_w}")
-            print(f"[RESULT] {result_jsd}\n")
-
-            log_to_file(
-                args.output_dir,
-                "histogram_metrics.txt",
-                result_w
-            )
-
-            log_to_file(
-                args.output_dir,
-                "histogram_metrics.txt",
-                result_jsd
-            )
+    # =====================================================
+    # WASSERSTEIN / JENSEN-SHANNON
+    # =====================================================
+    if args.compute_hist_metrics:
+    
+        print("\n===== COMPUTING HISTOGRAM METRICS =====")
+    
+        if args.real_hist is None or args.fake_hist is None:
+            raise ValueError("Need --real_hist and --fake_hist")
+    
+        wasserstein, jsd = compute_histogram_metrics(
+            args.real_hist,
+            args.fake_hist
+        )
+    
+        result_w = f"Wasserstein Distance: {wasserstein} HU"
+        result_jsd = f"Jensen-Shannon Divergence: {jsd}"
+    
+        print(f"[RESULT] {result_w}")
+        print(f"[RESULT] {result_jsd}\n")
+    
+        log_to_file(
+            args.output_dir,
+            "histogram_metrics.txt",
+            result_w
+        )
+    
+        log_to_file(
+            args.output_dir,
+            "histogram_metrics.txt",
+            result_jsd
+        )
 
     # =====================================================
     # MS-SSIM
