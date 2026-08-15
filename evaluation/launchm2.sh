@@ -2,7 +2,7 @@
 #
 #SBATCH --partition=gpu_min11gb_ext     # Reserved partition
 #SBATCH --qos=gpu_min11gb_ext        # QoS level. Must match the partition name. External users must add the suffix "_ext".
-#SBATCH --job-name=metrics_ddgan_w  # Job name
+#SBATCH --job-name=metrics_difgan_w  # Job name
 #SBATCH --output=slurm_%x.%j.out   # File containing STDOUT output
 #SBATCH --error=slurm_%x.%j.err    # File containing STDERR output. If ommited, use STDOUT.
 
@@ -23,9 +23,9 @@ echo "============================================"
 
 # Commands / scripts to run (e.g., python3 train.py)
 python metrics.py \
-  --fake_dir /nas-ctm01/homes/mcmendes/samples/denoising_dgan/2 \
+  --fake_dir /nas-ctm01/homes/mcmendes/samples/diffusion-stylegan2 \
   --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png \
-  --output_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/ddgan \
+  --output_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/difgan \
   --real_hist /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/lidc/real_hist.npy \
-  --fake_hist /nas-ctm01/homes/mcmendes/outputs/evaluation/ddgan/hist_fake.npy \
+  --fake_hist /nas-ctm01/homes/mcmendes/outputs/evaluation/difgan/hist_fake.npy \
   --compute_hist_metrics
