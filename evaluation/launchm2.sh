@@ -23,9 +23,9 @@ echo "============================================"
 
 # Commands / scripts to run (e.g., python3 train.py)
 python metrics.py \
-  --fake_dir /nas-ctm01/homes/mcmendes/samples/stylegan3 \
+  --fake_dir /nas-ctm01/homes/mcmendes/samples/ddpm \
   --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png \
-  --output_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/stylegan3 \
+  --output_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/ddpm \
   --real_hist /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/lidc/real_hist.npy \
-  --fake_hist /nas-ctm01/homes/mcmendes/outputs/evaluation/stylegan3/hist_fake.npy \
+  --fake_hist /nas-ctm01/homes/mcmendes/outputs/evaluation/ddpm/hist_fake.npy \
   --compute_hist_metrics
