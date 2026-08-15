@@ -26,6 +26,6 @@ python metrics.py \
   --fake_dir /nas-ctm01/homes/mcmendes/samples/denoising_dgan/2 \
   --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png \
   --output_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/ddgan \
-  --real_hist /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/lidc/hist_real.npy \
+  --real_hist /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/lidc/real_hist.npy \
   --fake_hist /nas-ctm01/homes/mcmendes/outputs/evaluation/ddgan/hist_fake.npy \
   --compute_hist_metrics
