@@ -244,7 +244,7 @@ def save_hist_comparison(hist_real, hist_fake, path):
 
     # título maior AQUI
     plt.title(
-        "DDGAN",
+        "StyleGAN3",
         fontsize=18
     )
 
@@ -571,7 +571,7 @@ def main(args):
                     args.out_dir,
                     "diff.png"
                 ),
-                "DDGAN" #AQUI
+                "StyleGAN3" #AQUI
             )
 
 
