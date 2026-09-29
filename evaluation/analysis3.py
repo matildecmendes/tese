@@ -30,7 +30,6 @@ def get_all_image_paths(folder):
 
     for root, _, files in os.walk(folder):
         for f in files:
-
             if f.lower().endswith(
                 (".png", ".jpg", ".jpeg", ".bmp")
             ):
@@ -52,7 +51,6 @@ def compute_mean_image(paths, max_images=None):
     for p in tqdm(paths):
 
         try:
-
             img = Image.open(p).convert("L")
             img = np.array(
                 img,
@@ -69,13 +67,9 @@ def compute_mean_image(paths, max_images=None):
             count += 1
 
         except Exception as e:
-
-            print(
-                f"Erro a ler {p}: {e}"
-            )
+            print(f"Erro a ler {p}: {e}")
 
     if count == 0:
-
         raise ValueError(
             "Nenhuma imagem válida encontrada!"
         )
@@ -98,7 +92,6 @@ def compute_histogram(paths, bins=256, max_images=None):
     for p in tqdm(paths):
 
         try:
-
             img = Image.open(p).convert("L")
 
             img = np.array(
@@ -116,20 +109,16 @@ def compute_histogram(paths, bins=256, max_images=None):
             total_pixels += img.size
 
         except Exception as e:
-
-            print(
-                f"Erro a ler {p}: {e}"
-            )
+            print(f"Erro a ler {p}: {e}")
 
     if total_pixels == 0:
-
         raise ValueError(
             "Nenhum pixel válido encontrado!"
         )
 
     hist /= total_pixels
 
-    # garantir que soma 1
+    # garantir normalização
     hist /= np.sum(hist)
 
     return hist
@@ -139,7 +128,7 @@ def compute_histogram(paths, bins=256, max_images=None):
 # REAL MEAN HEATMAP
 # =========================
 
-def save_real_heatmap(mean_real, path):
+def save_real_heatmap(mean_real, path, title):
 
     plt.figure(
         figsize=(6, 5)
@@ -153,7 +142,7 @@ def save_real_heatmap(mean_real, path):
     )
 
     plt.title(
-        "Real",
+        title,
         fontsize=18
     )
 
@@ -268,11 +257,9 @@ def save_difference_heatmap(
     title
 ):
 
-    # Real - Fake
     diff = mean_real - mean_fake
 
-    # escala simétrica:
-    # por exemplo -30 e +30
+    # escala simétrica em torno de zero
     max_abs = np.max(
         np.abs(diff)
     )
@@ -331,13 +318,12 @@ def main(args):
 
 
     # =====================================
-    # ONLY SAVE REAL HEATMAP
+    # SAVE REAL HEATMAP ONLY
     # =====================================
 
     if args.save_real_heatmap:
 
         if args.real_mean_path is None:
-
             raise ValueError(
                 "Precisas de indicar --real_mean_path"
             )
@@ -351,7 +337,8 @@ def main(args):
             os.path.join(
                 args.out_dir,
                 "mean_real.png"
-            )
+            ),
+            args.title
         )
 
         print(
@@ -362,17 +349,15 @@ def main(args):
 
 
     # =====================================
-    # REAL DATA
+    # LOAD REAL DATA
     # =====================================
 
     if args.real_mean_path is None:
-
         raise ValueError(
             "Precisas de indicar --real_mean_path"
         )
 
     if args.real_hist_path is None:
-
         raise ValueError(
             "Precisas de indicar --real_hist_path"
         )
@@ -387,11 +372,10 @@ def main(args):
 
 
     # =====================================
-    # FAKE DATA
+    # LOAD FAKE DATA
     # =====================================
 
     if args.fake_dir is None:
-
         raise ValueError(
             "Precisas de indicar --fake_dir"
         )
@@ -406,14 +390,13 @@ def main(args):
     )
 
     if len(fake_paths) == 0:
-
         raise ValueError(
             "Fake dataset vazio!"
         )
 
 
     # =====================================
-    # FAKE MEAN
+    # COMPUTE FAKE MEAN
     # =====================================
 
     print(
@@ -427,7 +410,7 @@ def main(args):
 
 
     # =====================================
-    # FAKE HISTOGRAM
+    # COMPUTE FAKE HISTOGRAM
     # =====================================
 
     print(
