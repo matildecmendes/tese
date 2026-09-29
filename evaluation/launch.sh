@@ -10,7 +10,7 @@
 python analysis2.py \
   --fake_dir /nas-ctm01/homes/mcmendes/samples/denoising_dgan/nlst2 \
   --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png_nlst \
-  --out_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/ddgan/NLST2 \
+  --out_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/paper/NLST/ddgan \
   --real_mean_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/NLST/real_mean.npy \
   --real_hist_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/NLST/real_hist.npy \
   --heatmaps --histograms --compare_hist
