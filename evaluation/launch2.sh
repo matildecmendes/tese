@@ -11,4 +11,4 @@ python analysis3.py \
   --save_real_heatmap \
   --real_mean_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/NLST/real_mean.npy \
   --out_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/paper/real/NLST \
-  --title Real (NLST)
+  --title 'Real (NLST)'
