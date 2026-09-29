@@ -13,4 +13,4 @@ python analysis2.py \
   --out_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/paper/LIDC/ddgan \
   --real_mean_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/lidc/real_mean.npy \
   --real_hist_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/lidc/real_hist.npy \
-  --heatmaps --histograms --compare_hist
+  --histograms --compare_hist
