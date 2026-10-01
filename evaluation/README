@@ -1,160 +1,87 @@
-####### ANALYSIS ########
-# DDGAN 
-python analysis.py \
-  --fake_dir /nas-ctm01/homes/mcmendes/samples/denoising_dgan/2 \
-  --out_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/ddgan/hists2 \
-  --real_hist_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/real_hist.npy \
-  --real_mean_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/real_mean.npy \
-  --heatmaps --histograms --kl --emd --compare_hist
+# Evaluation
 
-# DIF-STYLEGAN2
-python analysis.py \
-  --fake_dir /nas-ctm01/homes/mcmendes/samples/diffusion-stylegan2 \
-  --out_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/difstylegan2/hists \
-  --real_hist_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/real_hist.npy \
-  --real_mean_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/real_mean.npy \
-  --heatmaps --histograms --kl --emd --compare_hist
+This folder contains the scripts used to analyze and evaluate the generated lung CT images.
 
-# VQGAN
-python analysis.py \
-  --fake_dir /nas-ctm01/homes/mcmendes/samples/vqgan \
-  --out_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/vqgan/hists2 \
-  --real_hist_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/real_hist.npy \
-  --real_mean_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/real_mean.npy \
-  --heatmaps --histograms --kl --emd --compare_hist
+## Requirements
 
-correr uma vez apenas para gerar .npy do dataset real para depois comparar
-python analysis.py \
-  --compute_real \
-  --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png \
-  --out_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats
+Install the required packages with:
 
-#gerar hist e heatmap real quando já tem os npy
-python analysis.py \
-  --out_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/real_hist \
-  --real_hist_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/real_hist.npy \
-  --real_mean_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/real_mean.npy \
-  --save_real_heatmap --save_real_hist
+```bash
+pip install -r requirements.txt
+```
 
-####### METRICS ########
+## Analysis
 
-# DDGAN
-python metrics.py \
-  --fake_dir /nas-ctm01/homes/mcmendes/samples/denoising_dgan/2 \
-  --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png \
-  --output_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/ddgan/metrics \
-  --compute_fid \
-  --compute_cmmd \
-  --compute_msssim \
-  --compute_frd \
-  --compute_mae_mse \
-  --compute_pr \
-  --cmmd_path /nas-ctm01/homes/mcmendes/tese/cmmd-pytorch
+`analysis.py` is used to generate histograms and mean-image heatmaps of the real and fake datasets.
 
-# DIF-STYLEGAN2
-python metrics.py \
-  --fake_dir /nas-ctm01/homes/mcmendes/samples/diffusion-stylegan2 \
-  --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png \
-  --output_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/difstylegan2/metrics \
-  --compute_fid \
-  --compute_cmmd \
-  --compute_msssim \
-  --compute_frd \
-  --compute_mae_mse \
-  --compute_pr \
-  --cmmd_path /nas-ctm01/homes/mcmendes/tese/cmmd-pytorch
+For the **real dataset**, set the paths in:
 
+```bash
+launchreal.sh
+```
 
-# VQGAN
-python metrics.py \
-  --fake_dir /nas-ctm01/homes/mcmendes/samples/vqgan \
-  --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png \
-  --output_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/vqgan/metrics \
-  --compute_fid \
-  --compute_cmmd \
-  --compute_msssim \
-  --compute_frd \
-  --compute_mae_mse \
-  --compute_pr \
-  --cmmd_path /nas-ctm01/homes/mcmendes/tese/cmmd-pytorch
+and run:
 
-# DDPM
-python metrics.py \
-  --fake_dir /nas-ctm01/homes/mcmendes/samples/ddpm \
-  --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png \
-  --output_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/ddpm/metrics \
-  --compute_fid \
-  --compute_cmmd \
-  --compute_msssim \
-  --compute_frd \
-  --compute_mae_mse \
-  --compute_pr \
-  --cmmd_path /nas-ctm01/homes/mcmendes/tese/cmmd-pytorch
+```bash
+sbatch launchreal.sh
+```
 
-#LAND
-srun --export=ALL python metrics.py \
-  --fake_dir /nas-ctm01/homes/mcmendes/samples/land_256 \
-  --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png \
-  --output_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/land/metrics2 \
-  --batch_size 16 \
-  --compute_fid \
-  --compute_cmmd \
-  --compute_msssim \
-  --compute_frd \
-  --compute_cmmd \
-  --compute_mae_mse \
-  --compute_pr \
-  --cmmd_path /nas-ctm01/homes/mcmendes/tese/cmmd-pytorch
+This generates the real histogram and mean-image `.npy` files used for later comparisons.
 
+For the **generated images**, set the paths in:
 
+```bash
+launch.sh
+```
 
-#### requirements ###
-pip install torch-fidelity
+and run:
 
-# NLST
-python metrics.py \
-  --fake_dir /nas-ctm01/homes/mcmendes/samples/denoising_dgan/NLST \
-  --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png_nlst \
-  --output_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/NLST/metrics \
-  --compute_cmmd \
-  --compute_msssim \
-  --compute_frd \
-  --compute_mae_mse \
-  --compute_pr \
-  --compute_fid \
-  --cmmd_path /nas-ctm01/homes/mcmendes/tese/cmmd-pytorch
+```bash
+sbatch launch.sh
+```
 
-# same fid
-python metrics.py \
-  --fid_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png \
-  --fake_dir /nas-ctm01/homes/mcmendes/samples/denoising_dgan/NLST \
-  --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png_nlst \
-  --output_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/NLST/metrics \
-  --compute_same_fid
+This generates the fake histogram, heatmap, and comparisons with the real dataset.
 
+## Metrics
 
-python metrics.py \
-  --fake_dir /nas-ctm01/homes/mcmendes/samples/stylegan3_nlst \
-  --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png_nlst \
-  --output_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/stylegan3/metrics_nlst \
-  --real_hist /path/real_hist.npy \
-  --fake_hist /path/fake_hist.npy \
-  --compute_fid \
-  --compute_cmmd \
-  --compute_msssim \
-  --compute_frd \
-  --compute_mae_mse \
-  --compute_pr \
-  --compute_hist_metrics \
-  --cmmd_path /nas-ctm01/homes/mcmendes/tese/cmmd-pytorch
+`metrics.py` is used to calculate:
 
+- FID
+- CMMD
+- MS-SSIM
+- FRD
+- MAE
+- MSE
+- Precision and Recall
+- Wasserstein Distance
+- Jensen-Shannon Divergence
 
-##### heatmaps e histogramas
-NLST ddgan
-python analysis2.py \
-  --fake_dir /nas-ctm01/homes/mcmendes/samples/denoising_dgan/nlst2 \
-  --real_dir /nas-ctm01/datasets/public/lidc-mcmendes/slices_png_nlst \
-  --out_dir /nas-ctm01/homes/mcmendes/outputs/evaluation/paper/NLST/ddgan \
-  --real_mean_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/NLST/real_mean.npy \
-  --real_hist_path /nas-ctm01/homes/mcmendes/outputs/evaluation/real_stats/NLST/real_hist.npy \
-  --heatmaps --histograms --compare_hist
+Set the required paths and selected metrics in:
+
+```bash
+launchm.sh
+```
+
+and run:
+
+```bash
+sbatch launchm.sh
+```
+For the histogram-based metrics (Wasserstein Distance and Jensen-Shannon Divergence), the real and fake histogram .npy files must also be provided.
+
+CMMD requires the path to the cmmd-pytorch implementation.
+
+The script also includes an optional real-vs-real FID calculation (--compute_same_fid) for reference.
+
+The results are saved as text files in the specified output directory.
+
+## Files
+
+```text
+analysis.py
+metrics.py
+launchreal.sh
+launch.sh
+launchm.sh
+requirements.txt
+```
